@@ -18,43 +18,66 @@ import type { AuthenticatedUser } from '@app/common/types/authenticated-user.typ
 export class AiProxyController {
   constructor(private readonly aiProxyService: AiProxyService) {}
 
-  // ── GET /v1/ai/products/:productId/context ────────────────────────────────
+  private canViewPurchasePrice(user: AuthenticatedUser): boolean {
+    return user.roles.some((role) => ['Admin', 'SuperAdmin', 'Owner'].includes(role));
+  }
+
   @Get('products/:productId/context')
   @ApiOperation({ summary: 'Contexto de producto para el motor de IA (historial de ventas, stock, precios)' })
   @ApiParam({ name: 'productId', description: 'UUID del producto' })
-  @ApiResponse({ status: 200, description: 'Contexto del producto retornado por el AI Engine' })
+  @ApiResponse({ status: 200, description: 'Contexto del producto' })
   @ApiResponse({ status: 503, description: 'AI Engine no disponible' })
-  getProductContext(@Param('productId') productId: string) {
-    return this.aiProxyService.getProductContext(productId);
+  getProductContext(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('productId') productId: string,
+  ) {
+    return this.aiProxyService.getProductContext(
+      productId,
+      user.warehouseId,
+      this.canViewPurchasePrice(user),
+    );
   }
 
-  // ── POST /v1/ai/predict/price ─────────────────────────────────────────────
   @Post('predict/price')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Predicción de precio óptimo para un producto' })
-  @ApiBody({ schema: { example: { productId: 'uuid', warehouseId: 'uuid', month: '2026-08' } } })
+  @ApiBody({ schema: { example: { product_id: 'uuid' } } })
   @ApiResponse({ status: 200, description: 'Predicción de precio retornada por el AI Engine' })
   @ApiResponse({ status: 503, description: 'AI Engine no disponible' })
-  predictPrice(@Body() body: Record<string, unknown>) {
-    const { productId, ...rest } = body;
-    return this.aiProxyService.predictPrice(productId as string, rest);
+  predictPrice(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: Record<string, unknown>,
+  ) {
+    const productId = String(body.product_id ?? body.productId ?? '');
+    return this.aiProxyService.predictPrice(
+      productId,
+      user.warehouseId,
+      this.canViewPurchasePrice(user),
+    );
   }
 
-  // ── POST /v1/ai/predict/demand ────────────────────────────────────────────
   @Post('predict/demand')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Predicción de demanda futura para un producto' })
-  @ApiBody({ schema: { example: { productId: 'uuid', warehouseId: 'uuid', horizonDays: 30 } } })
+  @ApiBody({ schema: { example: { product_id: 'uuid', horizon_days: 30 } } })
   @ApiResponse({ status: 200, description: 'Predicción de demanda retornada por el AI Engine' })
   @ApiResponse({ status: 503, description: 'AI Engine no disponible' })
-  predictDemand(@Body() body: Record<string, unknown>) {
-    const { productId, ...rest } = body;
-    return this.aiProxyService.predictDemand(productId as string, rest);
+  predictDemand(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: Record<string, unknown>,
+  ) {
+    const productId = String(body.product_id ?? body.productId ?? '');
+    const horizonDays = Number(body.horizon_days ?? body.horizonDays ?? 30);
+    return this.aiProxyService.predictDemand(
+      productId,
+      user.warehouseId,
+      this.canViewPurchasePrice(user),
+      Number.isFinite(horizonDays) ? horizonDays : 30,
+    );
   }
 
-  // ── GET /v1/ai/reports/products-inventory ─────────────────────────────────
   @Get('reports/products-inventory')
-  @ApiOperation({ summary: 'Reporte de inventario de productos generado por el AI Engine' })
+  @ApiOperation({ summary: 'Reporte de inventario de productos enriquecido con IA' })
   @ApiResponse({ status: 200, description: 'Reporte de inventario con análisis de IA' })
   @ApiResponse({ status: 503, description: 'AI Engine no disponible' })
   getProductsInventoryReport(
@@ -65,6 +88,7 @@ export class AiProxyController {
     return this.aiProxyService.getProductsInventoryReport(
       user.warehouseId,
       Number.isFinite(parsedHorizon) ? parsedHorizon : 30,
+      this.canViewPurchasePrice(user),
     );
   }
 }

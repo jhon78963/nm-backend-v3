@@ -23,7 +23,7 @@ class PriceOptimizationRequest(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    product_id: int = Field(..., gt=0, description="Identificador único del producto")
+    product_id: str = Field(..., min_length=1, description="Identificador único del producto")
     current_cost: float = Field(..., ge=0.0, description="Costo actual del producto")
     current_sale_price: float = Field(
         ...,
@@ -56,7 +56,7 @@ class PurchasePredictionRequest(BaseModel):
     - total_sales_all_time  <- ventas históricas
     """
 
-    product_id: int = Field(..., gt=0, description="Identificador del producto")
+    product_id: str = Field(..., min_length=1, description="Identificador del producto")
     current_stock: int = Field(..., ge=0, description="Stock actual en inventario")
     horizon_days: int = Field(
         default=30,
@@ -82,7 +82,7 @@ class PurchasePredictionRequest(BaseModel):
 class PriceOptimizationResponse(BaseModel):
     """Respuesta con el precio sugerido para un producto."""
 
-    product_id: int = Field(..., description="Identificador del producto evaluado")
+    product_id: str = Field(..., min_length=1, description="Identificador del producto evaluado")
     suggested_price: float = Field(..., description="Precio de venta sugerido")
     minimum_price: float = Field(
         ..., description="Precio mínimo viable (costo + 5% margen base)"
@@ -101,7 +101,7 @@ class PriceOptimizationResponse(BaseModel):
 class PurchasePredictionResponse(BaseModel):
     """Respuesta con la proyección de ventas y la cantidad sugerida de compra."""
 
-    product_id: int = Field(..., description="Identificador del producto evaluado")
+    product_id: str = Field(..., min_length=1, description="Identificador del producto evaluado")
     projected_sales: int = Field(
         ..., description="Unidades proyectadas a vender en horizon_days"
     )
@@ -116,7 +116,7 @@ class PurchasePredictionResponse(BaseModel):
 
 
 class BulkPredictionItemRequest(BaseModel):
-    product_id: int = Field(..., gt=0)
+    product_id: str = Field(..., min_length=1)
     price: PriceOptimizationRequest | None = None
     demand: PurchasePredictionRequest
 
@@ -126,7 +126,7 @@ class BulkPredictionRequest(BaseModel):
 
 
 class BulkPredictionItemResponse(BaseModel):
-    product_id: int
+    product_id: str
     suggested_price: float | None = None
     suggested_min_price: float | None = None
     suggested_purchase_quantity: int | None = None

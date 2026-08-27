@@ -62,8 +62,11 @@ class ModelRegistry:
             "cargado" if self._price_pipeline else "no disponible",
         )
 
-    def get_demand_model(self, product_id: int) -> DemandModel | None:
-        return self._demand_models.get(product_id)
+    def get_demand_model(self, product_id: str) -> DemandModel | None:
+        try:
+            return self._demand_models.get(int(product_id))
+        except ValueError:
+            return self._demand_models.get(product_id)
 
     def get_price_pipeline(self) -> Pipeline | None:
         return self._price_pipeline
