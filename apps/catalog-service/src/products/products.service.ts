@@ -6,7 +6,7 @@ import {
 import { DatabaseService } from '@app/database';
 import { CreateProductDto, UpdateProductDto } from './dto/create-product.dto';
 import { mapProductCreateInput, mapProductInput } from './product.mapper';
-import { reconcileMasterStock, readMasterStockForProductSize } from './product-inventory.helper';
+import { reconcileMasterStock, readMasterStockForProductSize } from '@app/common/utils/product-inventory.util';
 import { ProductFiltersDto } from './dto/product-filters.dto';
 import { AddProductSizeDto, UpdateProductSizeDto } from './dto/add-product-size.dto';
 import { AddSizeColorDto } from './dto/add-size-color.dto';

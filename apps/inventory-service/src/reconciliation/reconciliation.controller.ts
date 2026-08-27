@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
 import { CurrentUser } from '@app/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@app/common/types/authenticated-user.type';
 import { ReconciliationService } from './reconciliation.service';
+import { BulkUpdateReconciliationDto } from './dto/bulk-update-reconciliation.dto';
 
 @ApiTags('Reconciliation')
 @ApiBearerAuth()
@@ -51,12 +52,12 @@ export class ReconciliationController {
   bulkUpdate(
     @CurrentUser() user: AuthenticatedUser,
     @Param('productId') productId: string,
-    @Body() body: { updates: { colorId: string; productSizeId: string; stock: number }[] },
+    @Body() body: BulkUpdateReconciliationDto,
   ) {
     return this.reconciliationService.bulkUpdate(
       productId,
       user.warehouseId,
-      body.updates ?? [],
+      body,
     );
   }
 }

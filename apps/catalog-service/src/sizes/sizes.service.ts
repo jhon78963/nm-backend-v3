@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { DatabaseService } from '@app/database';
 import { CreateSizeDto } from './dto/create-size.dto';
-import { buildMasterStockByProductSizeId } from '../products/product-inventory.helper';
+import { buildMasterStockByProductSizeId } from '@app/common/utils/product-inventory.util';
 import {
   paginatedResponse,
   parsePagination,

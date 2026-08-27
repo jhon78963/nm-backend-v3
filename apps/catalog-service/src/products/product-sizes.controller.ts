@@ -15,7 +15,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   readColorStock,
   syncMasterBalanceToColorSum,
-} from './product-inventory.helper';
+} from '@app/common/utils/product-inventory.util';
 import { ProductHistoryService } from '../product-history/product-history.service';
 
 class AddColorByProductSizeDto {

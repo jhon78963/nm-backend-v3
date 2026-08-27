@@ -1,6 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '@app/database';
 import type { Prisma } from '@prisma/client';
+import {
+  buildMasterStockByProductSizeId,
+  reconcileMasterStock,
+  syncMasterBalanceToColorSum,
+} from '@app/common/utils/product-inventory.util';
+import type { BulkUpdateReconciliationDto } from './dto/bulk-update-reconciliation.dto';
 
 const PRODUCT_INCLUDE = {
   gender: { select: { id: true, name: true } },
@@ -42,9 +48,23 @@ export class ReconciliationService {
       orderBy: { name: 'asc' },
     });
 
+    const productSizeIds = products.flatMap((product) =>
+      product.productSizes.map((ps) => ps.id),
+    );
+    const masterStockBySizeId = await buildMasterStockByProductSizeId(
+      this.db,
+      warehouseId,
+      productSizeIds,
+    );
+
     return {
       products: products.map((product) =>
-        this.mapReconciliationProduct(product, warehouseId, noColorId),
+        this.mapReconciliationProduct(
+          product,
+          warehouseId,
+          noColorId,
+          masterStockBySizeId,
+        ),
       ),
     };
   }
@@ -58,7 +78,18 @@ export class ReconciliationService {
 
     if (!product) return null;
 
-    return this.mapReconciliationProduct(product, warehouseId, noColorId);
+    const masterStockBySizeId = await buildMasterStockByProductSizeId(
+      this.db,
+      warehouseId,
+      product.productSizes.map((ps) => ps.id),
+    );
+
+    return this.mapReconciliationProduct(
+      product,
+      warehouseId,
+      noColorId,
+      masterStockBySizeId,
+    );
   }
 
   async getPosSalesSince(productId: string, warehouseId: string) {
@@ -90,29 +121,82 @@ export class ReconciliationService {
   async bulkUpdate(
     productId: string,
     warehouseId: string,
-    updates: { colorId: string; productSizeId: string; stock: number }[],
+    body: BulkUpdateReconciliationDto,
   ) {
-    const ops = updates.map((u) =>
-      this.db.inventoryBalance.upsert({
-        where: {
-          warehouseId_productSizeId_colorId: {
-            warehouseId,
-            productSizeId: u.productSizeId,
-            colorId: u.colorId,
-          },
-        },
-        update: { quantity: u.stock },
-        create: {
-          warehouseId,
-          productSizeId: u.productSizeId,
-          colorId: u.colorId,
-          quantity: u.stock,
-        },
-      }),
-    );
+    const product = await this.db.product.findFirst({
+      where: { id: productId, warehouseId, isDeleted: false },
+      select: { id: true },
+    });
+    if (!product) {
+      throw new NotFoundException('Producto no encontrado.');
+    }
 
-    await this.db.$transaction(ops);
-    return { message: `Inventario actualizado para ${updates.length} variante(s).` };
+    const sizes = body.sizes ?? [];
+    let updatedVariants = 0;
+
+    await this.db.$transaction(async (tx) => {
+      for (const size of sizes) {
+        const productSize = await tx.productSize.findFirst({
+          where: { id: size.id, productId, isDeleted: false },
+          select: { id: true },
+        });
+        if (!productSize) continue;
+
+        const sizeData: Prisma.ProductSizeUpdateInput = {};
+        if (size.barcode !== undefined) {
+          sizeData.barcode = size.barcode;
+        }
+        if (size.purchasePrice != null) {
+          sizeData.purchasePrice = size.purchasePrice;
+        }
+        if (size.salePrice != null) {
+          sizeData.salePrice = size.salePrice;
+        }
+        if (size.minSalePrice != null) {
+          sizeData.minSalePrice = size.minSalePrice;
+        }
+        if (Object.keys(sizeData).length > 0) {
+          await tx.productSize.update({
+            where: { id: size.id },
+            data: sizeData,
+          });
+        }
+
+        if (size.colors && size.colors.length > 0) {
+          for (const color of size.colors) {
+            const quantity = Math.max(0, Math.trunc(color.stock));
+            await tx.inventoryBalance.upsert({
+              where: {
+                warehouseId_productSizeId_colorId: {
+                  warehouseId,
+                  productSizeId: size.id,
+                  colorId: color.colorId,
+                },
+              },
+              update: { quantity },
+              create: {
+                warehouseId,
+                productSizeId: size.id,
+                colorId: color.colorId,
+                quantity,
+              },
+            });
+            updatedVariants += 1;
+          }
+          await syncMasterBalanceToColorSum(tx, warehouseId, size.id);
+        } else if (size.stock !== undefined) {
+          await reconcileMasterStock(tx, warehouseId, size.id, size.stock);
+          updatedVariants += 1;
+        }
+      }
+    });
+
+    const refreshed = await this.getProduct(productId, warehouseId);
+
+    return {
+      message: `Inventario actualizado para ${updatedVariants} variante(s).`,
+      product: refreshed,
+    };
   }
 
   private buildSearchWhere(
@@ -174,6 +258,7 @@ export class ReconciliationService {
     product: ReconciliationProductRecord,
     warehouseId: string,
     noColorId: string | null,
+    masterStockBySizeId: Map<string, number>,
   ) {
     return {
       id: product.id,
@@ -206,12 +291,7 @@ export class ReconciliationService {
           };
         });
 
-        const stock =
-          colors.length > 0
-            ? colors.reduce((sum, color) => sum + color.stock, 0)
-            : noColorId
-              ? balanceMap.get(noColorId) ?? 0
-              : warehouseBalances.reduce((sum, balance) => sum + balance.quantity, 0);
+        const stock = masterStockBySizeId.get(ps.id) ?? 0;
 
         return {
           id: ps.id,
