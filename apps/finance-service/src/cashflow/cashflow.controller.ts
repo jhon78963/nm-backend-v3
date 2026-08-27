@@ -65,8 +65,19 @@ export class CashflowController {
   getDaily(
     @CurrentUser() user: AuthenticatedUser,
     @Query('date') date: string,
+    @Query('filters') filters?: string | string[],
   ) {
-    return this.cashflowService.getDaily(user.warehouseId, date);
+    const activeFilters = Array.isArray(filters)
+      ? filters
+      : typeof filters === 'string' && filters.trim()
+        ? filters.split(',')
+        : undefined;
+
+    return this.cashflowService.getDaily(
+      user.warehouseId,
+      date,
+      activeFilters,
+    );
   }
 
   // ── GET /v1/cashflow/monthly ──────────────────────────────────────────────
@@ -162,7 +173,7 @@ export class CashflowController {
     @Body() dto: CreateCashMovementDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.cashflowService.create(dto, user.id);
+    return this.cashflowService.create(dto, user.warehouseId, user.id);
   }
 
   // ── PATCH /v1/cashflow/:id ────────────────────────────────────────────────

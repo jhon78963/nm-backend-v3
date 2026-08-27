@@ -12,6 +12,39 @@ export interface DailyReport {
   movements: unknown[];
 }
 
+export interface DailyCashflowListItem {
+  id: string;
+  type?: string;
+  time: string;
+  description: string;
+  method: string;
+  amount: number;
+  date?: string | Date;
+  payment_method?: string;
+  payments?: Array<{ method: string; amount: number }>;
+}
+
+export interface DailyCashflowReport {
+  success: true;
+  data: {
+    summary: {
+      opening_balance: number;
+      total_sales: number;
+      total_incomes: number;
+      total_expenses: number;
+      closing_balance?: number;
+      final_balance?: number;
+    };
+    lists: {
+      sales: DailyCashflowListItem[];
+      incomes: DailyCashflowListItem[];
+      expenses: DailyCashflowListItem[];
+    };
+  };
+}
+
+const DEFAULT_PAYMENT_FILTERS = ['CASH', 'YAPE', 'CARD'] as const;
+
 /**
  * CashflowService — Equivale a CashflowService de Laravel.
  *
@@ -45,10 +78,14 @@ export class CashflowService {
     });
   }
 
-  async create(dto: CreateCashMovementDto, createdById: string) {
+  async create(
+    dto: CreateCashMovementDto,
+    warehouseId: string,
+    createdById: string,
+  ) {
     return this.db.cashMovement.create({
       data: {
-        warehouseId: dto.warehouseId,
+        warehouseId,
         type: dto.type,
         amount: dto.amount,
         category: dto.category,
@@ -86,40 +123,168 @@ export class CashflowService {
 
   // ── Reporte diario ────────────────────────────────────────────────────────
 
-  async getDaily(warehouseId: string, date: string): Promise<DailyReport> {
+  async getDaily(
+    warehouseId: string,
+    date: string,
+    activeFilters: string[] = [...DEFAULT_PAYMENT_FILTERS],
+  ): Promise<DailyCashflowReport> {
     const from = dayjs(date).startOf('day').toDate();
-    const to   = dayjs(date).endOf('day').toDate();
+    const to = dayjs(date).endOf('day').toDate();
+    const filters = this.normalizePaymentFilters(activeFilters);
 
-    const movements = await this.db.cashMovement.findMany({
-      where: { warehouseId, isDeleted: false, date: { gte: from, lte: to } },
-      orderBy: { date: 'asc' },
+    const [salesRows, movementModels, prevIncome, prevExpense] = await Promise.all([
+      this.db.sale.findMany({
+        where: {
+          warehouseId,
+          isDeleted: false,
+          status: 'COMPLETED',
+          createdAt: { gte: from, lte: to },
+        },
+        include: {
+          payments: { select: { method: true, amount: true } },
+          details: {
+            select: {
+              productNameSnapshot: true,
+              sizeSnapshot: true,
+              colorSnapshot: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.db.cashMovement.findMany({
+        where: {
+          warehouseId,
+          isDeleted: false,
+          category: 'STORE',
+          paymentMethod: { in: filters },
+          date: { gte: from, lte: to },
+        },
+        orderBy: { date: 'desc' },
+      }),
+      this.db.cashMovement.aggregate({
+        where: { warehouseId, isDeleted: false, type: 'INCOME', date: { lt: from } },
+        _sum: { amount: true },
+      }),
+      this.db.cashMovement.aggregate({
+        where: { warehouseId, isDeleted: false, type: 'EXPENSE', date: { lt: from } },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const sales: DailyCashflowListItem[] = salesRows.flatMap((sale) => {
+      const payments = sale.payments.map((payment) => ({
+        method: payment.method,
+        amount: Number(payment.amount),
+      }));
+      const totalAmount = payments.reduce((sum, payment) => sum + payment.amount, 0);
+
+      if (totalAmount <= 0) {
+        return [];
+      }
+
+      const itemsDescription = sale.details
+        .map((detail) => {
+          const color = detail.colorSnapshot ? ` | ${detail.colorSnapshot}` : '';
+          return `${detail.productNameSnapshot} | ${detail.sizeSnapshot}${color}`;
+        })
+        .join(' + ');
+
+      return [
+        {
+          id: sale.id,
+          type: 'SALE',
+          time: dayjs(sale.createdAt).format('HH:mm A'),
+          description: `${sale.code ?? sale.id} | ${itemsDescription}`,
+          method: sale.paymentMethod,
+          amount: totalAmount,
+          payments,
+        },
+      ];
     });
 
-    const income  = movements.filter((m) => m.type === 'INCOME').reduce((s, m) => s + Number(m.amount), 0);
-    const expense = movements.filter((m) => m.type === 'EXPENSE').reduce((s, m) => s + Number(m.amount), 0);
+    const incomes = movementModels
+      .filter((movement) => movement.type === 'INCOME')
+      .map((movement) => this.mapCashMovementListItem(movement));
 
-    // Balance de apertura = ingresos previos − gastos previos
-    const prevIncome = await this.db.cashMovement.aggregate({
-      where: { warehouseId, isDeleted: false, type: 'INCOME', date: { lt: from } },
-      _sum: { amount: true },
-    });
-    const prevExpense = await this.db.cashMovement.aggregate({
-      where: { warehouseId, isDeleted: false, type: 'EXPENSE', date: { lt: from } },
-      _sum: { amount: true },
-    });
+    const expenses = movementModels
+      .filter((movement) => movement.type === 'EXPENSE')
+      .map((movement) => this.mapCashMovementListItem(movement));
 
+    const totalSales = sales.reduce((sum, row) => sum + row.amount, 0);
+    const totalIncomes = incomes.reduce((sum, row) => sum + row.amount, 0);
+    const totalExpenses = expenses.reduce((sum, row) => sum + row.amount, 0);
     const openingBalance =
       Number(prevIncome._sum.amount ?? 0) - Number(prevExpense._sum.amount ?? 0);
+    const closingBalance = openingBalance + totalSales + totalIncomes - totalExpenses;
 
     return {
-      date,
-      openingBalance,
-      totalIncome: income,
-      totalExpense: expense,
-      closingBalance: openingBalance + income - expense,
-      movements,
+      success: true,
+      data: {
+        summary: {
+          opening_balance: openingBalance,
+          total_sales: totalSales,
+          total_incomes: totalIncomes,
+          total_expenses: totalExpenses,
+          closing_balance: closingBalance,
+          final_balance: closingBalance,
+        },
+        lists: {
+          sales,
+          incomes,
+          expenses,
+        },
+      },
     };
   }
+
+  private normalizePaymentFilters(filters: string[]): string[] {
+    const normalized = filters
+      .map((filter) => filter.trim().toUpperCase())
+      .filter((filter) => filter.length > 0);
+
+    if (!normalized.length) {
+      return [...DEFAULT_PAYMENT_FILTERS];
+    }
+
+    const expanded = new Set<string>();
+    for (const filter of normalized) {
+      if (filter === 'EFECTIVO') {
+        expanded.add('CASH');
+        continue;
+      }
+      if (filter.includes('YAPE') || filter.includes('PLIN')) {
+        expanded.add('YAPE');
+        continue;
+      }
+      if (filter === 'TARJETA' || filter === 'CARD') {
+        expanded.add('CARD');
+        continue;
+      }
+      expanded.add(filter);
+    }
+
+    return [...expanded];
+  }
+
+  private mapCashMovementListItem(movement: {
+    id: string;
+    date: Date;
+    description: string | null;
+    paymentMethod: string;
+    amount: unknown;
+  }): DailyCashflowListItem {
+    return {
+      id: movement.id,
+      time: dayjs(movement.date).format('HH:mm A'),
+      description: movement.description ?? '',
+      method: movement.paymentMethod,
+      payment_method: movement.paymentMethod,
+      amount: Number(movement.amount),
+      date: movement.date,
+    };
+  }
+
 
   // ── Reporte mensual (equivale a getAdminMonthlyReport) ────────────────────
 

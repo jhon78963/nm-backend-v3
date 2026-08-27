@@ -34,6 +34,9 @@ const mockDb = {
     aggregate: jest.fn(),
     groupBy: jest.fn(),
   },
+  sale: {
+    findMany: jest.fn(),
+  },
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -63,7 +66,6 @@ describe('CashflowService', () => {
       mockDb.cashMovement.create.mockResolvedValue(movement);
 
       const dto = {
-        warehouseId: movement.warehouseId,
         type: MovementType.INCOME,
         amount: 150.00,
         category: 'Venta directa',
@@ -72,11 +74,13 @@ describe('CashflowService', () => {
         accountingMonth: '2026-08',
       };
 
-      const result = await service.create(dto, faker.string.uuid());
+      const warehouseId = movement.warehouseId;
+      const result = await service.create(dto, warehouseId, faker.string.uuid());
 
       expect(mockDb.cashMovement.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
+            warehouseId,
             type: 'INCOME',
             amount: 150.00,
             category: 'Venta directa',
@@ -113,27 +117,80 @@ describe('CashflowService', () => {
   // ── getDaily ──────────────────────────────────────────────────────────────
 
   describe('getDaily()', () => {
-    it('calcula correctamente income, expense y closingBalance', async () => {
+    it('incluye ventas del día y movimientos de caja en formato legacy', async () => {
       const warehouseId = faker.string.uuid();
-      mockDb.cashMovement.findMany.mockResolvedValue([
-        makeMovement({ type: 'INCOME', amount: 500 }),
-        makeMovement({ type: 'INCOME', amount: 300 }),
-        makeMovement({ type: 'EXPENSE', amount: 150 }),
+      mockDb.sale.findMany.mockResolvedValue([
+        {
+          id: 'sale-1',
+          code: 'V-TEST',
+          paymentMethod: 'CASH',
+          createdAt: new Date('2026-08-27T04:15:00.000Z'),
+          payments: [{ method: 'CASH', amount: 90 }],
+          details: [
+            {
+              productNameSnapshot: 'test',
+              sizeSnapshot: 'ESTÁNDAR',
+              colorSnapshot: 'Azul',
+            },
+          ],
+        },
       ]);
-      // Balance previo (días anteriores)
+      mockDb.cashMovement.findMany.mockResolvedValue([
+        makeMovement({ type: 'EXPENSE', amount: 50, category: 'STORE' }),
+      ]);
       mockDb.cashMovement.aggregate
-        .mockResolvedValueOnce({ _sum: { amount: 1000 } }) // prevIncome
-        .mockResolvedValueOnce({ _sum: { amount: 200 } });  // prevExpense
+        .mockResolvedValueOnce({ _sum: { amount: 1000 } })
+        .mockResolvedValueOnce({ _sum: { amount: 200 } });
 
-      const result = await service.getDaily(warehouseId, '2026-08-25');
+      const result = await service.getDaily(warehouseId, '2026-08-27');
 
-      expect(result.totalIncome).toBe(800);
-      expect(result.totalExpense).toBe(150);
-      expect(result.openingBalance).toBe(800);    // 1000 - 200
-      expect(result.closingBalance).toBe(1450);   // 800 + 800 - 150
+      expect(result.data.lists.sales).toHaveLength(1);
+      expect(result.data.lists.sales[0].amount).toBe(90);
+      expect(result.data.lists.sales[0].payments).toEqual([{ method: 'CASH', amount: 90 }]);
+      expect(result.data.summary.total_sales).toBe(90);
+      expect(result.data.summary.total_expenses).toBe(50);
+      expect(result.data.summary.opening_balance).toBe(800);
     });
 
-    it('retorna openingBalance = 0 si no hay movimientos previos', async () => {
+    it('incluye el desglose de pagos en ventas mixtas', async () => {
+      mockDb.sale.findMany.mockResolvedValue([
+        {
+          id: 'sale-mixed',
+          code: 'V-MIXED',
+          paymentMethod: 'MIXED',
+          createdAt: new Date('2026-08-26T23:15:00.000Z'),
+          payments: [
+            { method: 'CASH', amount: 5 },
+            { method: 'YAPE', amount: 40 },
+          ],
+          details: [
+            {
+              productNameSnapshot: 'test',
+              sizeSnapshot: 'ESTÁNDAR',
+              colorSnapshot: 'Arena',
+            },
+          ],
+        },
+      ]);
+      mockDb.cashMovement.findMany.mockResolvedValue([]);
+      mockDb.cashMovement.aggregate
+        .mockResolvedValueOnce({ _sum: { amount: null } })
+        .mockResolvedValueOnce({ _sum: { amount: null } });
+
+      const result = await service.getDaily(faker.string.uuid(), '2026-08-26');
+
+      expect(result.data.lists.sales[0]).toMatchObject({
+        amount: 45,
+        method: 'MIXED',
+        payments: [
+          { method: 'CASH', amount: 5 },
+          { method: 'YAPE', amount: 40 },
+        ],
+      });
+    });
+
+    it('retorna listas vacías si no hay ventas ni movimientos', async () => {
+      mockDb.sale.findMany.mockResolvedValue([]);
       mockDb.cashMovement.findMany.mockResolvedValue([]);
       mockDb.cashMovement.aggregate
         .mockResolvedValueOnce({ _sum: { amount: null } })
@@ -141,8 +198,9 @@ describe('CashflowService', () => {
 
       const result = await service.getDaily(faker.string.uuid(), '2026-08-01');
 
-      expect(result.openingBalance).toBe(0);
-      expect(result.closingBalance).toBe(0);
+      expect(result.data.lists.sales).toEqual([]);
+      expect(result.data.summary.total_sales).toBe(0);
+      expect(result.data.summary.opening_balance).toBe(0);
     });
   });
 

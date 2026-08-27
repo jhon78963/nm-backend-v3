@@ -84,7 +84,7 @@ describe('CashflowController', () => {
     it('should return daily cashflow report for warehouse', async () => {
       service.getDaily.mockResolvedValue(mockDailyReport as any);
       const result = await controller.getDaily(mockUser, '2026-08-25');
-      expect(service.getDaily).toHaveBeenCalledWith('warehouse-uuid', '2026-08-25');
+      expect(service.getDaily).toHaveBeenCalledWith('warehouse-uuid', '2026-08-25', undefined);
       expect(result).toMatchObject({ closingBalance: 6500 });
     });
   });
@@ -121,7 +121,6 @@ describe('CashflowController', () => {
   describe('create', () => {
     it('should create a cash movement and return 201', async () => {
       const dto: CreateCashMovementDto = {
-        warehouseId: 'warehouse-uuid',
         type: MovementType.EXPENSE,
         amount: 500,
         category: 'Alquiler',
@@ -131,7 +130,7 @@ describe('CashflowController', () => {
       };
       service.create.mockResolvedValue(mockMovement as any);
       const result = await controller.create(dto, mockUser);
-      expect(service.create).toHaveBeenCalledWith(dto, 'user-uuid');
+      expect(service.create).toHaveBeenCalledWith(dto, 'warehouse-uuid', 'user-uuid');
       expect(result).toMatchObject({ category: 'Alquiler' });
     });
   });

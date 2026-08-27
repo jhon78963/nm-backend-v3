@@ -8,8 +8,13 @@ import { SunatService } from '../sunat/sunat.service';
 import { DocumentSeriesService } from '../sunat/document-series.service';
 import { CheckoutDto, DocumentType } from './dto/checkout.dto';
 import Decimal from 'decimal.js';
+import { randomBytes } from 'crypto';
 
 const IGV_RATE = 0.18;
+
+function generateSaleCode(): string {
+  return `V-${randomBytes(10).toString('hex').toUpperCase()}`;
+}
 
 export interface CheckoutResult {
   sale: { id: string; code: string; totalAmount: number };
@@ -78,6 +83,7 @@ export class CheckoutService {
     const sale = await this.db.$transaction(async (tx) => {
       const created = await tx.sale.create({
         data: {
+          code: generateSaleCode(),
           warehouseId: dto.warehouseId,
           customerId: dto.customerId,
           totalAmount: new Decimal(itemsTotal).toDecimalPlaces(2).toNumber(),
@@ -185,7 +191,7 @@ export class CheckoutService {
     return {
       sale: {
         id: sale.id,
-        code: sale.fullInvoiceNumber ?? `T-${sale.id.slice(0, 8).toUpperCase()}`,
+        code: sale.code ?? sale.fullInvoiceNumber ?? `V-${sale.id.replace(/-/g, '').slice(0, 12).toUpperCase()}`,
         totalAmount: Number(sale.totalAmount),
       },
       ticketUrl: `/v1/tickets/${sale.id}`,

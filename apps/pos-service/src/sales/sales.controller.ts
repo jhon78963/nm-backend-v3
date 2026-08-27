@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Param, Body, Query,
+  Controller, Get, Post, Patch, Delete, Param, Body, Query,
   HttpCode, HttpStatus, UseGuards,
 } from '@nestjs/common';
 import {
@@ -7,9 +7,12 @@ import {
   ApiQuery, ApiParam,
 } from '@nestjs/swagger';
 import { SalesService } from './sales.service';
+import { ExchangeSaleDto } from './dto/exchange-sale.dto';
+import { UpdateSaleDto } from './dto/update-sale.dto';
 import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@app/common/guards/roles.guard';
 import { WarehouseGuard } from '@app/common/guards/warehouse.guard';
+import { Roles } from '@app/common/decorators/roles.decorator';
 import { CurrentUser } from '@app/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@app/common/types/authenticated-user.type';
 
@@ -51,11 +54,44 @@ export class SalesController {
     });
   }
 
+  @Post('exchange')
+  @HttpCode(HttpStatus.OK)
+  @Roles('Vendedora', 'Vendedor', 'Admin', 'Super Admin')
+  @ApiOperation({ summary: 'Registrar cambio de mercadería en una venta existente' })
+  exchange(
+    @Body() dto: ExchangeSaleDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.salesService.processExchange(dto, user);
+  }
+
   @Get(':id')
   @ApiParam({ name: 'id' })
   @ApiOperation({ summary: 'Obtener venta por ID' })
   findById(@Param('id') id: string) {
     return this.salesService.findById(id);
+  }
+
+  @Patch(':id')
+  @Roles('Vendedora', 'Vendedor', 'Admin', 'Super Admin')
+  @ApiOperation({ summary: 'Actualizar venta (ítems, pagos y fecha)' })
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateSaleDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.salesService.update(id, dto, user);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiParam({ name: 'id' })
+  @ApiOperation({ summary: 'Anular venta (alias DELETE)' })
+  remove(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.salesService.delete(id, user.id);
   }
 
   @Post(':id/cancel')

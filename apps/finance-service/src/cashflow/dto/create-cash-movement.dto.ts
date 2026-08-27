@@ -24,10 +24,6 @@ export enum CashPaymentMethod {
  * todo flujo monetario pasa por esta tabla.
  */
 export class CreateCashMovementDto {
-  @ApiProperty({ description: 'ID del almacén' })
-  @IsUUID()
-  warehouseId: string;
-
   @ApiProperty({ enum: MovementType })
   @IsEnum(MovementType)
   type: MovementType;
