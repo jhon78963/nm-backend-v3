@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Put, Param, Body, Query, UseGuards,
+  Controller, Get, Put, Post, Param, Body, Query, UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
@@ -7,6 +7,7 @@ import { CurrentUser } from '@app/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@app/common/types/authenticated-user.type';
 import { ReconciliationService } from './reconciliation.service';
 import { BulkUpdateReconciliationDto } from './dto/bulk-update-reconciliation.dto';
+import { ReplaceVariantColorDto } from './dto/replace-variant-color.dto';
 
 @ApiTags('Reconciliation')
 @ApiBearerAuth()
@@ -56,6 +57,24 @@ export class ReconciliationController {
   ) {
     return this.reconciliationService.bulkUpdate(
       productId,
+      user.warehouseId,
+      body,
+    );
+  }
+
+  @Post(':productId/product-size/:productSizeId/replace-color')
+  @ApiParam({ name: 'productId' })
+  @ApiParam({ name: 'productSizeId' })
+  @ApiOperation({ summary: 'Reemplazar color de variante manteniendo el stock' })
+  replaceVariantColor(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('productId') productId: string,
+    @Param('productSizeId') productSizeId: string,
+    @Body() body: ReplaceVariantColorDto,
+  ) {
+    return this.reconciliationService.replaceVariantColor(
+      productId,
+      productSizeId,
       user.warehouseId,
       body,
     );

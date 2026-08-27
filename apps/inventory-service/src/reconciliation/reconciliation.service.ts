@@ -1,12 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '@app/database';
 import type { Prisma } from '@prisma/client';
 import {
   buildMasterStockByProductSizeId,
+  readColorStock,
   reconcileMasterStock,
   syncMasterBalanceToColorSum,
 } from '@app/common/utils/product-inventory.util';
 import type { BulkUpdateReconciliationDto } from './dto/bulk-update-reconciliation.dto';
+import type { ReplaceVariantColorDto } from './dto/replace-variant-color.dto';
 
 const PRODUCT_INCLUDE = {
   gender: { select: { id: true, name: true } },
@@ -196,6 +198,97 @@ export class ReconciliationService {
     return {
       message: `Inventario actualizado para ${updatedVariants} variante(s).`,
       product: refreshed,
+    };
+  }
+
+  async replaceVariantColor(
+    productId: string,
+    productSizeId: string,
+    warehouseId: string,
+    dto: ReplaceVariantColorDto,
+  ) {
+    const { fromColorId, toColorId } = dto;
+
+    if (fromColorId === toColorId) {
+      throw new BadRequestException('El color destino debe ser distinto al actual.');
+    }
+
+    const productSize = await this.db.productSize.findFirst({
+      where: {
+        id: productSizeId,
+        productId,
+        isDeleted: false,
+        product: { warehouseId, isDeleted: false },
+      },
+      include: { product: { select: { id: true, warehouseId: true } } },
+    });
+    if (!productSize) {
+      throw new NotFoundException('Talla no encontrada.');
+    }
+
+    const fromLink = await this.db.productSizeColor.findFirst({
+      where: { productSizeId, colorId: fromColorId },
+    });
+    if (!fromLink) {
+      throw new NotFoundException('Este color no está asignado a la talla seleccionada.');
+    }
+
+    const toColor = await this.db.color.findFirst({
+      where: { id: toColorId, isDeleted: false },
+      select: { id: true },
+    });
+    if (!toColor) {
+      throw new NotFoundException('Color destino no encontrado.');
+    }
+
+    const wh = productSize.product.warehouseId;
+
+    await this.db.$transaction(async (tx) => {
+      const preservedStock = await readColorStock(tx, wh, productSizeId, fromColorId);
+
+      await tx.productSizeColor.delete({ where: { id: fromLink.id } });
+      await tx.inventoryBalance.deleteMany({
+        where: { warehouseId: wh, productSizeId, colorId: fromColorId },
+      });
+
+      const existingToLink = await tx.productSizeColor.findFirst({
+        where: { productSizeId, colorId: toColorId },
+      });
+      if (!existingToLink) {
+        await tx.productSizeColor.create({
+          data: { productSizeId, colorId: toColorId },
+        });
+      }
+
+      const targetStock = existingToLink
+        ? preservedStock + (await readColorStock(tx, wh, productSizeId, toColorId))
+        : preservedStock;
+
+      await tx.inventoryBalance.upsert({
+        where: {
+          warehouseId_productSizeId_colorId: {
+            warehouseId: wh,
+            productSizeId,
+            colorId: toColorId,
+          },
+        },
+        update: { quantity: targetStock },
+        create: {
+          warehouseId: wh,
+          productSizeId,
+          colorId: toColorId,
+          quantity: targetStock,
+        },
+      });
+
+      await syncMasterBalanceToColorSum(tx, wh, productSizeId);
+    });
+
+    const product = await this.getProduct(productId, warehouseId);
+
+    return {
+      message: 'Color de la variante actualizado; el stock se mantuvo en la nueva etiqueta.',
+      product,
     };
   }
 
