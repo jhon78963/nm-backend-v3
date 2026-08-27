@@ -35,3 +35,14 @@ export function mapCustomerResponse(customer: CustomerRecord) {
     warehouseId: customer.warehouseId,
   };
 }
+
+/** Respuesta usada por el POS (equivale al JSON de Laravel PosController@searchCustomer). */
+export function mapPosCustomerResponse(customer: CustomerRecord) {
+  return {
+    id: customer.id,
+    dni: customer.documentNumber ?? '',
+    name: customer.name.trim(),
+    document_type: customer.documentType,
+    document_number: customer.documentNumber,
+  };
+}

@@ -76,11 +76,18 @@ describe('CustomersController', () => {
   });
 
   describe('searchForPos', () => {
-    it('should return max 10 results for POS search', async () => {
-      service.searchForPos.mockResolvedValue([mockCustomer] as any);
-      const result = await controller.searchForPos(mockUser, 'María');
-      expect(service.searchForPos).toHaveBeenCalledWith('María', 'warehouse-uuid');
-      expect(result).toBeDefined();
+    it('should return a single customer for POS search', async () => {
+      const posCustomer = {
+        id: 'customer-uuid',
+        dni: '87654321',
+        name: 'María García',
+        document_type: 'DNI',
+        document_number: '87654321',
+      };
+      service.searchForPos.mockResolvedValue(posCustomer as any);
+      const result = await controller.searchForPos(mockUser, '87654321');
+      expect(service.searchForPos).toHaveBeenCalledWith('87654321', 'warehouse-uuid');
+      expect(result).toEqual(posCustomer);
     });
   });
 

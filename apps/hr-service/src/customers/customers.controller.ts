@@ -33,9 +33,15 @@ export class CustomersController {
   }
 
   @Get('pos-search')
-  @ApiOperation({ summary: 'Búsqueda rápida de clientes para el POS (máx. 10 resultados)' })
-  @ApiQuery({ name: 'q', required: true, description: 'Nombre o número de documento' })
-  @ApiResponse({ status: 200, description: 'Resultados de búsqueda' })
+  @ApiOperation({
+    summary: 'Buscar o registrar cliente por DNI/RUC para el POS',
+    description:
+      'Busca en BD local; si no existe consulta RENIEC/SUNAT (apis.net.pe) y crea el cliente.',
+  })
+  @ApiQuery({ name: 'q', required: true, description: 'DNI (8 dígitos) o RUC (11 dígitos)' })
+  @ApiResponse({ status: 200, description: 'Cliente encontrado o creado' })
+  @ApiResponse({ status: 404, description: 'Documento no encontrado' })
+  @ApiResponse({ status: 503, description: 'Servicio SUNAT/RENIEC no disponible' })
   searchForPos(
     @CurrentUser() user: AuthenticatedUser,
     @Query('q') query: string,

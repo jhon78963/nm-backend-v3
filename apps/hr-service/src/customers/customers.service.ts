@@ -4,7 +4,12 @@ import {
   paginatedResponse,
   parsePagination,
 } from '@app/common/utils/pagination.util';
-import { mapCustomerInput, mapCustomerResponse } from './customer.mapper';
+import {
+  mapCustomerInput,
+  mapCustomerResponse,
+  mapPosCustomerResponse,
+} from './customer.mapper';
+import { DocumentLookupService } from './document-lookup.service';
 import { UpdateCustomerDto, UpsertCustomerDto } from './dto/upsert-customer.dto';
 
 /**
@@ -13,7 +18,10 @@ import { UpdateCustomerDto, UpsertCustomerDto } from './dto/upsert-customer.dto'
  */
 @Injectable()
 export class CustomersService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly documentLookup: DocumentLookupService,
+  ) {}
 
   async findAll(warehouseId: string, query: Record<string, string | undefined> = {}) {
     const { page, limit, search } = parsePagination(query);
@@ -91,19 +99,46 @@ export class CustomersService {
     });
   }
 
-  /** Búsqueda rápida para el POS */
+  /**
+   * Búsqueda para POS — equivale a CustomerService::findOrCreateByDoc() de Laravel.
+   * 1. Busca en BD local por documento exacto.
+   * 2. Si no existe, consulta apis.net.pe (RENIEC/SUNAT) y crea el cliente.
+   */
   async searchForPos(query: string, warehouseId: string) {
-    const rows = await this.db.customer.findMany({
+    const docNumber = query.trim();
+
+    if (!/^\d{8}$|^\d{11}$/.test(docNumber)) {
+      throw new NotFoundException({
+        success: false,
+        code: 'DOC_NOT_FOUND',
+        message:
+          'El documento debe ser un DNI de 8 dígitos o un RUC de 11 dígitos numéricos.',
+      });
+    }
+
+    const localCustomer = await this.db.customer.findFirst({
       where: {
         warehouseId,
         isDeleted: false,
-        OR: [
-          { name: { contains: query, mode: 'insensitive' } },
-          { documentNumber: { contains: query } },
-        ],
+        documentNumber: docNumber,
       },
-      take: 10,
     });
-    return rows.map(mapCustomerResponse);
+
+    if (localCustomer) {
+      return mapPosCustomerResponse(localCustomer);
+    }
+
+    const lookup = await this.documentLookup.lookupDocument(docNumber);
+
+    const created = await this.db.customer.create({
+      data: {
+        documentType: lookup.documentType,
+        documentNumber: lookup.documentNumber,
+        name: lookup.name,
+        warehouseId,
+      },
+    });
+
+    return mapPosCustomerResponse(created);
   }
 }
