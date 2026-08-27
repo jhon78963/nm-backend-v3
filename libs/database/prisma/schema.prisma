@@ -1,0 +1,706 @@
+// =============================================================================
+// Prisma Schema — nm-services
+// Migración desde Laravel/Eloquent con PostgreSQL
+// Convención: camelCase en Prisma → snake_case en DB (@map)
+// Soft-delete: isDeleted + deletionTime + deletedById (replica el patrón Laravel)
+// =============================================================================
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Multi-tenant ─────────────────────────────────────────────────────────────
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(255)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("creation_time")
+
+  warehouses Warehouse[]
+  users      User[]
+  roles      Role[]
+  setting    TenantSetting?
+
+  @@map("tenants")
+}
+
+model TenantSetting {
+  id              String  @id @default(uuid())
+  tenantId        String  @unique @map("tenant_id")
+  ruc             String? @db.VarChar(11)
+  legalName       String? @map("legal_name")
+  tradeName       String? @map("trade_name")
+  address         String?
+  district        String?
+  province        String?
+  department      String?
+  phone           String? @db.VarChar(20)
+  email           String?
+  website         String?
+  socialLinks     Json?   @map("social_links")
+  logoUrl         String? @map("logo_url")
+  ticketFooterNote String? @map("ticket_footer_note")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_settings")
+}
+
+model Warehouse {
+  id                 String  @id @default(uuid())
+  name               String  @db.VarChar(255)
+  tenantId           String  @map("tenant_id")
+  catalogPublicToken String? @unique @map("catalog_public_token")
+  isDeleted          Boolean  @default(false) @map("is_deleted")
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id])
+  users  User[]
+  products          Product[]
+  vendors           Vendor[]
+  customers         Customer[]
+  purchases         Purchase[]
+  inventoryBalances InventoryBalance[]
+  inventoryMovements InventoryMovement[]
+  sales             Sale[]
+  cashMovements     CashMovement[]
+  documentSeries    DocumentSeries[]
+  accumulatedAccountSetting   AccumulatedAccountSetting?
+  accumulatedAccountTransfers AccumulatedAccountTransfer[]
+  teams             Team[]
+
+  @@map("warehouses")
+}
+
+// ─── Usuarios y RBAC ─────────────────────────────────────────────────────────
+
+model User {
+  id                 String    @id @default(uuid())
+  username           String    @unique @db.VarChar(100)
+  email              String    @unique @db.VarChar(255)
+  passwordHash       String    @map("password_hash")
+  name               String    @db.VarChar(100)
+  surname            String    @db.VarChar(100)
+  phone              String?   @db.VarChar(20)
+  profilePicture     String?   @map("profile_picture")
+  mustChangePassword Boolean   @default(false) @map("must_change_password")
+  isEnabled          Boolean   @default(true) @map("is_enabled")
+  tenantId           String    @map("tenant_id")
+  warehouseId        String?   @map("warehouse_id")
+  isDeleted          Boolean   @default(false) @map("is_deleted")
+  deletionTime       DateTime? @map("deletion_time")
+  createdAt          DateTime  @default(now()) @map("creation_time")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id])
+  warehouse Warehouse? @relation(fields: [warehouseId], references: [id])
+
+  userRoles            UserRole[]
+  refreshTokens        RefreshToken[]
+  actionLogs           UserActionLog[]
+  passwordResets       PasswordResetToken[]
+  productHistories     ProductHistory[]
+  teams                Team[]
+  inventoryMovementsCreated InventoryMovement[] @relation("inventoryMovementsCreated")
+
+  @@map("users")
+}
+
+model Role {
+  id          String  @id @default(uuid())
+  name        String  @db.VarChar(100)
+  guardName   String  @default("api") @map("guard_name")
+  tenantId    String? @map("tenant_id")
+  isSystem    Boolean @default(false) @map("is_system")
+
+  tenant      Tenant?      @relation(fields: [tenantId], references: [id])
+  userRoles   UserRole[]
+  permissions RolePermission[]
+
+  @@unique([name, tenantId])
+  @@map("roles")
+}
+
+model Permission {
+  id        String @id @default(uuid())
+  name      String @unique @db.VarChar(255)
+  guardName String @default("api") @map("guard_name")
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId String @map("user_id")
+  roleId String @map("role_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       String @map("role_id")
+  permissionId String @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ─── Tokens de autenticación ──────────────────────────────────────────────────
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  token     String   @unique
+  email     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  userId    String?  @map("user_id")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+// ─── Auditoría ────────────────────────────────────────────────────────────────
+
+model UserActionLog {
+  id          String   @id @default(uuid())
+  action      String   @db.VarChar(100)
+  description String?
+  metadata    Json?
+  ipAddress   String?  @map("ip_address") @db.VarChar(45)
+  userId      String   @map("user_id")
+  tenantId    String?  @map("tenant_id")
+  warehouseId String?  @map("warehouse_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("user_action_logs")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CATÁLOGO — Products, Colors, Sizes, Genders
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model Gender {
+  id        String    @id @default(uuid())
+  name      String    @db.VarChar(50)
+  shortName String?   @map("short_name") @db.VarChar(10)
+  products  Product[]
+
+  @@map("genders")
+}
+
+model Color {
+  id          String    @id @default(uuid())
+  description String    @db.VarChar(100)
+  hash        String?   @db.VarChar(7)
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+  deletionTime DateTime? @map("deletion_time")
+
+  productSizeColors   ProductSizeColor[]
+  inventoryBalances   InventoryBalance[]
+  inventoryMovements  InventoryMovement[]
+  purchaseLineDeltas  PurchaseLineColorDelta[]
+
+  @@map("colors")
+}
+
+model SizeType {
+  id          String @id @default(uuid())
+  description String @db.VarChar(100)
+  sizes       Size[]
+
+  @@map("size_types")
+}
+
+model Size {
+  id          String   @id @default(uuid())
+  description String   @db.VarChar(50)
+  sizeTypeId  String?  @map("size_type_id")
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+
+  sizeType     SizeType?     @relation(fields: [sizeTypeId], references: [id])
+  productSizes ProductSize[]
+
+  @@map("sizes")
+}
+
+model Product {
+  id                 String    @id @default(uuid())
+  name               String    @db.VarChar(255)
+  description        String?
+  barcode            String?   @db.VarChar(50)
+  percentageDiscount String?   @map("percentage_discount") @db.VarChar(20)
+  cashDiscount       Int?      @map("cash_discount")
+  isFeatured         Boolean   @default(false) @map("is_featured")
+  isOnSale           Boolean   @default(false) @map("is_on_sale")
+  wooStatus          String    @default("draft") @map("woo_status")
+  status             String    @default("active")
+  genderId           String    @map("gender_id")
+  vendorId           String?   @map("vendor_id")
+  warehouseId        String    @map("warehouse_id")
+  isDeleted          Boolean   @default(false) @map("is_deleted")
+  deletionTime       DateTime? @map("deletion_time")
+  createdById        String?   @map("created_by_id")
+  updatedById        String?   @map("updated_by_id")
+  deletedById        String?   @map("deleted_by_id")
+  createdAt          DateTime  @default(now()) @map("creation_time")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  gender       Gender          @relation(fields: [genderId], references: [id])
+  vendor       Vendor?         @relation(fields: [vendorId], references: [id])
+  warehouse    Warehouse       @relation(fields: [warehouseId], references: [id])
+  productSizes ProductSize[]
+  histories    ProductHistory[]
+  wooSyncMaps  WoocommerceSyncMap[]
+
+  @@index([warehouseId])
+  @@index([isDeleted])
+  @@map("products")
+}
+
+model ProductSize {
+  id            String    @id @default(uuid())
+  productId     String    @map("product_id")
+  sizeId        String    @map("size_id")
+  barcode       String?   @db.VarChar(50)
+  purchasePrice Decimal   @map("purchase_price") @db.Decimal(10, 4)
+  salePrice     Decimal   @map("sale_price") @db.Decimal(10, 2)
+  minSalePrice  Decimal?  @map("min_sale_price") @db.Decimal(10, 2)
+  isDeleted     Boolean   @default(false) @map("is_deleted")
+  deletionTime  DateTime? @map("deletion_time")
+
+  product           Product            @relation(fields: [productId], references: [id])
+  size              Size               @relation(fields: [sizeId], references: [id])
+  productSizeColors ProductSizeColor[]
+  inventoryBalances InventoryBalance[]
+  inventoryMovements InventoryMovement[]
+  purchaseLines     PurchaseLine[]
+
+  @@unique([productId, sizeId])
+  @@map("product_size")
+}
+
+model ProductSizeColor {
+  id            String @id @default(uuid())
+  productSizeId String @map("product_size_id")
+  colorId       String @map("color_id")
+
+  productSize ProductSize @relation(fields: [productSizeId], references: [id], onDelete: Cascade)
+  color       Color       @relation(fields: [colorId], references: [id])
+
+  @@unique([productSizeId, colorId])
+  @@map("product_size_color")
+}
+
+model ProductHistory {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  eventType String   @map("event_type") @db.VarChar(100)
+  reason    String?
+  oldValues Json?    @map("old_values")
+  newValues Json?    @map("new_values")
+  createdById String @map("created_by_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product   Product @relation(fields: [productId], references: [id])
+  createdBy User    @relation(fields: [createdById], references: [id])
+
+  @@index([productId])
+  @@map("product_histories")
+}
+
+model WoocommerceSyncMap {
+  id            String    @id @default(uuid())
+  productId     String    @map("product_id")
+  wooProductId  Int       @map("woo_product_id")
+  checksum      String?
+  lastSyncedAt  DateTime? @map("last_synced_at")
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([productId])
+  @@map("woocommerce_sync_maps")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DIRECTORIO — Vendors, Customers
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model Vendor {
+  id          String  @id @default(uuid())
+  name        String  @db.VarChar(255)
+  address     String?
+  local       String? @db.VarChar(100)
+  phone       String? @db.VarChar(20)
+  balance     Decimal @default(0) @db.Decimal(12, 2)
+  warehouseId String  @map("warehouse_id")
+  isDeleted   Boolean @default(false) @map("is_deleted")
+
+  warehouse Warehouse  @relation(fields: [warehouseId], references: [id])
+  products  Product[]
+  purchases Purchase[]
+
+  @@map("vendors")
+}
+
+model Customer {
+  id             String  @id @default(uuid())
+  documentType   String? @map("document_type") @db.VarChar(10)
+  documentNumber String? @map("document_number") @db.VarChar(15)
+  name           String  @db.VarChar(255)
+  warehouseId    String  @map("warehouse_id")
+  isDeleted      Boolean @default(false) @map("is_deleted")
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  sales     Sale[]
+
+  @@map("customers")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INVENTARIO — Ledger (Balance + Movements) + Purchases
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model InventoryBalance {
+  id            String @id @default(uuid())
+  warehouseId   String @map("warehouse_id")
+  productSizeId String @map("product_size_id")
+  colorId       String @map("color_id")
+  quantity      Int    @default(0)
+
+  warehouse   Warehouse   @relation(fields: [warehouseId], references: [id])
+  productSize ProductSize @relation(fields: [productSizeId], references: [id])
+  color       Color       @relation(fields: [colorId], references: [id])
+
+  @@unique([warehouseId, productSizeId, colorId], name: "warehouseId_productSizeId_colorId")
+  @@map("inventory_balances")
+}
+
+model InventoryMovement {
+  id            String   @id @default(uuid())
+  warehouseId   String   @map("warehouse_id")
+  productSizeId String   @map("product_size_id")
+  colorId       String   @map("color_id")
+  direction     String   @db.VarChar(3)   // 'IN' | 'OUT'
+  quantity      Int
+  movementType  String   @map("movement_type") @db.VarChar(50)
+  referenceId   String?  @map("reference_id")
+  referenceType String?  @map("reference_type") @db.VarChar(50)
+  balanceAfter  Int      @default(0) @map("balance_after")
+  occurredAt    DateTime @map("occurred_at")
+  createdById   String   @map("created_by_id")
+
+  warehouse   Warehouse   @relation(fields: [warehouseId], references: [id])
+  productSize ProductSize @relation(fields: [productSizeId], references: [id])
+  color       Color       @relation(fields: [colorId], references: [id])
+  createdBy   User        @relation(name: "inventoryMovementsCreated", fields: [createdById], references: [id])
+
+  @@index([warehouseId, occurredAt])
+  @@index([productSizeId, colorId])
+  @@map("inventory_movements")
+}
+
+model Purchase {
+  id           String    @id @default(uuid())
+  warehouseId  String    @map("warehouse_id")
+  vendorId     String?   @map("vendor_id")
+  supplierName String?   @map("supplier_name")
+  currency     String    @default("PEN") @db.VarChar(3)
+  exchangeRate Decimal?  @map("exchange_rate") @db.Decimal(10, 4)
+  totalAmount  Decimal   @map("total_amount") @db.Decimal(12, 2)
+  status       String    @default("REGISTERED") @db.VarChar(20)
+  notes        String?
+  purchaseDate DateTime  @map("purchase_date")
+  cancelReason String?   @map("cancel_reason")
+  cancelledById String?  @map("cancelled_by_id")
+  cancelledAt  DateTime? @map("cancelled_at")
+  isDeleted    Boolean   @default(false) @map("is_deleted")
+  createdById  String    @map("created_by_id")
+  createdAt    DateTime  @default(now()) @map("creation_time")
+
+  warehouse  Warehouse      @relation(fields: [warehouseId], references: [id])
+  vendor     Vendor?        @relation(fields: [vendorId], references: [id])
+  lines      PurchaseLine[]
+
+  @@index([warehouseId, purchaseDate])
+  @@map("purchases")
+}
+
+model PurchaseLine {
+  id              String   @id @default(uuid())
+  purchaseId      String   @map("purchase_id")
+  productId       String   @map("product_id")
+  sizeId          String   @map("size_id")
+  productSizeId   String   @map("product_size_id")
+  purchasePrice   Decimal  @map("purchase_price") @db.Decimal(10, 4)
+  salePrice       Decimal? @map("sale_price") @db.Decimal(10, 2)
+  quantity        Int
+  hasColorBreakdown Boolean @default(false) @map("has_color_breakdown")
+
+  purchase    Purchase                 @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  productSize ProductSize              @relation(fields: [productSizeId], references: [id])
+  colorDeltas PurchaseLineColorDelta[]
+
+  @@map("purchase_lines")
+}
+
+model PurchaseLineColorDelta {
+  id             String @id @default(uuid())
+  purchaseLineId String @map("purchase_line_id")
+  colorId        String @map("color_id")
+  quantity       Int
+
+  purchaseLine PurchaseLine @relation(fields: [purchaseLineId], references: [id], onDelete: Cascade)
+  color        Color        @relation(fields: [colorId], references: [id])
+
+  @@map("purchase_line_color_deltas")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// POS / VENTAS — Sale, SaleDetail, SalePayment, DocumentSeries (pos-service)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model Sale {
+  id                 String    @id @default(uuid())
+  code               String?   @db.VarChar(50)
+  warehouseId        String    @map("warehouse_id")
+  customerId         String?   @map("customer_id")
+  totalAmount        Decimal   @map("total_amount") @db.Decimal(12, 2)
+  taxableBase        Decimal?  @map("taxable_base") @db.Decimal(12, 2)
+  igv                Decimal?  @db.Decimal(12, 2)
+  paymentMethod      String    @map("payment_method") @db.VarChar(20)
+  status             String    @default("COMPLETED") @db.VarChar(20)
+  // SUNAT / Greenter fields
+  documentType       String?   @map("document_type") @db.VarChar(10)
+  serie              String?   @db.VarChar(10)
+  correlativo        Int?
+  fullInvoiceNumber  String?   @map("full_invoice_number") @db.VarChar(20)
+  sunatStatus        String?   @map("sunat_status") @db.VarChar(20)
+  xmlPath            String?   @map("xml_path")
+  cdrPath            String?   @map("cdr_path")
+  notes              String?
+  deletedById        String?   @map("deleted_by_id")
+  isDeleted          Boolean   @default(false) @map("is_deleted")
+  createdById        String    @map("created_by_id")
+  createdAt          DateTime  @default(now()) @map("creation_time")
+
+  warehouse             Warehouse              @relation(fields: [warehouseId], references: [id])
+  customer              Customer?              @relation(fields: [customerId], references: [id])
+  details               SaleDetail[]
+  payments              SalePayment[]
+  electronicDocumentLogs ElectronicDocumentLog[]
+
+  @@index([warehouseId, createdAt])
+  @@map("sales")
+}
+
+model SaleDetail {
+  id            String  @id @default(uuid())
+  saleId        String  @map("sale_id")
+  productSizeId String  @map("product_size_id")
+  colorId       String? @map("color_id")
+  // Snapshots al momento de la venta
+  productNameSnapshot String @map("product_name_snapshot")
+  sizeSnapshot        String @map("size_snapshot")
+  colorSnapshot       String? @map("color_snapshot")
+  quantity      Int
+  unitPrice     Decimal @map("unit_price") @db.Decimal(10, 2)
+  subtotal      Decimal @db.Decimal(12, 2)
+
+  sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@map("sale_details")
+}
+
+model SalePayment {
+  id       String  @id @default(uuid())
+  saleId   String  @map("sale_id")
+  method   String  @db.VarChar(20)
+  amount   Decimal @db.Decimal(12, 2)
+  reference String? @db.VarChar(255)
+
+  sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@map("sale_payments")
+}
+
+model DocumentSeries {
+  id            String @id @default(uuid())
+  warehouseId   String @map("warehouse_id")
+  documentType  String @map("document_type") @db.VarChar(10)
+  serie         String @db.VarChar(10)
+  currentNumber Int    @default(1) @map("current_number")
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@unique([warehouseId, documentType, serie])
+  @@map("document_series")
+}
+
+model ElectronicDocumentLog {
+  id           String   @id @default(uuid())
+  saleId       String   @map("sale_id")
+  action       String   @db.VarChar(20)
+  requestPayload  Json? @map("request_payload")
+  responsePayload Json? @map("response_payload")
+  sunatCode    String?  @map("sunat_code") @db.VarChar(10)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  sale Sale @relation(fields: [saleId], references: [id])
+
+  @@map("electronic_document_logs")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FINANZAS — CashMovement, AccumulatedAccount (finance-service)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model CashMovement {
+  id                    String    @id @default(uuid())
+  warehouseId           String    @map("warehouse_id")
+  type                  String    @db.VarChar(10) // 'INCOME' | 'EXPENSE'
+  amount                Decimal   @db.Decimal(12, 2)
+  category              String    @db.VarChar(100)
+  paymentMethod         String    @map("payment_method") @db.VarChar(20)
+  description           String?
+  date                  DateTime
+  accountingMonth       String    @map("accounting_month") @db.VarChar(7) // 'YYYY-MM'
+  purchaseId            String?   @map("purchase_id")
+  accumulatedBalanceApplied Boolean @default(false) @map("accumulated_balance_applied")
+  isDeleted             Boolean   @default(false) @map("is_deleted")
+  createdById           String    @map("created_by_id")
+  createdAt             DateTime  @default(now()) @map("creation_time")
+
+  warehouse Warehouse            @relation(fields: [warehouseId], references: [id])
+  vouchers  CashMovementVoucher[]
+
+  @@index([warehouseId, accountingMonth])
+  @@map("cash_movements")
+}
+
+model CashMovementVoucher {
+  id             String @id @default(uuid())
+  cashMovementId String @map("cash_movement_id")
+  voucherPath    String @map("voucher_path")
+  sortOrder      Int    @default(0) @map("sort_order")
+
+  cashMovement CashMovement @relation(fields: [cashMovementId], references: [id], onDelete: Cascade)
+
+  @@map("cash_movement_vouchers")
+}
+
+model AccumulatedAccountSetting {
+  id                  String   @id @default(uuid())
+  warehouseId         String   @unique @map("warehouse_id")
+  cashBalance         Decimal  @map("cash_balance") @db.Decimal(12, 2)
+  digitalBalance      Decimal  @map("digital_balance") @db.Decimal(12, 2)
+  trackingStartMonth  String   @map("tracking_start_month") @db.VarChar(7)
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@map("accumulated_account_settings")
+}
+
+model AccumulatedAccountTransfer {
+  id                     String   @id @default(uuid())
+  warehouseId            String   @map("warehouse_id")
+  transferMonth          String   @map("transfer_month") @db.VarChar(7)
+  cashAmount             Decimal  @map("cash_amount") @db.Decimal(12, 2)
+  digitalAmount          Decimal  @map("digital_amount") @db.Decimal(12, 2)
+  closingCashAmount      Decimal  @map("closing_cash_amount") @db.Decimal(12, 2)
+  closingDigitalAmount   Decimal  @map("closing_digital_amount") @db.Decimal(12, 2)
+  projectedCashAmount    Decimal  @map("projected_cash_amount") @db.Decimal(12, 2)
+  projectedDigitalAmount Decimal  @map("projected_digital_amount") @db.Decimal(12, 2)
+  notes                  String?
+  createdById            String   @map("created_by_id")
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@unique([warehouseId, transferMonth])
+  @@map("accumulated_account_transfers")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RRHH — Teams, Attendance, Payments
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model Team {
+  id          String  @id @default(uuid())
+  dni         String  @db.VarChar(20)
+  name        String  @db.VarChar(100)
+  surname     String  @db.VarChar(100)
+  salary      Decimal @db.Decimal(10, 2)
+  warehouseId String  @map("warehouse_id")
+  userId      String? @map("user_id")
+  isDeleted   Boolean @default(false) @map("is_deleted")
+
+  warehouse   Warehouse     @relation(fields: [warehouseId], references: [id])
+  user        User?         @relation(fields: [userId], references: [id])
+  attendances Attendance[]
+  payments    TeamPayment[]
+
+  @@map("teams")
+}
+
+model Attendance {
+  id         String   @id @default(uuid())
+  teamId     String   @map("team_id")
+  date       DateTime @db.Date
+  status     String   @db.VarChar(20)
+  checkIn    DateTime? @map("check_in")
+  checkOut   DateTime? @map("check_out")
+  delayMinutes Int    @default(0) @map("delay_minutes")
+  notes      String?
+
+  team Team @relation(fields: [teamId], references: [id])
+
+  @@unique([teamId, date])
+  @@map("attendances")
+}
+
+model TeamPayment {
+  id              String   @id @default(uuid())
+  teamId          String   @map("team_id")
+  type            String   @db.VarChar(20)
+  amount          Decimal  @db.Decimal(10, 2)
+  date            DateTime
+  payrollPeriod   String?  @map("payroll_period") @db.VarChar(7)
+  accountingMonth String?  @map("accounting_month") @db.VarChar(7)
+  paymentMethod   String   @map("payment_method") @db.VarChar(20)
+  cashMovementId  String?  @map("cash_movement_id")
+
+  team Team @relation(fields: [teamId], references: [id])
+
+  @@map("team_payments")
+}

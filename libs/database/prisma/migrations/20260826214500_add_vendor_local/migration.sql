@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "vendors" ADD COLUMN IF NOT EXISTS "local" VARCHAR(100);

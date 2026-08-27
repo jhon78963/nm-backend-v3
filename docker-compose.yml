@@ -1,0 +1,64 @@
+# =============================================================================
+# docker-compose.yml — nm-services (Desarrollo local)
+# Levanta PostgreSQL + Redis para desarrollo.
+# Los microservicios NestJS corren con `npm run start:dev:<service>`.
+#
+# Para producción usar docker-compose.prod.yml con imágenes Docker compiladas.
+# =============================================================================
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: nm_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nm_services
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - '5433:5432'
+    volumes:
+      - nm_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis (colas + cache futuro) ──────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: nm_redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── PgAdmin (opcional — GUI para PostgreSQL) ───────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: nm_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@nm.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '5050:80'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ['tools']  # Solo con: docker-compose --profile tools up
+
+volumes:
+  nm_postgres_data:
+
+networks:
+  default:
+    name: nm_network
+    driver: bridge

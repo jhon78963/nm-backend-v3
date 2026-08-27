@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2021",
+    "strict": false,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "outDir": "./dist-migration",
+    "rootDir": "."
+  },
+  "include": ["scripts/migrate-laravel-data.ts", "scripts/migrate-action-logs.ts", "scripts/migrate-permissions.ts"],
+  "exclude": ["node_modules", "dist"]
+}

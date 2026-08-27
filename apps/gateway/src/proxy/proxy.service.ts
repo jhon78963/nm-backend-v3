@@ -1,0 +1,188 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import {
+  resolveHttpAction,
+  resolveHttpDescription,
+  shouldLogHttpRequest,
+} from '@app/common/audit/audit-http.util';
+import { UserActionLogWriter } from '@app/common/audit/user-action-log.writer';
+import type { AuthenticatedUser } from '@app/common/types/authenticated-user.type';
+import { FastifyRequest, FastifyReply } from 'fastify';
+
+type RequestWithUser = FastifyRequest & { user?: AuthenticatedUser };
+
+type ServiceName =
+  | 'auth'
+  | 'catalog'
+  | 'inventory'
+  | 'pos'
+  | 'finance'
+  | 'hr'
+  | 'report'
+  | 'ai-proxy';
+
+/**
+ * ProxyService — BFF (Backend for Frontend) del Gateway.
+ *
+ * ESTRATEGIA DE ROUTING (equivale a routes/api.php de Laravel):
+ *   /api/v1/auth/*        → auth-service      :3001
+ *   /api/v1/products/*    → catalog-service   :3002
+ *   /api/v1/inventory/*   → inventory-service :3003
+ *   /api/v1/checkout/*    → pos-service       :3004
+ *   /api/v1/sales/*       → pos-service       :3004
+ *   /api/v1/cashflow/*    → finance-service   :3005
+ *   /api/v1/teams/*       → hr-service        :3006
+ *   /api/v1/customers/*   → hr-service        :3006
+ *   /api/v1/dashboard/*   → report-service    :3007
+ *   /api/v1/reports/*     → report-service    :3007
+ *   /api/v1/ai/*          → report-service    :3007 (AI proxy)
+ *
+ * El JWT ya fue validado en JwtAuthGuard antes de llegar aquí.
+ * El gateway reenvía el header Authorization al servicio destino.
+ */
+@Injectable()
+export class ProxyService {
+  private readonly logger = new Logger(ProxyService.name);
+  private readonly serviceUrls: Record<ServiceName, string>;
+
+  constructor(
+    private readonly config: ConfigService,
+    private readonly actionLogWriter: UserActionLogWriter,
+  ) {
+    this.serviceUrls = {
+      'auth':      config.get('AUTH_SERVICE_URL',      'http://localhost:3001'),
+      'catalog':   config.get('CATALOG_SERVICE_URL',   'http://localhost:3002'),
+      'inventory': config.get('INVENTORY_SERVICE_URL', 'http://localhost:3003'),
+      'pos':       config.get('POS_SERVICE_URL',       'http://localhost:3004'),
+      'finance':   config.get('FINANCE_SERVICE_URL',   'http://localhost:3005'),
+      'hr':        config.get('HR_SERVICE_URL',        'http://localhost:3006'),
+      'report':    config.get('REPORT_SERVICE_URL',    'http://localhost:3007'),
+      'ai-proxy':  config.get('REPORT_SERVICE_URL',    'http://localhost:3007'),
+    };
+  }
+
+  resolveService(path: string): ServiceName {
+    if (path.startsWith('/api/v1/auth'))           return 'auth';
+    if (path.startsWith('/api/v1/users'))          return 'auth';
+    if (path.startsWith('/api/v1/roles'))          return 'auth';
+    if (path.startsWith('/api/v1/warehouses'))     return 'auth';
+    if (path.startsWith('/api/v1/tenants'))        return 'auth';
+    if (path.startsWith('/api/v1/user-action-logs')) return 'auth';
+    if (path.startsWith('/api/v1/profile'))        return 'auth';
+    if (path.startsWith('/api/v1/products'))       return 'catalog';
+    if (path.startsWith('/api/v1/product-sizes')) return 'catalog';
+    if (path.startsWith('/api/v1/colors'))    return 'catalog';
+    if (path.startsWith('/api/v1/sizes'))     return 'catalog';
+    if (path.startsWith('/api/v1/genders'))   return 'catalog';
+    if (path.startsWith('/api/v1/inventory')) return 'inventory';
+    if (path.startsWith('/api/v1/purchases')) return 'inventory';
+    if (path.startsWith('/api/v1/kardex'))    return 'inventory';
+    if (path.startsWith('/api/v1/checkout'))  return 'pos';
+    if (path.startsWith('/api/v1/sales'))     return 'pos';
+    if (path.startsWith('/api/v1/tickets'))   return 'pos';
+    if (path.startsWith('/api/v1/sunat'))     return 'pos';
+    if (path.startsWith('/api/v1/cashflow'))  return 'finance';
+    if (path.startsWith('/api/v1/financial')) return 'finance';
+    if (path.startsWith('/api/v1/financial-summary')) return 'finance';
+    if (path.startsWith('/api/v1/accumulated')) return 'finance';
+    if (path.startsWith('/api/v1/teams'))     return 'hr';
+    if (path.startsWith('/api/v1/customers')) return 'hr';
+    if (path.startsWith('/api/v1/vendors'))   return 'hr';
+    if (path.startsWith('/api/v1/attendance')) return 'hr';
+    if (path.startsWith('/api/v1/payments'))  return 'hr';
+    if (path.startsWith('/api/v1/dashboard')) return 'report';
+    if (path.startsWith('/api/v1/reports'))   return 'report';
+    if (path.startsWith('/api/v1/ai'))        return 'ai-proxy';
+    return 'auth'; // fallback
+  }
+
+  async forward(req: FastifyRequest, reply: FastifyReply) {
+    const service = this.resolveService(req.url);
+    const targetUrl = this.buildTargetUrl(this.serviceUrls[service], req.url, service);
+
+    this.logger.debug(`${req.method} ${req.url} → ${service} (${targetUrl})`);
+
+    try {
+      const headers: Record<string, string> = {
+        'content-type': 'application/json',
+        accept: 'application/json',
+      };
+
+      // Propagar auth, warehouse y tenant headers
+      if (req.headers.authorization) headers['authorization'] = req.headers.authorization;
+      if (req.headers['x-warehouse-id']) headers['x-warehouse-id'] = req.headers['x-warehouse-id'] as string;
+      if (req.headers['x-tenant-id']) headers['x-tenant-id'] = req.headers['x-tenant-id'] as string;
+
+      const response = await fetch(targetUrl, {
+        method: req.method,
+        headers,
+        body: ['GET', 'DELETE', 'HEAD'].includes(req.method)
+          ? undefined
+          : JSON.stringify(req.body),
+        signal: AbortSignal.timeout(30_000),
+      });
+
+      const contentType = response.headers.get('content-type') ?? 'application/json';
+      const body = await response.text();
+
+      this.logHttpActivity(req, response.status);
+
+      void reply
+        .status(response.status)
+        .header('content-type', contentType)
+        .send(body);
+    } catch (err) {
+      this.logger.error(`Proxy error: ${(err as Error).message}`);
+      void reply.status(503).send({
+        statusCode: 503,
+        message: `Servicio ${service} temporalmente no disponible.`,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * auth-service usa URI versioning (/v1/*). El resto de microservicios expone rutas sin /v1.
+   */
+  private logHttpActivity(req: FastifyRequest, statusCode: number): void {
+    const path = (req.url ?? '').split('?')[0];
+    const actor = (req as RequestWithUser).user;
+    if (!actor || !shouldLogHttpRequest(req.method, path)) {
+      return;
+    }
+
+    void this.actionLogWriter.logSafely({
+      action: resolveHttpAction(req.method, path),
+      description: resolveHttpDescription(req.method, path),
+      metadata: {
+        method: req.method,
+        path,
+        status_code: statusCode,
+      },
+      ipAddress: req.ip ?? null,
+      userId: actor.id,
+      tenantId: actor.tenantId,
+      warehouseId: actor.warehouseId || null,
+    });
+  }
+
+  private buildTargetUrl(
+    serviceUrl: string,
+    originalUrl: string,
+    service: ServiceName,
+  ): string {
+    if (service === 'auth') {
+      const path = originalUrl.startsWith('/api/')
+        ? originalUrl.replace(/^\/api/, '')
+        : originalUrl;
+      return `${serviceUrl}${path}`;
+    }
+
+    const path = originalUrl.startsWith('/api/v1/')
+      ? originalUrl.replace(/^\/api\/v1/, '')
+      : originalUrl.startsWith('/api/')
+        ? originalUrl.replace(/^\/api/, '')
+        : originalUrl;
+    return `${serviceUrl}${path}`;
+  }
+}

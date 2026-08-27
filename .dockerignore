@@ -1,0 +1,17 @@
+node_modules
+dist
+.git
+.github
+coverage
+*.md
+docs
+.env
+.env.*
+!.env.docker
+**/*.spec.ts
+**/*.test.ts
+**/test
+**/.DS_Store
+terminals
+*.log
+npm-debug.log*

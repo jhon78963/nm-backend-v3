@@ -1,0 +1,1208 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/teams": {
+      "get": {
+        "operationId": "TeamsController_findAll",
+        "summary": "Listar personal del almacén",
+        "description": "Retorna todos los miembros activos del almacén del usuario autenticado, incluyendo el usuario vinculado (si existe) y conteo de asistencias y pagos.",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Buscar por nombre, apellido o DNI",
+            "schema": {}
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "10"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de miembros del equipo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": [
+                    {
+                      "id": "uuid",
+                      "dni": "12345678",
+                      "name": "Juan",
+                      "surname": "Pérez",
+                      "salary": 1200,
+                      "warehouseId": "uuid",
+                      "user": {
+                        "id": "uuid",
+                        "username": "jperez",
+                        "email": "j@nm.com"
+                      },
+                      "_count": {
+                        "attendances": 22,
+                        "payments": 3
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado — Bearer token requerido"
+          }
+        },
+        "tags": [
+          "Teams"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "TeamsController_create",
+        "summary": "Registrar nuevo miembro del equipo",
+        "description": "Crea un nuevo trabajador en el almacén. El DNI debe ser único por almacén.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Miembro creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTeamDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "409": {
+            "description": "Ya existe un miembro con ese DNI en el almacén"
+          }
+        },
+        "tags": [
+          "Teams"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/teams/{id}": {
+      "get": {
+        "operationId": "TeamsController_findById",
+        "summary": "Obtener un miembro del equipo por ID",
+        "description": "Incluye las últimas 30 asistencias y los últimos 10 pagos del miembro.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del miembro del equipo",
+            "schema": {
+              "example": "a1b2c3d4-...",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Miembro del equipo encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTeamDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Miembro del equipo no encontrado"
+          }
+        },
+        "tags": [
+          "Teams"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "TeamsController_update",
+        "summary": "Actualizar datos del miembro del equipo",
+        "description": "Actualización parcial — solo los campos enviados se modifican.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del miembro",
+            "schema": {
+              "example": "a1b2c3d4-...",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Campos a actualizar (todos opcionales en PATCH)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Miembro actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTeamDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Miembro del equipo no encontrado"
+          }
+        },
+        "tags": [
+          "Teams"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "TeamsController_remove",
+        "summary": "Dar de baja a un miembro del equipo",
+        "description": "Soft delete — marca el registro como eliminado sin borrar de la base de datos.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del miembro",
+            "schema": {
+              "example": "a1b2c3d4-...",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Miembro eliminado (soft delete)"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Miembro del equipo no encontrado"
+          }
+        },
+        "tags": [
+          "Teams"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/customers": {
+      "get": {
+        "operationId": "CustomersController_findAll",
+        "summary": "Listar clientes del almacén",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "10"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "1"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Buscar por nombre o documento",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de clientes"
+          }
+        },
+        "tags": [
+          "Customers"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "CustomersController_create",
+        "summary": "Registrar nuevo cliente",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cliente creado exitosamente"
+          }
+        },
+        "tags": [
+          "Customers"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/customers/pos-search": {
+      "get": {
+        "operationId": "CustomersController_searchForPos",
+        "summary": "Búsqueda rápida de clientes para el POS (máx. 10 resultados)",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "Nombre o número de documento",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultados de búsqueda"
+          }
+        },
+        "tags": [
+          "Customers"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/customers/{id}": {
+      "get": {
+        "operationId": "CustomersController_findById",
+        "summary": "Obtener cliente por ID",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del cliente",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cliente encontrado"
+          },
+          "404": {
+            "description": "Cliente no encontrado"
+          }
+        },
+        "tags": [
+          "Customers"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "CustomersController_update",
+        "summary": "Actualizar datos del cliente",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del cliente",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cliente actualizado"
+          },
+          "404": {
+            "description": "Cliente no encontrado"
+          }
+        },
+        "tags": [
+          "Customers"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "CustomersController_remove",
+        "summary": "Eliminar cliente (soft delete)",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del cliente",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Cliente eliminado"
+          },
+          "404": {
+            "description": "Cliente no encontrado"
+          }
+        },
+        "tags": [
+          "Customers"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/vendors": {
+      "get": {
+        "operationId": "VendorsController_findAll",
+        "summary": "Listar proveedores del almacén",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "10"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "1"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Buscar por nombre, teléfono o dirección",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de proveedores"
+          }
+        },
+        "tags": [
+          "Vendors"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "VendorsController_create",
+        "summary": "Registrar nuevo proveedor",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertVendorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Proveedor creado exitosamente"
+          }
+        },
+        "tags": [
+          "Vendors"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/vendors/{id}": {
+      "get": {
+        "operationId": "VendorsController_findById",
+        "summary": "Obtener proveedor por ID",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del proveedor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Proveedor encontrado"
+          },
+          "404": {
+            "description": "Proveedor no encontrado"
+          }
+        },
+        "tags": [
+          "Vendors"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "VendorsController_update",
+        "summary": "Actualizar datos del proveedor",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del proveedor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVendorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Proveedor actualizado"
+          },
+          "404": {
+            "description": "Proveedor no encontrado"
+          }
+        },
+        "tags": [
+          "Vendors"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "VendorsController_remove",
+        "summary": "Eliminar proveedor (soft delete)",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del proveedor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Proveedor eliminado"
+          },
+          "404": {
+            "description": "Proveedor no encontrado"
+          }
+        },
+        "tags": [
+          "Vendors"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/attendance": {
+      "post": {
+        "operationId": "AttendanceController_record",
+        "summary": "Registrar o actualizar asistencia (upsert por teamId + fecha)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordAttendanceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Asistencia registrada o actualizada"
+          },
+          "400": {
+            "description": "Datos inválidos"
+          }
+        },
+        "tags": [
+          "Attendance"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/attendance/daily": {
+      "get": {
+        "operationId": "AttendanceController_getDailySummary",
+        "summary": "Resumen de asistencia del día para el almacén",
+        "parameters": [
+          {
+            "name": "date",
+            "required": true,
+            "in": "query",
+            "description": "Fecha en formato YYYY-MM-DD",
+            "schema": {
+              "example": "2026-08-25",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado de asistencia de todos los miembros"
+          }
+        },
+        "tags": [
+          "Attendance"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/attendance/monthly": {
+      "get": {
+        "operationId": "AttendanceController_getByMonth",
+        "summary": "Asistencia mensual por colaborador o resumen por almacén",
+        "parameters": [
+          {
+            "name": "month",
+            "required": true,
+            "in": "query",
+            "description": "Mes en formato YYYY-MM",
+            "schema": {
+              "example": "2026-08",
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": false,
+            "in": "query",
+            "description": "UUID del colaborador; si se envía, retorna registros por fecha",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registros del mes o resumen por empleado"
+          }
+        },
+        "tags": [
+          "Attendance"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/payments/monthly": {
+      "get": {
+        "operationId": "PaymentsController_getByMonth",
+        "summary": "Listar pagos del mes para el almacén",
+        "parameters": [
+          {
+            "name": "month",
+            "required": true,
+            "in": "query",
+            "description": "Mes contable en formato YYYY-MM",
+            "schema": {
+              "example": "2026-08",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de pagos del período"
+          }
+        },
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/payments/payroll": {
+      "get": {
+        "operationId": "PaymentsController_getPayroll",
+        "summary": "Vista de nómina por colaborador",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "query",
+            "description": "UUID del colaborador",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "month",
+            "required": true,
+            "in": "query",
+            "description": "Mes (1-12)",
+            "schema": {
+              "example": "7",
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "required": true,
+            "in": "query",
+            "description": "Año",
+            "schema": {
+              "example": "2026",
+              "type": "string"
+            }
+          },
+          {
+            "name": "period",
+            "required": false,
+            "in": "query",
+            "description": "full | q1 | q2",
+            "schema": {
+              "example": "full",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cálculo de nómina con asistencia y movimientos"
+          }
+        },
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/payments": {
+      "post": {
+        "operationId": "PaymentsController_create",
+        "summary": "Registrar pago al personal (salario, bono, adelanto)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pago registrado exitosamente"
+          },
+          "404": {
+            "description": "Miembro del equipo no encontrado"
+          }
+        },
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/payments/{id}": {
+      "patch": {
+        "operationId": "PaymentsController_update",
+        "summary": "Actualizar datos de un pago",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del pago",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pago actualizado"
+          },
+          "404": {
+            "description": "Pago no encontrado"
+          }
+        },
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "PaymentsController_remove",
+        "summary": "Eliminar pago",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del pago",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Pago eliminado"
+          },
+          "404": {
+            "description": "Pago no encontrado"
+          }
+        },
+        "tags": [
+          "Payments"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Novedades Maritex — HR Service",
+    "description": "API de Recursos Humanos: gestión de equipos de trabajo, asistencia diaria, pagos de personal, clientes y proveedores del almacén.",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Teams",
+      "description": "Personal de almacén"
+    },
+    {
+      "name": "Attendance",
+      "description": "Registro de asistencia"
+    },
+    {
+      "name": "Payments",
+      "description": "Pagos y adelantos de personal"
+    },
+    {
+      "name": "Customers",
+      "description": "Clientes"
+    },
+    {
+      "name": "Vendors",
+      "description": "Proveedores"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "access-token": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "CreateTeamDto": {
+        "type": "object",
+        "properties": {
+          "dni": {
+            "type": "string",
+            "example": "12345678",
+            "description": "DNI del trabajador"
+          },
+          "name": {
+            "type": "string",
+            "example": "Juan"
+          },
+          "surname": {
+            "type": "string",
+            "example": "Pérez García"
+          },
+          "salary": {
+            "type": "number",
+            "description": "Salario mensual en soles",
+            "minimum": 0
+          },
+          "warehouseId": {
+            "type": "string",
+            "description": "ID del almacén al que pertenece"
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID del usuario vinculado (si tiene acceso al sistema)"
+          }
+        },
+        "required": [
+          "dni",
+          "name",
+          "surname",
+          "salary",
+          "warehouseId"
+        ]
+      },
+      "UpsertCustomerDto": {
+        "type": "object",
+        "properties": {
+          "dni": {
+            "type": "string",
+            "example": "74935446"
+          },
+          "name": {
+            "type": "string",
+            "example": "Anali Saraeli"
+          },
+          "surname": {
+            "type": "string",
+            "example": "Trujillo Cardenas"
+          }
+        },
+        "required": [
+          "dni",
+          "name",
+          "surname"
+        ]
+      },
+      "UpdateCustomerDto": {
+        "type": "object",
+        "properties": {
+          "dni": {
+            "type": "string",
+            "example": "74935446"
+          },
+          "name": {
+            "type": "string",
+            "example": "Anali Saraeli"
+          },
+          "surname": {
+            "type": "string",
+            "example": "Trujillo Cardenas"
+          }
+        }
+      },
+      "UpsertVendorDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Distribuidora Norte S.A.C.",
+            "maxLength": 255
+          },
+          "address": {
+            "type": "string",
+            "example": "Av. Industrial 123, Lima",
+            "maxLength": 255
+          },
+          "local": {
+            "type": "string",
+            "example": "Galería Central",
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "example": "999888777",
+            "maxLength": 20
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateVendorDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Distribuidora Norte S.A.C.",
+            "maxLength": 255
+          },
+          "address": {
+            "type": "string",
+            "example": "Av. Industrial 123, Lima",
+            "maxLength": 255
+          },
+          "local": {
+            "type": "string",
+            "example": "Galería Central",
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "example": "999888777",
+            "maxLength": 20
+          }
+        }
+      },
+      "RecordAttendanceDto": {
+        "type": "object",
+        "properties": {
+          "teamId": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-08-25"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PUNTUAL",
+              "TOLERANCIA",
+              "TARDE",
+              "FALTA",
+              "FALTA_INJUSTIFICADA",
+              "DESCANSO",
+              "VACACIONES",
+              "RECUPERACION",
+              "VALDEO"
+            ]
+          },
+          "checkIn": {
+            "type": "string",
+            "example": "09:05",
+            "description": "Hora de entrada (HH:mm)"
+          },
+          "checkOut": {
+            "type": "string",
+            "example": "18:00"
+          },
+          "delayMinutes": {
+            "type": "number",
+            "description": "Minutos de retraso",
+            "minimum": 0
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "teamId",
+          "date",
+          "status"
+        ]
+      },
+      "CreatePaymentDto": {
+        "type": "object",
+        "properties": {
+          "teamId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PAYMENT",
+              "ADVANCE",
+              "DEDUCTION"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0.01
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-08-25"
+          },
+          "payrollPeriod": {
+            "type": "string",
+            "example": "q2",
+            "description": "Quincena de nómina (q1 o q2)"
+          },
+          "accountingMonth": {
+            "type": "string",
+            "example": "2026-08",
+            "description": "Mes contable YYYY-MM"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "enum": [
+              "CASH",
+              "TRANSFER",
+              "YAPE",
+              "CARD"
+            ]
+          },
+          "cashMovementId": {
+            "type": "string",
+            "description": "Vincular a un CashMovement en el finance-service"
+          }
+        },
+        "required": [
+          "teamId",
+          "type",
+          "amount",
+          "date",
+          "accountingMonth",
+          "paymentMethod"
+        ]
+      }
+    }
+  }
+}

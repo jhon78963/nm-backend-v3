@@ -1,0 +1,651 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/cashflow": {
+      "get": {
+        "operationId": "CashflowController_findAll",
+        "summary": "Listar movimientos de caja con filtros",
+        "parameters": [
+          {
+            "name": "month",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-08",
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "INCOME",
+                "EXPENSE"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "warehouseId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Cashflow"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "CashflowController_create",
+        "summary": "Registrar ingreso o gasto de caja",
+        "description": "Crea un movimiento de caja. \n- **type: INCOME** → ingreso (ventas manuales, cobros, etc.)\n- **type: EXPENSE** → egreso (gastos operativos, pagos a proveedores, etc.)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCashMovementDto"
+              },
+              "examples": {
+                "ingreso": {
+                  "summary": "Ingreso por venta en efectivo",
+                  "value": {
+                    "warehouseId": "uuid-almacen",
+                    "type": "INCOME",
+                    "amount": 250,
+                    "category": "Venta directa",
+                    "paymentMethod": "CASH",
+                    "date": "2026-08-25",
+                    "accountingMonth": "2026-08"
+                  }
+                },
+                "gasto": {
+                  "summary": "Gasto operativo con Yape",
+                  "value": {
+                    "warehouseId": "uuid-almacen",
+                    "type": "EXPENSE",
+                    "amount": 85.5,
+                    "category": "Materiales de limpieza",
+                    "paymentMethod": "YAPE",
+                    "description": "Compra mensual de útiles de limpieza",
+                    "date": "2026-08-25",
+                    "accountingMonth": "2026-08"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Movimiento creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateCashMovementDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          },
+          "401": {
+            "description": "No autorizado"
+          }
+        },
+        "tags": [
+          "Cashflow"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/cashflow/daily": {
+      "get": {
+        "operationId": "CashflowController_getDaily",
+        "summary": "Reporte diario de caja",
+        "description": "Retorna apertura, todos los movimientos del día y balance de cierre para el almacén del usuario autenticado.",
+        "parameters": [
+          {
+            "name": "date",
+            "required": true,
+            "in": "query",
+            "description": "Fecha YYYY-MM-DD",
+            "schema": {
+              "example": "2026-08-25",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte de caja del día",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "date": "2026-08-25",
+                    "openingBalance": 1500,
+                    "totalIncome": 3200.5,
+                    "totalExpense": 850,
+                    "closingBalance": 3850.5,
+                    "movements": []
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          }
+        },
+        "tags": [
+          "Cashflow"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/cashflow/monthly": {
+      "get": {
+        "operationId": "CashflowController_getMonthlyReport",
+        "summary": "Reporte mensual de caja",
+        "description": "Retorna totales de ingresos/gastos agrupados por categoría y método de pago. Super Admin puede filtrar por almacén; tienda solo ve sus propios datos.",
+        "parameters": [
+          {
+            "name": "month",
+            "required": true,
+            "in": "query",
+            "description": "Mes contable YYYY-MM",
+            "schema": {
+              "example": "2026-08",
+              "type": "string"
+            }
+          },
+          {
+            "name": "warehouseId",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por almacén (solo Super Admin)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte mensual de ingresos y gastos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "accountingMonth": "2026-08",
+                    "totalIncome": 45000,
+                    "totalExpense": 12500,
+                    "netBalance": 32500,
+                    "incomeCount": 120,
+                    "expenseCount": 45,
+                    "byCategory": [
+                      {
+                        "category": "Ventas",
+                        "type": "INCOME",
+                        "amount": 40000
+                      }
+                    ],
+                    "byPaymentMethod": {
+                      "CASH": 20000,
+                      "YAPE": 15000,
+                      "CARD": 10000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          }
+        },
+        "tags": [
+          "Cashflow"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/cashflow/{id}": {
+      "get": {
+        "operationId": "CashflowController_findById",
+        "summary": "Obtener movimiento de caja por ID",
+        "description": "Incluye los vouchers (comprobantes) adjuntos al movimiento, ordenados por posición.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del movimiento de caja",
+            "schema": {
+              "example": "a1b2c3d4-...",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Movimiento de caja encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateCashMovementDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Movimiento no encontrado"
+          }
+        },
+        "tags": [
+          "Cashflow"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "CashflowController_update",
+        "summary": "Actualizar un movimiento de caja",
+        "description": "Actualización parcial — solo los campos enviados se modifican.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del movimiento",
+            "schema": {
+              "example": "a1b2c3d4-...",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Campos a actualizar (todos opcionales en PATCH)",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCashMovementDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Movimiento actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateCashMovementDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Movimiento no encontrado"
+          }
+        },
+        "tags": [
+          "Cashflow"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "CashflowController_delete",
+        "summary": "Eliminar movimiento de caja",
+        "description": "Soft delete — el registro se marca como eliminado, no se borra físicamente.",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "UUID del movimiento",
+            "schema": {
+              "example": "a1b2c3d4-...",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Movimiento eliminado (soft delete)"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Movimiento no encontrado"
+          }
+        },
+        "tags": [
+          "Cashflow"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/accumulated/settings": {
+      "get": {
+        "operationId": "AccumulatedController_showSettings",
+        "summary": "Obtener configuración de cuenta acumulada del almacén",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Configuración de cuenta acumulada"
+          },
+          "404": {
+            "description": "Cuenta acumulada no inicializada"
+          }
+        },
+        "tags": [
+          "Accumulated Account"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "AccumulatedController_initializeSettings",
+        "summary": "Inicializar cuenta acumulada (solo una vez por almacén)",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Cuenta acumulada inicializada"
+          },
+          "400": {
+            "description": "La cuenta acumulada ya fue inicializada"
+          }
+        },
+        "tags": [
+          "Accumulated Account"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "AccumulatedController_updateSettings",
+        "summary": "Actualizar saldos iniciales de la cuenta acumulada",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Configuración actualizada"
+          },
+          "404": {
+            "description": "Cuenta acumulada no inicializada"
+          }
+        },
+        "tags": [
+          "Accumulated Account"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/accumulated/preview": {
+      "get": {
+        "operationId": "AccumulatedController_monthEndPreview",
+        "summary": "Vista previa del cierre de mes: saldo proyectado",
+        "parameters": [
+          {
+            "name": "month",
+            "required": true,
+            "in": "query",
+            "description": "Mes YYYY-MM",
+            "schema": {
+              "example": "2026-08",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Proyección del saldo al cierre del mes"
+          },
+          "404": {
+            "description": "Cuenta acumulada no inicializada"
+          }
+        },
+        "tags": [
+          "Accumulated Account"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/accumulated/transfers": {
+      "get": {
+        "operationId": "AccumulatedController_listTransfers",
+        "summary": "Listar cierres de mes registrados",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Historial de transferencias de cierre de mes"
+          }
+        },
+        "tags": [
+          "Accumulated Account"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "AccumulatedController_recordTransfer",
+        "summary": "Registrar cierre de mes con montos reales",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Cierre de mes registrado"
+          },
+          "400": {
+            "description": "Ya existe un cierre para ese mes"
+          }
+        },
+        "tags": [
+          "Accumulated Account"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/financial-summary": {
+      "get": {
+        "operationId": "FinancialSummaryController_getSummary",
+        "summary": "Resumen financiero consolidado del mes (ventas, caja, acumulado, planilla)",
+        "parameters": [
+          {
+            "name": "month",
+            "required": true,
+            "in": "query",
+            "description": "Mes en formato YYYY-MM",
+            "schema": {
+              "example": "2026-08",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard financiero: ventas, cashflow, saldo acumulado y top categorías de gasto"
+          }
+        },
+        "tags": [
+          "Financial Summary"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Novedades Maritex — Finance Service",
+    "description": "API de Finanzas: flujo de caja diario/mensual, cuentas acumuladas y resumen financiero consolidado por almacén.",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Cashflow",
+      "description": "Ingresos y gastos de caja"
+    },
+    {
+      "name": "Accumulated",
+      "description": "Cuentas acumuladas y configuración contable"
+    },
+    {
+      "name": "Financial Summary",
+      "description": "Resumen financiero consolidado"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "access-token": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "CreateCashMovementDto": {
+        "type": "object",
+        "properties": {
+          "warehouseId": {
+            "type": "string",
+            "description": "ID del almacén"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "INCOME",
+              "EXPENSE"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0.01
+          },
+          "category": {
+            "type": "string",
+            "example": "Pago de alquiler",
+            "maxLength": 100
+          },
+          "paymentMethod": {
+            "type": "string",
+            "enum": [
+              "CASH",
+              "YAPE",
+              "PLIN",
+              "CARD",
+              "TRANSFER"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "description": "Fecha de la transacción (ISO 8601)",
+            "example": "2026-08-25"
+          },
+          "accountingMonth": {
+            "type": "string",
+            "description": "Mes contable en formato YYYY-MM (puede diferir del mes de la fecha)",
+            "example": "2026-08"
+          },
+          "purchaseId": {
+            "type": "string",
+            "description": "ID de compra asociada (para pagos a proveedores)"
+          }
+        },
+        "required": [
+          "warehouseId",
+          "type",
+          "amount",
+          "category",
+          "paymentMethod",
+          "date",
+          "accountingMonth"
+        ]
+      }
+    }
+  }
+}

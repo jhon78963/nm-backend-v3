@@ -1,0 +1,247 @@
+# =============================================================================
+# docker-compose.full.yml — nm-services (Stack completo)
+# Incluye: PostgreSQL + Redis + todos los microservicios NestJS
+# Uso: ./scripts/start-docker-env.sh   (o ver ese script para comandos exactos)
+# =============================================================================
+
+x-service-defaults: &service-defaults
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  env_file:
+    - .env
+    - .env.docker
+  depends_on:
+    postgres:
+      condition: service_healthy
+  networks:
+    - default
+
+services:
+
+  # ── Infraestructura ──────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: nm_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nm_services}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - '${POSTGRES_PORT:-5433}:5432'
+    volumes:
+      - nm_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - default
+
+  redis:
+    image: redis:7-alpine
+    container_name: nm_redis
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - default
+
+  # ── Migración (corre una vez y sale) ─────────────────────────────────────────
+
+  migrate:
+    <<: *service-defaults
+    container_name: nm_migrate
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: auth-service
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-nm_services}
+    command: >
+      sh -c "npx prisma migrate deploy --schema=libs/database/prisma/schema.prisma && echo 'Migraciones aplicadas correctamente'"
+    restart: 'no'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Microservicios ────────────────────────────────────────────────────────────
+
+  gateway:
+    <<: *service-defaults
+    container_name: nm_gateway
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: gateway
+    environment:
+      SERVICE_NAME: gateway
+      APP_PORT: 3000
+      GATEWAY_PORT: 3000
+      AUTH_SERVICE_URL: http://auth-service:3001
+      CATALOG_SERVICE_URL: http://catalog-service:3002
+      INVENTORY_SERVICE_URL: http://inventory-service:3003
+      POS_SERVICE_URL: http://pos-service:3004
+      FINANCE_SERVICE_URL: http://finance-service:3005
+      HR_SERVICE_URL: http://hr-service:3006
+      REPORT_SERVICE_URL: http://report-service:3007
+    ports:
+      - '3000:3000'
+    depends_on:
+      - migrate
+      - auth-service
+      - catalog-service
+      - inventory-service
+      - pos-service
+      - finance-service
+      - hr-service
+      - report-service
+
+  auth-service:
+    <<: *service-defaults
+    container_name: nm_auth
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: auth-service
+    environment:
+      SERVICE_NAME: auth-service
+      APP_PORT: 3001
+    ports:
+      - '3001:3001'
+    depends_on:
+      - migrate
+
+  catalog-service:
+    <<: *service-defaults
+    container_name: nm_catalog
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: catalog-service
+    environment:
+      SERVICE_NAME: catalog-service
+      APP_PORT: 3002
+    ports:
+      - '3002:3002'
+    depends_on:
+      - migrate
+
+  inventory-service:
+    <<: *service-defaults
+    container_name: nm_inventory
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: inventory-service
+    environment:
+      SERVICE_NAME: inventory-service
+      APP_PORT: 3003
+    ports:
+      - '3003:3003'
+    depends_on:
+      - migrate
+
+  pos-service:
+    <<: *service-defaults
+    container_name: nm_pos
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: pos-service
+    environment:
+      SERVICE_NAME: pos-service
+      APP_PORT: 3004
+    ports:
+      - '3004:3004'
+    depends_on:
+      - migrate
+
+  finance-service:
+    <<: *service-defaults
+    container_name: nm_finance
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: finance-service
+    environment:
+      SERVICE_NAME: finance-service
+      APP_PORT: 3005
+    ports:
+      - '3005:3005'
+    depends_on:
+      - migrate
+
+  hr-service:
+    <<: *service-defaults
+    container_name: nm_hr
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: hr-service
+    environment:
+      SERVICE_NAME: hr-service
+      APP_PORT: 3006
+    ports:
+      - '3006:3006'
+    depends_on:
+      - migrate
+
+  report-service:
+    <<: *service-defaults
+    container_name: nm_report
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: report-service
+    environment:
+      SERVICE_NAME: report-service
+      APP_PORT: 3007
+    ports:
+      - '3007:3007'
+    depends_on:
+      - migrate
+
+  # ── Herramientas opcionales ────────────────────────────────────────────────
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: nm_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@nm.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '5050:80'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ['tools']
+    networks:
+      - default
+
+volumes:
+  nm_postgres_data:
+
+networks:
+  default:
+    name: nm_network
+    driver: bridge
