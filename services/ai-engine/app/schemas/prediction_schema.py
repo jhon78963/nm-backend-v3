@@ -2,15 +2,15 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 # ---------------------------------------------------------------------------
-# Request Models — recibidos desde nm-backend (Laravel)
+# Request Models — recibidos desde el gateway NestJS (ai-proxy-service)
 # ---------------------------------------------------------------------------
 
 
 class PriceOptimizationRequest(BaseModel):
     """
-    Producto enviado por nm-backend para optimización de precio.
+    Producto enviado por el gateway NestJS para optimización de precio.
 
-    Mapeo desde Laravel:
+    Mapeo desde la base de datos:
     - product_id            <- products.id
     - current_cost          <- product_size.purchase_price
     - category              <- genders.name
@@ -44,9 +44,9 @@ class PriceOptimizationRequest(BaseModel):
 
 class PurchasePredictionRequest(BaseModel):
     """
-    Solicitud de predicción de restock enviada por nm-backend.
+    Solicitud de predicción de restock enviada por el gateway NestJS.
 
-    Mapeo desde Laravel:
+    Mapeo desde la base de datos:
     - product_id            <- products.id
     - current_stock         <- inventario maestro del producto
     - horizon_days          <- días a proyectar (por defecto 30)
@@ -75,7 +75,7 @@ class PurchasePredictionRequest(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Response Models — devueltos a nm-backend (Laravel)
+# Response Models — devueltos al gateway NestJS (ai-proxy-service)
 # ---------------------------------------------------------------------------
 
 

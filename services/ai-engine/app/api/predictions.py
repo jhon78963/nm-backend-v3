@@ -25,7 +25,7 @@ def predict_price(request: PriceOptimizationRequest) -> PriceOptimizationRespons
     """
     Devuelve el precio sugerido y márgenes para un producto.
 
-    Payload desde nm-backend (Laravel):
+    Payload desde el gateway NestJS (ai-proxy-service):
     - product_id       <- products.id
     - current_cost     <- product_size.purchase_price
     - category         <- genders.name
@@ -46,7 +46,7 @@ def predict_demand(request: PurchasePredictionRequest) -> PurchasePredictionResp
     """
     Proyecta ventas y sugiere cantidad de restock para un producto.
 
-    Payload desde nm-backend (Laravel):
+    Payload desde el gateway NestJS (ai-proxy-service):
     - product_id    <- products.id
     - current_stock <- stock actual del producto en inventario
     - horizon_days  <- días a proyectar (por defecto 30)
@@ -66,7 +66,8 @@ def predict_bulk(request: BulkPredictionRequest) -> BulkPredictionResponse:
     """
     Predicciones masivas de precio y demanda para el reporte de inventario.
 
-    Procesa hasta 500 productos en una sola llamada (sin HTTP por producto).
+    Procesa hasta 500 productos en una sola llamada desde el gateway NestJS.
+    Operación CPU-bound: se ejecuta en el threadpool de FastAPI (def síncrono).
     """
     price_optimizer = PriceOptimizer()
     demand_forecaster = DemandForecaster()

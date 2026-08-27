@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 import pandas as pd
+from prophet import Prophet
 
 from app.ml_models.croston import CrostonModel
 from app.ml_models.registry import get_registry

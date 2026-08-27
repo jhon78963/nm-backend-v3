@@ -30,7 +30,7 @@ app/
 - Keep functions small and modular. Separation of concerns is mandatory.
 
 ## 5. API Communication
-- This microservice communicates with a Laravel backend.
+- This microservice communicates with the **NestJS gateway** (`ai-proxy-service`) via HTTP.
 - Endpoints must return standard JSON responses.
 - Implement proper HTTP status codes and catch exceptions returning graceful error JSONs.
 

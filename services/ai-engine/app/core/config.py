@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import lru_cache
 from pathlib import Path
 
@@ -25,11 +27,16 @@ class Settings(BaseSettings):
     database_url: str = Field(
         default="postgresql+psycopg2://user:pass@localhost:5432/nm_database",
         validation_alias="DATABASE_URL",
-        description="URL de conexión para Pandas/SQLAlchemy (misma BD que nm-backend Laravel).",
+        description="URL de conexión para Pandas/SQLAlchemy (misma BD que nm-backend NestJS).",
     )
     api_key: str = Field(
         validation_alias="API_KEY",
-        description="Clave compartida con nm-backend para proteger los endpoints. OBLIGATORIO.",
+        description="Clave compartida con el gateway NestJS para proteger los endpoints. OBLIGATORIO.",
+    )
+    cors_origins: list[str] = Field(
+        default=["http://localhost:3000", "http://localhost:8000"],
+        validation_alias="CORS_ORIGINS",
+        description="Orígenes permitidos para CORS. En producción reemplazar con la URL del gateway NestJS.",
     )
     min_demand_history_days: int = Field(
         default=30,
