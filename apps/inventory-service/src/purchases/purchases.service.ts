@@ -9,6 +9,9 @@ import {
   RegisterBulkPurchaseDto,
   PurchaseLineDto,
 } from './dto/register-bulk-purchase.dto';
+import { UpdatePurchaseDto } from './dto/update-purchase.dto';
+import { UpdatePurchaseLineDto } from './dto/update-purchase-line.dto';
+import { AppendPurchaseLinesDto } from './dto/append-purchase-lines.dto';
 
 /**
  * PurchasesService — Equivale a la combinación de:
@@ -54,83 +57,7 @@ export class PurchasesService {
 
       // 3. Crear líneas y ajustar ledger de inventario
       for (const lineDto of dto.lines) {
-        const productSize = await this.resolveProductSize(tx, lineDto);
-
-        const line = await tx.purchaseLine.create({
-          data: {
-            purchaseId: purchase.id,
-            productId: lineDto.productId,
-            sizeId: lineDto.sizeId,
-            productSizeId: productSize.id,
-            purchasePrice: lineDto.purchasePrice,
-            salePrice: lineDto.salePrice,
-            quantity: lineDto.quantity,
-            hasColorBreakdown: (lineDto.colorDeltas?.length ?? 0) > 0,
-          },
-        });
-
-        if (lineDto.colorDeltas?.length) {
-          // Ingreso con desglose por color
-          this.validateColorDeltasTotal(lineDto);
-
-          for (const delta of lineDto.colorDeltas) {
-            await tx.purchaseLineColorDelta.create({
-              data: { purchaseLineId: line.id, colorId: delta.colorId, quantity: delta.quantity },
-            });
-
-            await tx.inventoryBalance.upsert({
-              where: {
-                warehouseId_productSizeId_colorId: {
-                  warehouseId: dto.warehouseId,
-                  productSizeId: productSize.id,
-                  colorId: delta.colorId,
-                },
-              },
-              create: {
-                warehouseId: dto.warehouseId,
-                productSizeId: productSize.id,
-                colorId: delta.colorId,
-                quantity: delta.quantity,
-              },
-              update: { quantity: { increment: delta.quantity } },
-            });
-          }
-        } else {
-          // Sin desglose: stock genérico (colorId = null o color "sin color")
-          const noColorId = await this.getNoColorId(tx);
-          await tx.inventoryBalance.upsert({
-            where: {
-              warehouseId_productSizeId_colorId: {
-                warehouseId: dto.warehouseId,
-                productSizeId: productSize.id,
-                colorId: noColorId,
-              },
-            },
-            create: {
-              warehouseId: dto.warehouseId,
-              productSizeId: productSize.id,
-              colorId: noColorId,
-              quantity: lineDto.quantity,
-            },
-            update: { quantity: { increment: lineDto.quantity } },
-          });
-        }
-
-        // Registrar el movimiento de inventario (ledger)
-        await tx.inventoryMovement.create({
-          data: {
-            warehouseId: dto.warehouseId,
-            productSizeId: productSize.id,
-            colorId: lineDto.colorDeltas?.[0]?.colorId ?? (await this.getNoColorId(tx)),
-            direction: 'IN',
-            quantity: lineDto.quantity,
-            movementType: 'PURCHASE',
-            referenceId: purchase.id,
-            referenceType: 'Purchase',
-            occurredAt: new Date(),
-            createdById,
-          },
-        });
+        await this.addPurchaseLine(tx, purchase, lineDto, createdById);
       }
 
       return tx.purchase.findFirst({
@@ -245,6 +172,349 @@ export class PurchasesService {
     });
     if (!purchase) throw new NotFoundException('Compra no encontrada.');
     return purchase;
+  }
+
+  // ── Actualizar cabecera ───────────────────────────────────────────────────
+
+  async updateHeader(id: string, dto: UpdatePurchaseDto) {
+    const purchase = await this.db.purchase.findFirst({
+      where: { id, isDeleted: false },
+    });
+    if (!purchase) throw new NotFoundException('Compra no encontrada.');
+    this.assertPurchaseMutable(purchase.status);
+
+    await this.db.purchase.update({
+      where: { id },
+      data: {
+        ...(dto.documentNote !== undefined && { notes: dto.documentNote }),
+        ...(dto.registeredAt !== undefined && {
+          purchaseDate: dto.registeredAt ? new Date(dto.registeredAt) : purchase.purchaseDate,
+        }),
+        ...(dto.supplierName !== undefined && { supplierName: dto.supplierName.trim() }),
+        ...(dto.vendorId !== undefined && { vendorId: dto.vendorId || null }),
+      },
+    });
+
+    return { message: 'Compra actualizada.' };
+  }
+
+  // ── Mutaciones de líneas ──────────────────────────────────────────────────
+
+  async updateLine(purchaseId: string, lineId: string, dto: UpdatePurchaseLineDto, userId: string) {
+    const purchase = await this.getMutablePurchaseWithLine(purchaseId, lineId);
+    const line = purchase.lines[0];
+
+    return this.db.$transaction(async (tx) => {
+      await this.revertPurchaseLineStock(tx, purchase, line);
+
+      await tx.purchaseLineColorDelta.deleteMany({
+        where: { purchaseLineId: line.id },
+      });
+
+      const hasColorBreakdown = line.hasColorBreakdown;
+      const colorDeltas = hasColorBreakdown
+        ? (dto.colorDeltas ?? []).map((delta) => ({
+            colorId: delta.colorId,
+            quantity: delta.quantity,
+          }))
+        : [];
+      const quantity = hasColorBreakdown
+        ? colorDeltas.reduce((sum, delta) => sum + delta.quantity, 0)
+        : Math.max(1, dto.sizeOnlyQuantity ?? line.quantity);
+
+      if (hasColorBreakdown && colorDeltas.length === 0) {
+        throw new BadRequestException('Indica las variantes de color y sus cantidades.');
+      }
+
+      await tx.productSize.update({
+        where: { id: line.productSizeId },
+        data: {
+          ...(dto.barcode !== undefined && { barcode: dto.barcode?.trim() || null }),
+          purchasePrice: dto.purchasePrice,
+          ...(dto.salePrice !== undefined && dto.salePrice !== null && { salePrice: dto.salePrice }),
+          ...(dto.minSalePrice !== undefined &&
+            dto.minSalePrice !== null && { minSalePrice: dto.minSalePrice }),
+        },
+      });
+
+      await tx.purchaseLine.update({
+        where: { id: line.id },
+        data: {
+          purchasePrice: dto.purchasePrice,
+          salePrice: dto.salePrice ?? null,
+          quantity,
+        },
+      });
+
+      await this.applyPurchaseLineStock(
+        tx,
+        purchase,
+        {
+          productSizeId: line.productSizeId,
+          quantity,
+          colorDeltas: hasColorBreakdown ? colorDeltas : undefined,
+        },
+        userId,
+      );
+
+      if (hasColorBreakdown) {
+        for (const delta of colorDeltas) {
+          await tx.purchaseLineColorDelta.create({
+            data: {
+              purchaseLineId: line.id,
+              colorId: delta.colorId,
+              quantity: delta.quantity,
+            },
+          });
+        }
+      }
+
+      await this.refreshPurchaseTotals(tx, purchaseId);
+      return { message: 'Línea actualizada.' };
+    });
+  }
+
+  async deleteLine(purchaseId: string, lineId: string, userId: string) {
+    const purchase = await this.getMutablePurchaseWithLine(purchaseId, lineId);
+    const line = purchase.lines[0];
+
+    return this.db.$transaction(async (tx) => {
+      await this.revertPurchaseLineStock(tx, purchase, line);
+
+      await tx.purchaseLineColorDelta.deleteMany({
+        where: { purchaseLineId: line.id },
+      });
+      await tx.purchaseLine.delete({ where: { id: line.id } });
+      await this.refreshPurchaseTotals(tx, purchaseId);
+
+      await tx.inventoryMovement.create({
+        data: {
+          warehouseId: purchase.warehouseId,
+          productSizeId: line.productSizeId,
+          colorId: line.colorDeltas[0]?.colorId ?? (await this.getNoColorId(tx)),
+          direction: 'OUT',
+          quantity: line.quantity,
+          movementType: 'PURCHASE_LINE_REMOVED',
+          referenceId: purchaseId,
+          referenceType: 'Purchase',
+          occurredAt: new Date(),
+          createdById: userId,
+        },
+      });
+
+      return { message: 'Línea eliminada y stock revertido.' };
+    });
+  }
+
+  async appendLines(purchaseId: string, dto: AppendPurchaseLinesDto, userId: string) {
+    const purchase = await this.db.purchase.findFirst({
+      where: { id: purchaseId, isDeleted: false },
+      include: { lines: true },
+    });
+    if (!purchase) throw new NotFoundException('Compra no encontrada.');
+    this.assertPurchaseMutable(purchase.status);
+
+    return this.db.$transaction(async (tx) => {
+      for (const lineDto of dto.lines) {
+        await this.addPurchaseLine(tx, purchase, lineDto, userId);
+      }
+      await this.refreshPurchaseTotals(tx, purchaseId);
+      return { message: 'Líneas agregadas.' };
+    });
+  }
+
+  // ── Helpers privados ──────────────────────────────────────────────────────
+
+  private assertPurchaseMutable(status: string) {
+    if (status === 'CANCELLED') {
+      throw new BadRequestException('La compra está anulada.');
+    }
+  }
+
+  private async getMutablePurchaseWithLine(purchaseId: string, lineId: string) {
+    const purchase = await this.db.purchase.findFirst({
+      where: { id: purchaseId, isDeleted: false },
+      include: {
+        lines: {
+          where: { id: lineId },
+          include: { colorDeltas: true },
+        },
+      },
+    });
+
+    if (!purchase || purchase.lines.length === 0) {
+      throw new NotFoundException('Línea de compra no encontrada.');
+    }
+
+    this.assertPurchaseMutable(purchase.status);
+    return purchase;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async refreshPurchaseTotals(tx: any, purchaseId: string) {
+    const lines = await tx.purchaseLine.findMany({ where: { purchaseId } });
+    const totalAmount = lines.reduce(
+      (sum: number, line: { purchasePrice: unknown; quantity: number }) =>
+        sum + Number(line.purchasePrice) * line.quantity,
+      0,
+    );
+
+    await tx.purchase.update({
+      where: { id: purchaseId },
+      data: { totalAmount },
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async addPurchaseLine(
+    tx: any,
+    purchase: { id: string; warehouseId: string },
+    lineDto: PurchaseLineDto,
+    createdById: string,
+  ) {
+    const productSize = await this.resolveProductSize(tx, lineDto);
+
+    const line = await tx.purchaseLine.create({
+      data: {
+        purchaseId: purchase.id,
+        productId: lineDto.productId,
+        sizeId: lineDto.sizeId,
+        productSizeId: productSize.id,
+        purchasePrice: lineDto.purchasePrice,
+        salePrice: lineDto.salePrice,
+        quantity: lineDto.quantity,
+        hasColorBreakdown: (lineDto.colorDeltas?.length ?? 0) > 0,
+      },
+    });
+
+    if (lineDto.colorDeltas?.length) {
+      this.validateColorDeltasTotal(lineDto);
+
+      for (const delta of lineDto.colorDeltas) {
+        await tx.purchaseLineColorDelta.create({
+          data: { purchaseLineId: line.id, colorId: delta.colorId, quantity: delta.quantity },
+        });
+      }
+    }
+
+    await this.applyPurchaseLineStock(
+      tx,
+      purchase,
+      {
+        productSizeId: productSize.id,
+        quantity: lineDto.quantity,
+        colorDeltas: lineDto.colorDeltas,
+      },
+      createdById,
+    );
+
+    return line;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async applyPurchaseLineStock(
+    tx: any,
+    purchase: { id: string; warehouseId: string },
+    input: {
+      productSizeId: string;
+      quantity: number;
+      colorDeltas?: Array<{ colorId: string; quantity: number }>;
+    },
+    createdById: string,
+  ) {
+    if (input.colorDeltas?.length) {
+      for (const delta of input.colorDeltas) {
+        await tx.inventoryBalance.upsert({
+          where: {
+            warehouseId_productSizeId_colorId: {
+              warehouseId: purchase.warehouseId,
+              productSizeId: input.productSizeId,
+              colorId: delta.colorId,
+            },
+          },
+          create: {
+            warehouseId: purchase.warehouseId,
+            productSizeId: input.productSizeId,
+            colorId: delta.colorId,
+            quantity: delta.quantity,
+          },
+          update: { quantity: { increment: delta.quantity } },
+        });
+      }
+    } else {
+      const noColorId = await this.getNoColorId(tx);
+      await tx.inventoryBalance.upsert({
+        where: {
+          warehouseId_productSizeId_colorId: {
+            warehouseId: purchase.warehouseId,
+            productSizeId: input.productSizeId,
+            colorId: noColorId,
+          },
+        },
+        create: {
+          warehouseId: purchase.warehouseId,
+          productSizeId: input.productSizeId,
+          colorId: noColorId,
+          quantity: input.quantity,
+        },
+        update: { quantity: { increment: input.quantity } },
+      });
+    }
+
+    await tx.inventoryMovement.create({
+      data: {
+        warehouseId: purchase.warehouseId,
+        productSizeId: input.productSizeId,
+        colorId: input.colorDeltas?.[0]?.colorId ?? (await this.getNoColorId(tx)),
+        direction: 'IN',
+        quantity: input.quantity,
+        movementType: 'PURCHASE',
+        referenceId: purchase.id,
+        referenceType: 'Purchase',
+        occurredAt: new Date(),
+        createdById,
+      },
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async revertPurchaseLineStock(
+    tx: any,
+    purchase: { warehouseId: string },
+    line: {
+      productSizeId: string;
+      quantity: number;
+      hasColorBreakdown: boolean;
+      colorDeltas: Array<{ colorId: string; quantity: number }>;
+    },
+  ) {
+    if (line.hasColorBreakdown && line.colorDeltas.length > 0) {
+      for (const delta of line.colorDeltas) {
+        await tx.inventoryBalance.update({
+          where: {
+            warehouseId_productSizeId_colorId: {
+              warehouseId: purchase.warehouseId,
+              productSizeId: line.productSizeId,
+              colorId: delta.colorId,
+            },
+          },
+          data: { quantity: { decrement: delta.quantity } },
+        });
+      }
+      return;
+    }
+
+    const noColorId = await this.getNoColorId(tx);
+    await tx.inventoryBalance.update({
+      where: {
+        warehouseId_productSizeId_colorId: {
+          warehouseId: purchase.warehouseId,
+          productSizeId: line.productSizeId,
+          colorId: noColorId,
+        },
+      },
+      data: { quantity: { decrement: line.quantity } },
+    });
   }
 
   // ── Helpers privados ──────────────────────────────────────────────────────

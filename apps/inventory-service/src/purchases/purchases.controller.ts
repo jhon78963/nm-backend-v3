@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Param, Body, Query,
+  Controller, Get, Post, Patch, Delete, Param, Body, Query,
   HttpCode, HttpStatus, UseGuards, ParseIntPipe, DefaultValuePipe,
 } from '@nestjs/common';
 import {
@@ -9,6 +9,9 @@ import {
 import { PurchasesService } from './purchases.service';
 import { RegisterBulkPurchaseDto } from './dto/register-bulk-purchase.dto';
 import { CancelPurchaseDto } from './dto/cancel-purchase.dto';
+import { UpdatePurchaseDto } from './dto/update-purchase.dto';
+import { UpdatePurchaseLineDto } from './dto/update-purchase-line.dto';
+import { AppendPurchaseLinesDto } from './dto/append-purchase-lines.dto';
 import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
 import { CurrentUser } from '@app/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@app/common/types/authenticated-user.type';
@@ -32,6 +35,53 @@ export class PurchasesController {
     @Query('perPage', new DefaultValuePipe(20), ParseIntPipe) perPage: number,
   ) {
     return this.purchasesService.findAll(user.warehouseId, page, perPage);
+  }
+
+  // ── PATCH /v1/purchases/:id ───────────────────────────────────────────────
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Actualizar cabecera de compra activa' })
+  @ApiParam({ name: 'id', description: 'UUID de la compra' })
+  updateHeader(@Param('id') id: string, @Body() dto: UpdatePurchaseDto) {
+    return this.purchasesService.updateHeader(id, dto);
+  }
+
+  // ── POST /v1/purchases/:id/lines/bulk ───────────────────────────────────────
+  @Post(':id/lines/bulk')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Agregar líneas a una compra activa' })
+  @ApiParam({ name: 'id', description: 'UUID de la compra' })
+  appendLines(
+    @Param('id') id: string,
+    @Body() dto: AppendPurchaseLinesDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.purchasesService.appendLines(id, dto, user.id);
+  }
+
+  // ── PATCH /v1/purchases/:id/lines/:lineId ────────────────────────────────
+  @Patch(':id/lines/:lineId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Actualizar una línea de compra activa' })
+  updateLine(
+    @Param('id') id: string,
+    @Param('lineId') lineId: string,
+    @Body() dto: UpdatePurchaseLineDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.purchasesService.updateLine(id, lineId, dto, user.id);
+  }
+
+  // ── DELETE /v1/purchases/:id/lines/:lineId ───────────────────────────────
+  @Delete(':id/lines/:lineId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Eliminar una línea de compra activa' })
+  deleteLine(
+    @Param('id') id: string,
+    @Param('lineId') lineId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.purchasesService.deleteLine(id, lineId, user.id);
   }
 
   // ── GET /v1/purchases/:id ─────────────────────────────────────────────────
