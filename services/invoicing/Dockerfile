@@ -25,6 +25,7 @@ LABEL service="invoicing-service"
 RUN apk add --no-cache \
         bash \
         curl \
+        curl-dev \
         git \
         unzip \
         zip \
@@ -99,4 +100,6 @@ COPY docker/supervisord.conf /etc/supervisord.conf
 
 EXPOSE 8000
 
+# Producción: nginx + php-fpm via supervisord.
+# Desarrollo local: usar Dockerfile.dev (php artisan serve + hot-reload).
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

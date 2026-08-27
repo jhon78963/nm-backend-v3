@@ -40,6 +40,33 @@ services:
       timeout: 3s
       retries: 5
 
+  # ── Invoicing Service (Laravel + Greenter — polyglot PHP) ─────────────────
+  invoicing:
+    build:
+      context: ./services/invoicing
+      dockerfile: Dockerfile.dev
+    container_name: nm_invoicing
+    restart: unless-stopped
+    env_file:
+      - ./services/invoicing/.env
+    environment:
+      APP_ENV: local
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: nm_services
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+    ports:
+      - '3009:8000'
+    volumes:
+      - ./services/invoicing:/var/www/invoicing
+      - invoicing_vendor:/var/www/invoicing/vendor
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - default
+
   # ── PgAdmin (opcional — GUI para PostgreSQL) ───────────────────────────────
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -57,6 +84,7 @@ services:
 
 volumes:
   nm_postgres_data:
+  invoicing_vendor:
 
 networks:
   default:

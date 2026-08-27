@@ -92,6 +92,14 @@ if [ ! -f "$ENV_FILE" ]; then
   echo ""
 fi
 
+INVOICING_ENV_FILE="$(dirname "$ENV_FILE")/services/invoicing/.env"
+if [ ! -f "$INVOICING_ENV_FILE" ]; then
+  warn "services/invoicing/.env no encontrado. Copiando desde .env.example..."
+  cp "$(dirname "$ENV_FILE")/services/invoicing/.env.example" "$INVOICING_ENV_FILE"
+  warn "⚠️  Configura SUNAT_RUC, SUNAT_SOL_USER/PASS y el certificado en services/invoicing/.env"
+  echo ""
+fi
+
 # ── Profiles ─────────────────────────────────────────────────────────────────
 PROFILES=""
 $DO_TOOLS && PROFILES="--profile tools"
@@ -151,7 +159,8 @@ log "Levantando todos los microservicios en segundo plano..."
 
 $DC -f "$COMPOSE_FILE" $PROFILES up -d \
   gateway auth-service catalog-service inventory-service \
-  pos-service finance-service hr-service report-service
+  pos-service finance-service hr-service report-service \
+  ai-engine invoicing-service
 
 # Esperar a que el gateway responda
 log "Esperando a que el Gateway responda en :3000..."
@@ -181,6 +190,8 @@ echo -e "  │  pos-service       → http://localhost:3004/api/docs       │"
 echo -e "  │  finance-service   → http://localhost:3005/api/docs       │"
 echo -e "  │  hr-service        → http://localhost:3006/api/docs       │"
 echo -e "  │  report-service    → http://localhost:3007/api/docs       │"
+echo -e "  │  ai-engine         → http://localhost:3008/health          │"
+echo -e "  │  invoicing-service → http://localhost:3009/api/health      │"
 echo -e "  └────────────────────────────────────────────────────────────┘"
 echo ""
 echo -e "${CYAN}  BASE DE DATOS${NC}"

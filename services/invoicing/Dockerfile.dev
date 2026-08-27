@@ -1,0 +1,52 @@
+# =============================================================================
+# Dockerfile.dev — nm/invoicing-service (desarrollo local con hot-reload)
+# Usa php artisan serve en lugar de nginx+php-fpm para simplicidad en dev.
+# =============================================================================
+
+FROM php:8.3-cli-alpine
+
+LABEL service="invoicing-service-dev"
+
+RUN apk add --no-cache \
+        bash \
+        curl \
+        curl-dev \
+        git \
+        unzip \
+        zip \
+        libzip-dev \
+        libxml2-dev \
+        libpq-dev \
+        icu-dev \
+        freetype-dev \
+        libjpeg-turbo-dev \
+        libpng-dev \
+        oniguruma-dev \
+        openssl-dev
+
+RUN docker-php-ext-install \
+        soap \
+        xml \
+        dom \
+        curl \
+        zip \
+        mbstring \
+        pdo \
+        pdo_pgsql \
+        intl \
+        opcache \
+    && docker-php-ext-configure gd \
+        --with-freetype \
+        --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" gd
+
+COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/invoicing
+
+COPY docker/entrypoint.dev.sh /usr/local/bin/entrypoint.dev.sh
+RUN chmod +x /usr/local/bin/entrypoint.dev.sh
+
+EXPOSE 8000
+
+CMD ["/usr/local/bin/entrypoint.dev.sh"]
