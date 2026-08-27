@@ -247,6 +247,66 @@
         ]
       }
     },
+    "/cashflow/admin/monthly": {
+      "get": {
+        "operationId": "CashflowController_getAdminMonthlyReport",
+        "summary": "Reporte mensual de gastos administrativos",
+        "parameters": [
+          {
+            "name": "month",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "2026-08",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Cashflow"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
+    "/cashflow/accumulated/monthly": {
+      "get": {
+        "operationId": "CashflowController_getAccumulatedMonthlyReport",
+        "summary": "Reporte mensual de egresos de cuenta acumulada",
+        "parameters": [
+          {
+            "name": "month",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "example": "2026-08",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Cashflow"
+        ],
+        "security": [
+          {
+            "access-token": []
+          }
+        ]
+      }
+    },
     "/cashflow/{id}": {
       "get": {
         "operationId": "CashflowController_findById",
@@ -529,7 +589,7 @@
         "parameters": [
           {
             "name": "month",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "Mes en formato YYYY-MM",
             "schema": {
@@ -588,10 +648,6 @@
       "CreateCashMovementDto": {
         "type": "object",
         "properties": {
-          "warehouseId": {
-            "type": "string",
-            "description": "ID del almacén"
-          },
           "type": {
             "type": "string",
             "enum": [
@@ -637,7 +693,6 @@
           }
         },
         "required": [
-          "warehouseId",
           "type",
           "amount",
           "category",

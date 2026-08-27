@@ -329,13 +329,14 @@
     "/customers/pos-search": {
       "get": {
         "operationId": "CustomersController_searchForPos",
-        "summary": "Búsqueda rápida de clientes para el POS (máx. 10 resultados)",
+        "summary": "Buscar o registrar cliente por DNI/RUC para el POS",
+        "description": "Busca en BD local; si no existe consulta RENIEC/SUNAT (apis.net.pe) y crea el cliente.",
         "parameters": [
           {
             "name": "q",
             "required": true,
             "in": "query",
-            "description": "Nombre o número de documento",
+            "description": "DNI (8 dígitos) o RUC (11 dígitos)",
             "schema": {
               "type": "string"
             }
@@ -343,7 +344,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Resultados de búsqueda"
+            "description": "Cliente encontrado o creado"
+          },
+          "404": {
+            "description": "Documento no encontrado"
+          },
+          "503": {
+            "description": "Servicio SUNAT/RENIEC no disponible"
           }
         },
         "tags": [
