@@ -1,0 +1,11 @@
+/vendor/
+/node_modules/
+.env
+.env.*
+!.env.example
+/bootstrap/cache/*.php
+/storage/app/sunat/
+/storage/logs/*.log
+*.joblib
+*.pkl
+.phpunit.result.cache

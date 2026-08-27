@@ -97,6 +97,7 @@ services:
       HR_SERVICE_URL: http://hr-service:3006
       REPORT_SERVICE_URL: http://report-service:3007
       AI_ENGINE_URL: http://ai-engine:8000
+      INVOICING_SERVICE_URL: http://invoicing-service:8000
     ports:
       - '3000:3000'
     depends_on:
@@ -222,6 +223,31 @@ services:
     depends_on:
       - migrate
       - ai-engine
+
+  # ── Invoicing Service (Laravel 12 + Greenter — polyglot PHP) ────────────────
+
+  invoicing-service:
+    build:
+      context: ./services/invoicing
+      dockerfile: Dockerfile
+    container_name: nm_invoicing
+    restart: unless-stopped
+    env_file:
+      - ./services/invoicing/.env
+    environment:
+      APP_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB:-nm_services}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - '3009:8000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - default
 
   # ── AI Engine (Python/FastAPI — polyglot, fuera del toolchain NestJS) ────────
 

@@ -1,0 +1,17 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+node_modules/
+vendor/
+storage/app/sunat/
+storage/logs/*.log
+bootstrap/cache/*.php
+tests/
+*.md
+docker-compose*
+Makefile
+.phpunit*
+.editorconfig
+.gitignore
