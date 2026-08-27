@@ -15,7 +15,7 @@ function makePurchase(overrides = {}) {
     vendorId: faker.string.uuid(),
     currency: 'PEN',
     totalAmount: 500.00,
-    status: 'REGISTERED',
+    status: 'ACTIVE',
     isDeleted: false,
     lines: [],
     ...overrides,

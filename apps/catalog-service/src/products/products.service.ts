@@ -87,6 +87,14 @@ export class ProductsService {
         OR: [
           { name: { contains: search, mode: 'insensitive' as const } },
           { barcode: { contains: search } },
+          {
+            productSizes: {
+              some: {
+                isDeleted: false,
+                barcode: { contains: search },
+              },
+            },
+          },
         ],
       }),
       ...(genderId && { genderId }),

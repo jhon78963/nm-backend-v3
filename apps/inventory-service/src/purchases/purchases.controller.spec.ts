@@ -25,7 +25,7 @@ const mockPurchaseSummary = {
   supplierName: null,
   currency: 'PEN',
   totalAmount: 500,
-  status: 'REGISTERED',
+  status: 'ACTIVE',
   purchaseDate: new Date('2026-08-25'),
   vendor: { id: 'vendor-uuid', name: 'Distribuidora Norte' },
   _count: { lines: 3 },
@@ -102,7 +102,7 @@ describe('PurchasesController', () => {
       service.findById.mockResolvedValue(mockPurchaseDetail as any);
       const result = await controller.findById('purchase-uuid');
       expect(service.findById).toHaveBeenCalledWith('purchase-uuid');
-      expect(result).toMatchObject({ status: 'REGISTERED' });
+      expect(result).toMatchObject({ status: 'ACTIVE' });
       expect(result.lines).toHaveLength(1);
     });
 
@@ -130,7 +130,7 @@ describe('PurchasesController', () => {
       service.registerBulk.mockResolvedValue(mockPurchaseDetail as any);
       const result = await controller.registerBulk(dto, mockUser);
       expect(service.registerBulk).toHaveBeenCalledWith(dto, 'user-uuid');
-      expect(result).toMatchObject({ status: 'REGISTERED' });
+      expect(result).toMatchObject({ status: 'ACTIVE' });
     });
 
     it('should propagate BadRequestException when colorDeltas total mismatch', async () => {

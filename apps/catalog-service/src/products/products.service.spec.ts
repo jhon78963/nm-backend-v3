@@ -180,6 +180,33 @@ describe('ProductsService', () => {
       expect(result.data).toEqual([]);
       expect(result.meta.total).toBe(0);
     });
+
+    it('aplica filtro de búsqueda por barcode de talla', async () => {
+      mockDb.$transaction.mockImplementation(async (queries: Promise<unknown>[]) =>
+        Promise.all(queries),
+      );
+      mockDb.product.findMany.mockResolvedValue([]);
+      mockDb.product.count.mockResolvedValue(0);
+
+      await service.findAll({ search: '123321' }, faker.string.uuid());
+
+      expect(mockDb.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            OR: expect.arrayContaining([
+              expect.objectContaining({
+                productSizes: {
+                  some: {
+                    isDeleted: false,
+                    barcode: { contains: '123321' },
+                  },
+                },
+              }),
+            ]),
+          }),
+        }),
+      );
+    });
   });
 
   // ── findById ──────────────────────────────────────────────────────────────

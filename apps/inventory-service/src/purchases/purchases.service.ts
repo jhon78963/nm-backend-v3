@@ -45,7 +45,7 @@ export class PurchasesService {
           currency: dto.currency ?? 'PEN',
           exchangeRate: dto.exchangeRate,
           totalAmount,
-          status: 'REGISTERED',
+          status: 'ACTIVE',
           notes: dto.notes,
           purchaseDate: dto.purchaseDate ? new Date(dto.purchaseDate) : new Date(),
           createdById,
