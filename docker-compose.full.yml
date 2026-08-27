@@ -96,6 +96,7 @@ services:
       FINANCE_SERVICE_URL: http://finance-service:3005
       HR_SERVICE_URL: http://hr-service:3006
       REPORT_SERVICE_URL: http://report-service:3007
+      AI_ENGINE_URL: http://ai-engine:8000
     ports:
       - '3000:3000'
     depends_on:
@@ -215,10 +216,30 @@ services:
     environment:
       SERVICE_NAME: report-service
       APP_PORT: 3007
+      AI_ENGINE_URL: http://ai-engine:8000
     ports:
       - '3007:3007'
     depends_on:
       - migrate
+      - ai-engine
+
+  # ── AI Engine (Python/FastAPI — polyglot, fuera del toolchain NestJS) ────────
+
+  ai-engine:
+    build:
+      context: ./services/ai-engine
+      dockerfile: Dockerfile
+    container_name: nm_ai_engine
+    restart: unless-stopped
+    env_file:
+      - ./services/ai-engine/.env
+    ports:
+      - '3008:8000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - default
 
   # ── Herramientas opcionales ────────────────────────────────────────────────
 
