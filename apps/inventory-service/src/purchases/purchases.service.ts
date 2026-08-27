@@ -228,7 +228,14 @@ export class PurchasesService {
             productSize: {
               include: {
                 product: { select: { id: true, name: true } },
-                size: { select: { id: true, description: true } },
+                size: {
+                  select: {
+                    id: true,
+                    description: true,
+                    sizeTypeId: true,
+                    sizeType: { select: { id: true, description: true } },
+                  },
+                },
               },
             },
             colorDeltas: { include: { color: true } },
