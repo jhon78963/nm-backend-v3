@@ -67,6 +67,8 @@ describe('CashflowController', () => {
             findById: jest.fn(),
             getDaily: jest.fn(),
             getMonthlyReport: jest.fn(),
+            getMonthlyAdminExpenses: jest.fn(),
+            getMonthlyAccumulatedExpenses: jest.fn(),
           },
         },
       ],
@@ -101,6 +103,26 @@ describe('CashflowController', () => {
       service.getMonthlyReport.mockResolvedValue(mockMonthlyReport as any);
       await controller.getMonthlyReport('2026-08', 'warehouse-uuid');
       expect(service.getMonthlyReport).toHaveBeenCalledWith('2026-08', 'warehouse-uuid');
+    });
+  });
+
+  describe('getAdminMonthlyReport', () => {
+    it('should return administrative monthly expenses', async () => {
+      const report = { success: true, data: { expenses: [] } };
+      service.getMonthlyAdminExpenses.mockResolvedValue(report as any);
+      const result = await controller.getAdminMonthlyReport('2026-08');
+      expect(service.getMonthlyAdminExpenses).toHaveBeenCalledWith('2026-08');
+      expect(result).toEqual(report);
+    });
+  });
+
+  describe('getAccumulatedMonthlyReport', () => {
+    it('should return accumulated monthly expenses', async () => {
+      const report = { success: true, data: { expenses: [] } };
+      service.getMonthlyAccumulatedExpenses.mockResolvedValue(report as any);
+      const result = await controller.getAccumulatedMonthlyReport('2026-08');
+      expect(service.getMonthlyAccumulatedExpenses).toHaveBeenCalledWith('2026-08');
+      expect(result).toEqual(report);
     });
   });
 

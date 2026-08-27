@@ -13,29 +13,23 @@ const mockUser: AuthenticatedUser = {
 };
 
 const mockSummary = {
-  period: '2026-08',
-  warehouseId: 'warehouse-uuid',
-  sales: {
-    count: 120,
-    totalRevenue: 48000,
+  cards: {
+    cash_total: { amount: 20000, cash: 13000, digital: 7000 },
+    sales_income: { amount: 48000, growth: 12.5 },
+    expenses: { amount: 8000, description: 'Administrativos: S/ 5,200.00 · Tienda: S/ 2,800.00' },
+    stock_investment: { amount: 1500, description: 'Compras recuperables' },
   },
-  cashflow: {
-    income: 5000,
-    expense: 8000,
-    net: -3000,
-    payroll: 4800,
-  },
-  accumulated: {
-    currentCash: 13000,
-    currentDigital: 7000,
-    total: 20000,
-    lastTransferMonth: '2026-07',
-  },
-  topExpenseCategories: [
-    { category: 'Alquiler', amount: 3000 },
-    { category: 'Servicios', amount: 1500 },
+  recent_transactions: [
+    {
+      id: 'sale-1',
+      concept: 'Venta POS #0001',
+      category: 'Venta',
+      date: '26/08/2026 12:00 PM',
+      method: 'CASH',
+      amount: 120,
+      type: 'income',
+    },
   ],
-  estimatedMargin: 35200,
 };
 
 describe('FinancialSummaryController', () => {
@@ -64,29 +58,23 @@ describe('FinancialSummaryController', () => {
   });
 
   describe('getSummary', () => {
-    it('should return consolidated financial summary for the warehouse and month', async () => {
+    it('should return Laravel-compatible cards and recent transactions', async () => {
       service.getSummary.mockResolvedValue(mockSummary as any);
       const result = await controller.getSummary(mockUser, '2026-08');
       expect(service.getSummary).toHaveBeenCalledWith('warehouse-uuid', '2026-08');
-      expect(result).toMatchObject({
-        period: '2026-08',
-        warehouseId: 'warehouse-uuid',
-      });
+      expect(result).toHaveProperty('cards');
+      expect(result).toHaveProperty('recent_transactions');
+      expect(result.cards).toHaveProperty('cash_total');
+      expect(result.cards).toHaveProperty('sales_income');
     });
 
-    it('should include sales, cashflow and accumulated data', async () => {
+    it('should default month to current month when omitted', async () => {
       service.getSummary.mockResolvedValue(mockSummary as any);
-      const result = await controller.getSummary(mockUser, '2026-08');
-      expect(result).toHaveProperty('sales');
-      expect(result).toHaveProperty('cashflow');
-      expect(result).toHaveProperty('accumulated');
-      expect(result).toHaveProperty('topExpenseCategories');
-    });
-
-    it('should expose estimated margin', async () => {
-      service.getSummary.mockResolvedValue(mockSummary as any);
-      const result = await controller.getSummary(mockUser, '2026-08');
-      expect(result).toMatchObject({ estimatedMargin: 35200 });
+      await controller.getSummary(mockUser);
+      expect(service.getSummary).toHaveBeenCalledWith(
+        'warehouse-uuid',
+        expect.stringMatching(/^\d{4}-\d{2}$/),
+      );
     });
 
     it('should use warehouseId from JWT, not from query', async () => {

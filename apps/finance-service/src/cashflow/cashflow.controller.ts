@@ -113,6 +113,22 @@ export class CashflowController {
     return this.cashflowService.getMonthlyReport(month, warehouseId);
   }
 
+  // ── GET /v1/cashflow/admin/monthly ────────────────────────────────────────
+  @Get('admin/monthly')
+  @ApiOperation({ summary: 'Reporte mensual de gastos administrativos' })
+  @ApiQuery({ name: 'month', required: true, example: '2026-08' })
+  getAdminMonthlyReport(@Query('month') month: string) {
+    return this.cashflowService.getMonthlyAdminExpenses(month);
+  }
+
+  // ── GET /v1/cashflow/accumulated/monthly ──────────────────────────────────
+  @Get('accumulated/monthly')
+  @ApiOperation({ summary: 'Reporte mensual de egresos de cuenta acumulada' })
+  @ApiQuery({ name: 'month', required: true, example: '2026-08' })
+  getAccumulatedMonthlyReport(@Query('month') month: string) {
+    return this.cashflowService.getMonthlyAccumulatedExpenses(month);
+  }
+
   // ── GET /v1/cashflow/:id ──────────────────────────────────────────────────
   @Get(':id')
   @ApiOperation({

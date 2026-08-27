@@ -2,125 +2,253 @@ import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@app/database';
 import dayjs from 'dayjs';
 
-/**
- * FinancialSummaryService — Equivale a FinancialSummaryService de Laravel.
- *
- * Consolida en una sola consulta:
- *   - Ventas del período (pos-service data)
- *   - Gastos/ingresos de caja (finance-service data)
- *   - Balance acumulado actual
- *   - Top categorías de gasto
- *
- * En el monorepo, todos los datos viven en la misma DB PostgreSQL,
- * por lo que las consultas son directas. En una arquitectura de
- * microservicios con DBs separadas esto sería un agregador HTTP.
- */
+const OPERATING_EXPENSE_CATEGORIES = ['ADMINISTRATIVE', 'STORE'] as const;
+const STOCK_INVESTMENT_TYPES = ['INITIAL_INVENTORY', 'PURCHASE', 'RECONCILIATION'] as const;
+
 @Injectable()
 export class FinancialSummaryService {
   constructor(private readonly db: DatabaseService) {}
 
-  async getSummary(warehouseId: string, month: string) {
-    const from = dayjs(month, 'YYYY-MM').startOf('month').toDate();
-    const to   = dayjs(month, 'YYYY-MM').endOf('month').toDate();
+  async getSummary(warehouseId: string, month?: string) {
+    const currentMonth = month ?? dayjs().format('YYYY-MM');
+    const startOfMonth = dayjs(currentMonth, 'YYYY-MM').startOf('month').toDate();
+    const endOfMonth = dayjs(currentMonth, 'YYYY-MM').endOf('month').toDate();
+    const lastMonthStart = dayjs(currentMonth, 'YYYY-MM')
+      .subtract(1, 'month')
+      .startOf('month')
+      .toDate();
+    const lastMonthEnd = dayjs(currentMonth, 'YYYY-MM')
+      .subtract(1, 'month')
+      .endOf('month')
+      .toDate();
 
-    // Ejecutar todas las consultas en paralelo (no hay dependencias entre ellas)
+    const saleScope = {
+      warehouseId,
+      isDeleted: false,
+      status: 'COMPLETED',
+    };
+
     const [
-      salesRevenue,
-      salesCount,
-      cashIncome,
-      cashExpense,
-      topExpenseCategories,
-      accumulatedSetting,
-      lastTransfer,
-      teamPaymentsTotal,
+      totalSalesAllTimeAgg,
+      totalIncomesAllTimeAgg,
+      totalExpensesAllTimeAgg,
+      cashSalesAgg,
+      monthlySalesAgg,
+      lastMonthSalesAgg,
+      monthlyExpensesAgg,
+      monthlyAdministrativeAgg,
+      monthlyStoreAgg,
+      recentSales,
+      recentMovements,
+      stockInvestmentRows,
     ] = await Promise.all([
-      // Ingresos por ventas POS
       this.db.sale.aggregate({
-        where: { warehouseId, isDeleted: false, createdAt: { gte: from, lte: to } },
+        where: saleScope,
         _sum: { totalAmount: true },
       }),
-
-      this.db.sale.count({
-        where: { warehouseId, isDeleted: false, createdAt: { gte: from, lte: to } },
-      }),
-
-      // Ingresos de caja (manuales)
       this.db.cashMovement.aggregate({
-        where: { warehouseId, isDeleted: false, type: 'INCOME', accountingMonth: month },
+        where: { warehouseId, isDeleted: false, type: 'INCOME' },
         _sum: { amount: true },
       }),
-
-      // Gastos de caja
       this.db.cashMovement.aggregate({
-        where: { warehouseId, isDeleted: false, type: 'EXPENSE', accountingMonth: month },
-        _sum: { amount: true },
-      }),
-
-      // Top 5 categorías de gasto
-      this.db.cashMovement.groupBy({
-        by: ['category'],
-        where: { warehouseId, isDeleted: false, type: 'EXPENSE', accountingMonth: month },
-        _sum: { amount: true },
-        orderBy: { _sum: { amount: 'desc' } },
-        take: 5,
-      }),
-
-      // Saldo acumulado inicial
-      this.db.accumulatedAccountSetting.findUnique({
-        where: { warehouseId },
-        select: { cashBalance: true, digitalBalance: true },
-      }),
-
-      // Último cierre de mes
-      this.db.accumulatedAccountTransfer.findFirst({
-        where: { warehouseId },
-        orderBy: { transferMonth: 'desc' },
-        select: { closingCashAmount: true, closingDigitalAmount: true, transferMonth: true },
-      }),
-
-      // Planilla del mes
-      this.db.teamPayment.aggregate({
         where: {
-          team: { warehouseId },
-          accountingMonth: month,
+          warehouseId,
+          isDeleted: false,
+          type: 'EXPENSE',
+          category: { in: [...OPERATING_EXPENSE_CATEGORIES] },
         },
         _sum: { amount: true },
       }),
+      this.db.sale.aggregate({
+        where: { ...saleScope, paymentMethod: 'CASH' },
+        _sum: { totalAmount: true },
+      }),
+      this.db.sale.aggregate({
+        where: {
+          ...saleScope,
+          createdAt: { gte: startOfMonth, lte: endOfMonth },
+        },
+        _sum: { totalAmount: true },
+      }),
+      this.db.sale.aggregate({
+        where: {
+          ...saleScope,
+          createdAt: { gte: lastMonthStart, lte: lastMonthEnd },
+        },
+        _sum: { totalAmount: true },
+      }),
+      this.db.cashMovement.aggregate({
+        where: {
+          warehouseId,
+          isDeleted: false,
+          type: 'EXPENSE',
+          category: { in: [...OPERATING_EXPENSE_CATEGORIES] },
+          date: { gte: startOfMonth, lte: endOfMonth },
+        },
+        _sum: { amount: true },
+      }),
+      this.db.cashMovement.aggregate({
+        where: {
+          warehouseId,
+          isDeleted: false,
+          type: 'EXPENSE',
+          category: 'ADMINISTRATIVE',
+          date: { gte: startOfMonth, lte: endOfMonth },
+        },
+        _sum: { amount: true },
+      }),
+      this.db.cashMovement.aggregate({
+        where: {
+          warehouseId,
+          isDeleted: false,
+          type: 'EXPENSE',
+          category: 'STORE',
+          date: { gte: startOfMonth, lte: endOfMonth },
+        },
+        _sum: { amount: true },
+      }),
+      this.db.sale.findMany({
+        where: saleScope,
+        select: {
+          id: true,
+          code: true,
+          createdAt: true,
+          paymentMethod: true,
+          totalAmount: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      }),
+      this.db.cashMovement.findMany({
+        where: { warehouseId, isDeleted: false },
+        select: {
+          id: true,
+          description: true,
+          type: true,
+          category: true,
+          date: true,
+          paymentMethod: true,
+          amount: true,
+        },
+        orderBy: { date: 'desc' },
+        take: 5,
+      }),
+      this.db.inventoryMovement.findMany({
+        where: {
+          warehouseId,
+          direction: 'IN',
+          movementType: { in: [...STOCK_INVESTMENT_TYPES] },
+          occurredAt: { gte: startOfMonth, lte: endOfMonth },
+        },
+        select: {
+          quantity: true,
+          productSize: { select: { purchasePrice: true } },
+        },
+      }),
     ]);
 
-    const totalSalesRevenue = Number(salesRevenue._sum.totalAmount ?? 0);
-    const totalCashIncome   = Number(cashIncome._sum.amount ?? 0);
-    const totalExpense       = Number(cashExpense._sum.amount ?? 0);
-    const payroll            = Number(teamPaymentsTotal._sum.amount ?? 0);
+    const totalSalesAllTime = Number(totalSalesAllTimeAgg._sum.totalAmount ?? 0);
+    const totalIncomesAllTime = Number(totalIncomesAllTimeAgg._sum.amount ?? 0);
+    const totalExpensesAllTime = Number(totalExpensesAllTimeAgg._sum.amount ?? 0);
+    const baseCash = 100;
+    const currentCash =
+      baseCash + totalSalesAllTime + totalIncomesAllTime - totalExpensesAllTime;
+    const cashSales = Number(cashSalesAgg._sum.totalAmount ?? 0);
+    const digitalSales = totalSalesAllTime - cashSales;
 
-    const currentCash    = lastTransfer ? Number(lastTransfer.closingCashAmount)    : Number(accumulatedSetting?.cashBalance ?? 0);
-    const currentDigital = lastTransfer ? Number(lastTransfer.closingDigitalAmount) : Number(accumulatedSetting?.digitalBalance ?? 0);
+    const monthlySales = Number(monthlySalesAgg._sum.totalAmount ?? 0);
+    const lastMonthSales = Number(lastMonthSalesAgg._sum.totalAmount ?? 0);
+    const growthPercentage =
+      lastMonthSales > 0
+        ? round1(((monthlySales - lastMonthSales) / lastMonthSales) * 100)
+        : 100;
+
+    const monthlyExpenses = Number(monthlyExpensesAgg._sum.amount ?? 0);
+    const monthlyAdministrativeExpenses = Number(
+      monthlyAdministrativeAgg._sum.amount ?? 0,
+    );
+    const monthlyStoreExpenses = Number(monthlyStoreAgg._sum.amount ?? 0);
+
+    const monthlyInvestment = stockInvestmentRows.reduce(
+      (sum, row) =>
+        sum + row.quantity * Number(row.productSize.purchasePrice ?? 0),
+      0,
+    );
+
+    const recentTransactions = [
+      ...recentSales.map((sale) => ({
+        id: sale.id,
+        concept: `Venta POS #${sale.code ?? sale.id}`,
+        category: 'Venta',
+        date: dayjs(sale.createdAt).format('DD/MM/YYYY hh:mm A'),
+        method: sale.paymentMethod,
+        amount: Number(sale.totalAmount),
+        type: 'income' as const,
+        sortDate: sale.createdAt,
+      })),
+      ...recentMovements.map((movement) => ({
+        id: movement.id,
+        concept: movement.description ?? 'Movimiento de caja',
+        category: this.mapMovementCategory(movement.type, movement.category),
+        date: dayjs(movement.date).format('DD/MM/YYYY hh:mm A'),
+        method: movement.paymentMethod,
+        amount: Number(movement.amount),
+        type: movement.type === 'INCOME' ? ('income' as const) : ('expense' as const),
+        sortDate: movement.date,
+      })),
+    ]
+      .sort((a, b) => dayjs(b.sortDate).valueOf() - dayjs(a.sortDate).valueOf())
+      .slice(0, 10)
+      .map(({ sortDate: _sortDate, ...transaction }) => transaction);
 
     return {
-      period: month,
-      warehouseId,
-      sales: {
-        count: salesCount,
-        totalRevenue: totalSalesRevenue,
+      cards: {
+        cash_total: {
+          amount: round2(currentCash),
+          cash: round2(cashSales),
+          digital: round2(digitalSales),
+        },
+        sales_income: {
+          amount: round2(monthlySales),
+          growth: growthPercentage,
+        },
+        expenses: {
+          amount: round2(monthlyExpenses),
+          description: `Administrativos: S/ ${formatMoney(monthlyAdministrativeExpenses)} · Tienda: S/ ${formatMoney(monthlyStoreExpenses)}`,
+        },
+        stock_investment: {
+          amount: round2(monthlyInvestment),
+          description: 'Compras recuperables',
+        },
       },
-      cashflow: {
-        income: totalCashIncome,
-        expense: totalExpense,
-        net: totalCashIncome - totalExpense,
-        payroll,
-      },
-      accumulated: {
-        currentCash,
-        currentDigital,
-        total: currentCash + currentDigital,
-        lastTransferMonth: lastTransfer?.transferMonth ?? null,
-      },
-      topExpenseCategories: topExpenseCategories.map((c) => ({
-        category: c.category,
-        amount: Number(c._sum.amount ?? 0),
-      })),
-      // Margen estimado: ingresos ventas - gastos - planilla
-      estimatedMargin: totalSalesRevenue - totalExpense - payroll,
+      recent_transactions: recentTransactions,
     };
   }
+
+  private mapMovementCategory(type: string, category: string): string {
+    if (type === 'INCOME') {
+      return 'Ingreso';
+    }
+
+    if (category === 'ADMINISTRATIVE') {
+      return 'Gasto administrativo';
+    }
+
+    return 'Gasto tienda';
+  }
+}
+
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+function round1(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+function formatMoney(value: number): string {
+  return value.toLocaleString('es-PE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }

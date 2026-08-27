@@ -204,6 +204,38 @@ describe('CashflowService', () => {
     });
   });
 
+  // ── getMonthlyAdminExpenses ───────────────────────────────────────────────
+
+  describe('getMonthlyAdminExpenses()', () => {
+    it('retorna gastos administrativos del mes con totales legacy', async () => {
+      mockDb.cashMovement.findMany.mockResolvedValue([
+        makeMovement({
+          type: 'EXPENSE',
+          category: 'ADMINISTRATIVE',
+          amount: 450,
+          description: 'Sueldo',
+          accountingMonth: '2026-08',
+        }),
+        makeMovement({
+          type: 'EXPENSE',
+          category: 'ADMINISTRATIVE',
+          amount: 70,
+          description: 'Servicio',
+          accountingMonth: '2026-08',
+        }),
+      ]);
+
+      const result = await service.getMonthlyAdminExpenses('2026-08');
+
+      expect(result.data.expenses).toHaveLength(2);
+      expect(result.data.total_monthly_admin).toBe(520);
+      expect(result.data.expenses[0]).toMatchObject({
+        category: 'ADMINISTRATIVE',
+        payment_method: 'CASH',
+      });
+    });
+  });
+
   // ── getMonthlyReport ──────────────────────────────────────────────────────
 
   describe('getMonthlyReport()', () => {

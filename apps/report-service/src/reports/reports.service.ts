@@ -297,69 +297,94 @@ export class ReportsService {
 
   // ── Products Inventory Report ───────────────────────────────────────────────
   async getProductsInventory(warehouseId: string) {
-    const balances = await this.db.inventoryBalance.findMany({
-      where: { warehouseId },
-      include: {
-        productSize: {
-          include: {
-            product: {
-              select: { id: true, name: true },
+    const [products, balances] = await Promise.all([
+      this.db.product.findMany({
+        where: { warehouseId, isDeleted: false },
+        orderBy: { name: 'asc' },
+        include: {
+          productSizes: {
+            where: { isDeleted: false },
+            include: {
+              size: { select: { id: true, description: true } },
+              productSizeColors: {
+                include: {
+                  color: { select: { id: true, description: true, isDeleted: true } },
+                },
+              },
             },
-            size: { select: { id: true, description: true } },
           },
         },
-        color: { select: { id: true, description: true, hash: true } },
-      },
-    }) as any[];
+      }),
+      this.db.inventoryBalance.findMany({
+        where: { warehouseId },
+        select: {
+          productSizeId: true,
+          colorId: true,
+          quantity: true,
+        },
+      }),
+    ]);
 
-    type ProductMap = {
-      id: string;
-      name: string;
-      sizes: Map<string, SizeEntry>;
-    };
-
-    type SizeEntry = {
-      productSizeId: string;
-      sizeId: string;
-      size: string;
-      stock: number;
-      colors: { colorId: string; color: string; stock: number }[];
-    };
-
-    const productsMap = new Map<string, ProductMap>();
-
-    for (const bal of balances) {
-      const product = bal.productSize.product;
-      if (!productsMap.has(product.id)) {
-        productsMap.set(product.id, { id: product.id, name: product.name, sizes: new Map() });
-      }
-      const productEntry = productsMap.get(product.id)!;
-
-      const psId = bal.productSizeId;
-      if (!productEntry.sizes.has(psId)) {
-        productEntry.sizes.set(psId, {
-          productSizeId: psId,
-          sizeId: bal.productSize.size.id,
-          size: bal.productSize.size.description,
-          stock: 0,
-          colors: [],
-        });
-      }
-      const sizeEntry = productEntry.sizes.get(psId)!;
-      sizeEntry.stock += bal.quantity;
-      sizeEntry.colors.push({
-        colorId: bal.colorId,
-        color: bal.color.description,
-        stock: bal.quantity,
-      });
+    const stockMap = new Map<string, number>();
+    for (const balance of balances) {
+      const key = `${balance.productSizeId}:${balance.colorId}`;
+      stockMap.set(key, balance.quantity);
     }
 
-    return Array.from(productsMap.values()).map((p) => ({
-      productId: p.id,
-      product: p.name,
-      totalStock: Array.from(p.sizes.values()).reduce((sum, s) => sum + s.stock, 0),
-      sizes: Array.from(p.sizes.values()),
+    return products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      sizes: [...product.productSizes]
+        .sort((a, b) =>
+          (a.size.description ?? '').localeCompare(b.size.description ?? '', 'es'),
+        )
+        .map((productSize) => {
+          const resolvedColors = [...productSize.productSizeColors]
+            .map((entry) => entry.color)
+            .filter(
+              (color): color is { id: string; description: string; isDeleted: boolean } =>
+                color != null && !color.isDeleted,
+            )
+            .sort((a, b) => a.description.localeCompare(b.description, 'es'))
+            .map((color) => ({
+              color_id: color.id,
+              color: color.description,
+              stock: stockMap.get(`${productSize.id}:${color.id}`) ?? 0,
+            }));
+
+          const stock = resolvedColors.length
+            ? resolvedColors.reduce((sum, color) => sum + color.stock, 0)
+            : [...stockMap.entries()]
+                .filter(([key]) => key.startsWith(`${productSize.id}:`))
+                .reduce((sum, [, quantity]) => sum + quantity, 0);
+
+          return {
+            product_size_id: productSize.id,
+            size_id: productSize.sizeId,
+            size: this.formatSizeLabel(productSize.size.description),
+            barcode: productSize.barcode?.trim() ? productSize.barcode : null,
+            purchase_price: productSize.purchasePrice != null
+              ? Number(productSize.purchasePrice)
+              : null,
+            sale_price: productSize.salePrice != null
+              ? Number(productSize.salePrice)
+              : null,
+            min_sale_price: productSize.minSalePrice != null
+              ? Number(productSize.minSalePrice)
+              : null,
+            stock,
+            colors: resolvedColors,
+          };
+        }),
     }));
+  }
+
+  private formatSizeLabel(description?: string | null): string {
+    if (!description?.trim()) {
+      return '—';
+    }
+
+    return description.replace(/estándar/gi, 'STD').replace(/estandar/gi, 'STD');
   }
 
   private paymentLabel(method: string): string {

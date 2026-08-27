@@ -33,8 +33,11 @@ export class AiProxyService {
     return this.forward('POST', `/predict/demand`, { productId, ...body as object });
   }
 
-  async getProductsInventoryReport(warehouseId: string) {
-    return this.forward('GET', `/reports/products-inventory?warehouse_id=${warehouseId}`);
+  async getProductsInventoryReport(warehouseId: string, horizonDays = 30) {
+    return this.forward(
+      'GET',
+      `/reports/products-inventory?warehouse_id=${warehouseId}&horizon_days=${horizonDays}`,
+    );
   }
 
   private async forward(method: string, path: string, body?: unknown) {

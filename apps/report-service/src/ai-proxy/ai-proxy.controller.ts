@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Param, Body,
+  Controller, Get, Post, Param, Body, Query,
   HttpCode, HttpStatus, UseGuards,
 } from '@nestjs/common';
 import {
@@ -57,7 +57,14 @@ export class AiProxyController {
   @ApiOperation({ summary: 'Reporte de inventario de productos generado por el AI Engine' })
   @ApiResponse({ status: 200, description: 'Reporte de inventario con análisis de IA' })
   @ApiResponse({ status: 503, description: 'AI Engine no disponible' })
-  getProductsInventoryReport(@CurrentUser() user: AuthenticatedUser) {
-    return this.aiProxyService.getProductsInventoryReport(user.warehouseId);
+  getProductsInventoryReport(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('horizon_days') horizonDays?: string,
+  ) {
+    const parsedHorizon = Number(horizonDays ?? 30);
+    return this.aiProxyService.getProductsInventoryReport(
+      user.warehouseId,
+      Number.isFinite(parsedHorizon) ? parsedHorizon : 30,
+    );
   }
 }

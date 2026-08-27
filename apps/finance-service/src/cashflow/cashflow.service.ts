@@ -288,6 +288,64 @@ export class CashflowService {
 
   // ── Reporte mensual (equivale a getAdminMonthlyReport) ────────────────────
 
+  async getMonthlyAdminExpenses(accountingMonth: string) {
+    const expenses = await this.db.cashMovement.findMany({
+      where: {
+        isDeleted: false,
+        type: 'EXPENSE',
+        category: 'ADMINISTRATIVE',
+        accountingMonth,
+      },
+      include: {
+        vouchers: { orderBy: { sortOrder: 'asc' } },
+      },
+      orderBy: { date: 'desc' },
+    });
+
+    const mapped = expenses.map((movement) => this.mapCashMovementResource(movement));
+    const totalMonthlyAdmin = mapped.reduce((sum, movement) => sum + movement.amount, 0);
+
+    return {
+      success: true,
+      data: {
+        month: this.formatMonthLabel(accountingMonth),
+        total_monthly_admin: totalMonthlyAdmin,
+        expenses: mapped,
+      },
+    };
+  }
+
+  async getMonthlyAccumulatedExpenses(month: string) {
+    const parsedMonth = dayjs(`${month}-01`);
+    const from = parsedMonth.startOf('month').toDate();
+    const to = parsedMonth.endOf('month').toDate();
+
+    const expenses = await this.db.cashMovement.findMany({
+      where: {
+        isDeleted: false,
+        type: 'EXPENSE',
+        category: 'ACCUMULATED',
+        date: { gte: from, lte: to },
+      },
+      include: {
+        vouchers: { orderBy: { sortOrder: 'asc' } },
+      },
+      orderBy: { date: 'desc' },
+    });
+
+    const mapped = expenses.map((movement) => this.mapCashMovementResource(movement));
+    const totalMonthlyAccumulated = mapped.reduce((sum, movement) => sum + movement.amount, 0);
+
+    return {
+      success: true,
+      data: {
+        month: this.formatMonthLabel(month),
+        total_monthly_accumulated: totalMonthlyAccumulated,
+        expenses: mapped,
+      },
+    };
+  }
+
   async getMonthlyReport(accountingMonth: string, warehouseId?: string) {
     const where = {
       isDeleted: false,
@@ -336,5 +394,57 @@ export class CashflowService {
         byPaymentMethod.map((r) => [r.paymentMethod, Number(r._sum.amount ?? 0)]),
       ),
     };
+  }
+
+  private mapCashMovementResource(movement: {
+    id: string;
+    type: string;
+    category: string;
+    amount: unknown;
+    description: string | null;
+    paymentMethod: string;
+    date: Date;
+    accountingMonth: string;
+    vouchers: Array<{ voucherPath: string }>;
+  }) {
+    const voucherPaths = movement.vouchers.map((voucher) => voucher.voucherPath);
+
+    return {
+      id: movement.id,
+      type: movement.type,
+      category: movement.category,
+      amount: Number(movement.amount),
+      description: movement.description ?? '',
+      payment_method: movement.paymentMethod,
+      method: movement.paymentMethod,
+      date: dayjs(movement.date).format('YYYY-MM-DD HH:mm:ss'),
+      accounting_month: movement.accountingMonth,
+      payroll_period: null,
+      accounting_period_label: this.buildAccountingPeriodLabel(movement.accountingMonth),
+      voucher_path: voucherPaths[0] ?? null,
+      voucher_paths: voucherPaths,
+    };
+  }
+
+  private buildAccountingPeriodLabel(accountingMonth: string): string {
+    if (!accountingMonth) {
+      return '—';
+    }
+
+    const [year, month] = accountingMonth.split('-').map(Number);
+    if (!year || !month) {
+      return accountingMonth;
+    }
+
+    const formatted = new Intl.DateTimeFormat('es-PE', {
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(year, month - 1, 1));
+
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  }
+
+  private formatMonthLabel(accountingMonth: string): string {
+    return this.buildAccountingPeriodLabel(accountingMonth);
   }
 }

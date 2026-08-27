@@ -3,17 +3,45 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { Response } from 'express';
+import dayjs from 'dayjs';
 import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
 import { CurrentUser } from '@app/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@app/common/types/authenticated-user.type';
 import { ReportsService } from './reports.service';
+import { ManagementDashboardService } from './management-dashboard.service';
 
 @ApiTags('Reports')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'reports', version: '1' })
 export class ReportsController {
-  constructor(private readonly reportsService: ReportsService) {}
+  constructor(
+    private readonly reportsService: ReportsService,
+    private readonly managementDashboardService: ManagementDashboardService,
+  ) {}
+
+  @Get('dashboard')
+  @ApiOperation({ summary: 'Reporte gerencial (totales, P&L, ranking, históricos)' })
+  @ApiQuery({ name: 'start_date', required: false, description: 'YYYY-MM-DD' })
+  @ApiQuery({ name: 'end_date', required: false, description: 'YYYY-MM-DD' })
+  @ApiQuery({ name: 'startDate', required: false, description: 'Alias camelCase' })
+  @ApiQuery({ name: 'endDate', required: false, description: 'Alias camelCase' })
+  getManagementDashboard(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('start_date') startDateSnake?: string,
+    @Query('end_date') endDateSnake?: string,
+    @Query('startDate') startDateCamel?: string,
+    @Query('endDate') endDateCamel?: string,
+  ) {
+    const startDate = startDateSnake ?? startDateCamel ?? dayjs().startOf('month').format('YYYY-MM-DD');
+    const endDate = endDateSnake ?? endDateCamel ?? dayjs().endOf('month').format('YYYY-MM-DD');
+
+    return this.managementDashboardService.getDashboard(
+      startDate,
+      endDate,
+      user.warehouseId,
+    );
+  }
 
   @Get('sales/daily')
   @ApiOperation({ summary: 'Reporte diario de ventas' })
@@ -109,7 +137,10 @@ export class ReportsController {
     @Query('warehouse_id') warehouseId?: string,
   ) {
     const targetWarehouse = warehouseId ?? user.warehouseId;
-    return this.reportsService.getProductsInventory(targetWarehouse);
+    return this.reportsService.getProductsInventory(targetWarehouse).then((products) => ({
+      success: true,
+      data: products,
+    }));
   }
 
   @Get('products/export/pdf')
