@@ -14,3 +14,20 @@ npm-debug.log*
 
 .idea/
 .vscode/
+
+# ── Python / services/ai-engine ───────────────────────────────────────────────
+services/ai-engine/venv/
+services/ai-engine/.venv/
+services/ai-engine/__pycache__/
+services/ai-engine/**/__pycache__/
+services/ai-engine/**/*.py[cod]
+services/ai-engine/.pytest_cache/
+services/ai-engine/.coverage
+services/ai-engine/htmlcov/
+services/ai-engine/.mypy_cache/
+services/ai-engine/.ruff_cache/
+services/ai-engine/.uv/
+services/ai-engine/data/
+services/ai-engine/models/demand/product_*.joblib
+services/ai-engine/models/price/
+services/ai-engine/.env
