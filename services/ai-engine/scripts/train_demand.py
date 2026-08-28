@@ -110,8 +110,8 @@ def main() -> None:
     trained_prophet = 0
     skipped = 0
 
-    for product_id, group in demand_df.groupby("product_id"):
-        product_id = int(product_id)
+    for product_id_raw, group in demand_df.groupby("product_id"):
+        product_id = str(product_id_raw)
         total_sales = int(group["quantity"].sum())
         history_days = (
             pd.to_datetime(group["sale_date"].max())
@@ -139,7 +139,7 @@ def main() -> None:
                 }
                 trained_croston += 1
                 logger.info(
-                    "Croston/SBA entrenado product_id=%d (%d días, %d u., tasa=%.3f u/día)",
+                    "Croston/SBA entrenado product_id=%s (%d días, %d u., tasa=%.3f u/día)",
                     product_id,
                     history_days,
                     total_sales,
@@ -147,7 +147,7 @@ def main() -> None:
                 )
             except Exception as exc:
                 skipped += 1
-                logger.warning("Croston falló product_id=%d: %s", product_id, exc)
+                logger.warning("Croston falló product_id=%s: %s", product_id, exc)
         else:
             if history_days < settings.min_demand_history_days:
                 skipped += 1
@@ -168,14 +168,14 @@ def main() -> None:
                 }
                 trained_prophet += 1
                 logger.info(
-                    "Prophet entrenado product_id=%d (%d días, %d u.)",
+                    "Prophet entrenado product_id=%s (%d días, %d u.)",
                     product_id,
                     history_days,
                     total_sales,
                 )
             except Exception as exc:
                 skipped += 1
-                logger.warning("Prophet falló product_id=%d: %s", product_id, exc)
+                logger.warning("Prophet falló product_id=%s: %s", product_id, exc)
 
     with DEMAND_MANIFEST_FILE.open("w", encoding="utf-8") as handle:
         json.dump(manifest, handle, indent=2)

@@ -39,7 +39,7 @@ class ModelRegistry:
     def __init__(self) -> None:
         if self._initialized:
             return
-        self._demand_models: dict[int, DemandModel] = {}
+        self._demand_models: dict[str, DemandModel] = {}
         self._price_pipeline: Pipeline | None = None
         self._demand_manifest: dict[str, Any] = {}
         self._initialized = True
@@ -63,10 +63,7 @@ class ModelRegistry:
         )
 
     def get_demand_model(self, product_id: str) -> DemandModel | None:
-        try:
-            return self._demand_models.get(int(product_id))
-        except ValueError:
-            return self._demand_models.get(product_id)
+        return self._demand_models.get(str(product_id))
 
     def get_price_pipeline(self) -> Pipeline | None:
         return self._price_pipeline
@@ -91,9 +88,8 @@ class ModelRegistry:
         for model_path in sorted(DEMAND_MODELS_DIR.glob("product_*.joblib")):
             product_id_str = model_path.stem.replace("product_", "")
             try:
-                product_id = int(product_id_str)
-                self._demand_models[product_id] = joblib.load(model_path)
-            except (ValueError, OSError) as exc:
+                self._demand_models[product_id_str] = joblib.load(model_path)
+            except OSError as exc:
                 logger.warning("ModelRegistry: no se pudo cargar %s: %s", model_path.name, exc)
 
     def _load_price_model(self) -> None:

@@ -1,1300 +1,1384 @@
 {
-  "trained_at": "2026-08-04T17:01:52.823207+00:00",
+  "trained_at": "2026-08-28T04:48:02.821492+00:00",
   "products": {
-    "4": {
-      "algorithm": "croston_sba",
-      "history_days": 210,
-      "total_sales": 13,
-      "zero_ratio": 0.95,
-      "daily_rate": 0.046
-    },
-    "5": {
-      "algorithm": "croston_sba",
-      "history_days": 205,
-      "total_sales": 9,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.049
-    },
-    "6": {
-      "algorithm": "croston_sba",
-      "history_days": 178,
-      "total_sales": 6,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0469
-    },
-    "7": {
-      "algorithm": "croston_sba",
-      "history_days": 141,
-      "total_sales": 18,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.0904
-    },
-    "8": {
-      "algorithm": "croston_sba",
-      "history_days": 199,
-      "total_sales": 21,
-      "zero_ratio": 0.92,
-      "daily_rate": 0.0713
-    },
-    "9": {
-      "algorithm": "croston_sba",
-      "history_days": 85,
-      "total_sales": 7,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.1108
-    },
-    "10": {
-      "algorithm": "croston_sba",
-      "history_days": 83,
-      "total_sales": 4,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0843
-    },
-    "11": {
-      "algorithm": "croston_sba",
-      "history_days": 175,
-      "total_sales": 32,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.109
-    },
-    "12": {
-      "algorithm": "croston_sba",
-      "history_days": 61,
-      "total_sales": 5,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.187
-    },
-    "13": {
-      "algorithm": "croston_sba",
-      "history_days": 76,
-      "total_sales": 10,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.1273
-    },
-    "14": {
-      "algorithm": "croston_sba",
-      "history_days": 155,
-      "total_sales": 24,
-      "zero_ratio": 0.87,
-      "daily_rate": 0.1121
-    },
-    "15": {
-      "algorithm": "croston_sba",
-      "history_days": 220,
-      "total_sales": 29,
-      "zero_ratio": 0.91,
-      "daily_rate": 0.0855
-    },
-    "16": {
-      "algorithm": "croston_sba",
-      "history_days": 109,
-      "total_sales": 12,
-      "zero_ratio": 0.91,
-      "daily_rate": 0.1151
-    },
-    "17": {
-      "algorithm": "croston_sba",
-      "history_days": 62,
-      "total_sales": 7,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.1139
-    },
-    "18": {
+    "00bfdde4-8bdc-5a34-8778-689971010717": {
       "algorithm": "croston_sba",
       "history_days": 219,
-      "total_sales": 37,
-      "zero_ratio": 0.85,
-      "daily_rate": 0.1196
-    },
-    "19": {
-      "algorithm": "croston_sba",
-      "history_days": 224,
-      "total_sales": 37,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.0833
-    },
-    "20": {
-      "algorithm": "croston_sba",
-      "history_days": 96,
-      "total_sales": 8,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.1294
-    },
-    "22": {
-      "algorithm": "croston_sba",
-      "history_days": 161,
-      "total_sales": 17,
-      "zero_ratio": 0.91,
-      "daily_rate": 0.0896
-    },
-    "23": {
-      "algorithm": "croston_sba",
-      "history_days": 211,
-      "total_sales": 21,
-      "zero_ratio": 0.91,
-      "daily_rate": 0.0785
-    },
-    "24": {
-      "algorithm": "croston_sba",
-      "history_days": 229,
-      "total_sales": 71,
-      "zero_ratio": 0.76,
-      "daily_rate": 0.2123
-    },
-    "25": {
-      "algorithm": "croston_sba",
-      "history_days": 218,
-      "total_sales": 32,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.0935
-    },
-    "26": {
-      "algorithm": "croston_sba",
-      "history_days": 211,
       "total_sales": 15,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.0459
-    },
-    "27": {
-      "algorithm": "croston_sba",
-      "history_days": 203,
-      "total_sales": 17,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.0667
-    },
-    "28": {
-      "algorithm": "croston_sba",
-      "history_days": 212,
-      "total_sales": 14,
       "zero_ratio": 0.94,
-      "daily_rate": 0.0576
+      "daily_rate": 0.0551
     },
-    "29": {
-      "algorithm": "croston_sba",
-      "history_days": 215,
-      "total_sales": 16,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.0824
-    },
-    "30": {
-      "algorithm": "croston_sba",
-      "history_days": 213,
-      "total_sales": 11,
-      "zero_ratio": 0.95,
-      "daily_rate": 0.0386
-    },
-    "31": {
-      "algorithm": "croston_sba",
-      "history_days": 45,
-      "total_sales": 8,
-      "zero_ratio": 0.87,
-      "daily_rate": 0.2343
-    },
-    "32": {
-      "algorithm": "croston_sba",
-      "history_days": 211,
-      "total_sales": 19,
-      "zero_ratio": 0.91,
-      "daily_rate": 0.1009
-    },
-    "33": {
-      "algorithm": "croston_sba",
-      "history_days": 222,
-      "total_sales": 19,
-      "zero_ratio": 0.92,
-      "daily_rate": 0.0835
-    },
-    "34": {
-      "algorithm": "croston_sba",
-      "history_days": 92,
-      "total_sales": 3,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0728
-    },
-    "36": {
-      "algorithm": "croston_sba",
-      "history_days": 42,
-      "total_sales": 5,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.3689
-    },
-    "37": {
-      "algorithm": "croston_sba",
-      "history_days": 100,
-      "total_sales": 5,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.1027
-    },
-    "38": {
-      "algorithm": "croston_sba",
-      "history_days": 217,
-      "total_sales": 12,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.0526
-    },
-    "39": {
-      "algorithm": "croston_sba",
-      "history_days": 211,
-      "total_sales": 16,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.0676
-    },
-    "40": {
-      "algorithm": "croston_sba",
-      "history_days": 178,
-      "total_sales": 7,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0637
-    },
-    "41": {
-      "algorithm": "croston_sba",
-      "history_days": 134,
-      "total_sales": 6,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0647
-    },
-    "42": {
-      "algorithm": "croston_sba",
-      "history_days": 214,
-      "total_sales": 9,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0613
-    },
-    "43": {
-      "algorithm": "croston_sba",
-      "history_days": 224,
-      "total_sales": 35,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.1199
-    },
-    "44": {
-      "algorithm": "croston_sba",
-      "history_days": 203,
-      "total_sales": 22,
-      "zero_ratio": 0.91,
-      "daily_rate": 0.0916
-    },
-    "45": {
-      "algorithm": "croston_sba",
-      "history_days": 173,
-      "total_sales": 5,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0384
-    },
-    "46": {
-      "algorithm": "croston_sba",
-      "history_days": 133,
-      "total_sales": 3,
-      "zero_ratio": 0.98,
-      "daily_rate": 0.0464
-    },
-    "47": {
-      "algorithm": "croston_sba",
-      "history_days": 32,
-      "total_sales": 5,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.3137
-    },
-    "49": {
-      "algorithm": "croston_sba",
-      "history_days": 167,
-      "total_sales": 3,
-      "zero_ratio": 0.99,
-      "daily_rate": 0.0413
-    },
-    "51": {
-      "algorithm": "croston_sba",
-      "history_days": 223,
-      "total_sales": 3,
-      "zero_ratio": 0.99,
-      "daily_rate": 0.0273
-    },
-    "52": {
-      "algorithm": "croston_sba",
-      "history_days": 63,
-      "total_sales": 2,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0911
-    },
-    "54": {
-      "algorithm": "croston_sba",
-      "history_days": 94,
-      "total_sales": 4,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0731
-    },
-    "56": {
-      "algorithm": "croston_sba",
-      "history_days": 224,
-      "total_sales": 24,
-      "zero_ratio": 0.92,
-      "daily_rate": 0.0693
-    },
-    "58": {
-      "algorithm": "croston_sba",
-      "history_days": 52,
-      "total_sales": 2,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.1088
-    },
-    "61": {
+    "01899bac-c932-5ad9-8b30-d7dff11e090d": {
       "algorithm": "croston_sba",
       "history_days": 204,
       "total_sales": 10,
       "zero_ratio": 0.97,
       "daily_rate": 0.0613
     },
-    "62": {
-      "algorithm": "croston_sba",
-      "history_days": 214,
-      "total_sales": 15,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.0701
-    },
-    "63": {
-      "algorithm": "croston_sba",
-      "history_days": 96,
-      "total_sales": 12,
-      "zero_ratio": 0.91,
-      "daily_rate": 0.1118
-    },
-    "64": {
-      "algorithm": "croston_sba",
-      "history_days": 123,
-      "total_sales": 17,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.1048
-    },
-    "65": {
-      "algorithm": "croston_sba",
-      "history_days": 138,
-      "total_sales": 5,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.048
-    },
-    "66": {
-      "algorithm": "croston_sba",
-      "history_days": 54,
-      "total_sales": 4,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.1199
-    },
-    "67": {
-      "algorithm": "croston_sba",
-      "history_days": 168,
-      "total_sales": 3,
-      "zero_ratio": 0.98,
-      "daily_rate": 0.0366
-    },
-    "68": {
-      "algorithm": "croston_sba",
-      "history_days": 11,
-      "total_sales": 2,
-      "zero_ratio": 0.82,
-      "daily_rate": 0.3936
-    },
-    "69": {
-      "algorithm": "croston_sba",
-      "history_days": 69,
-      "total_sales": 17,
-      "zero_ratio": 0.83,
-      "daily_rate": 0.2892
-    },
-    "71": {
-      "algorithm": "croston_sba",
-      "history_days": 155,
-      "total_sales": 8,
-      "zero_ratio": 0.95,
-      "daily_rate": 0.0661
-    },
-    "73": {
-      "algorithm": "croston_sba",
-      "history_days": 139,
-      "total_sales": 8,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.0521
-    },
-    "74": {
-      "algorithm": "croston_sba",
-      "history_days": 13,
-      "total_sales": 2,
-      "zero_ratio": 0.85,
-      "daily_rate": 0.3491
-    },
-    "76": {
-      "algorithm": "croston_sba",
-      "history_days": 168,
-      "total_sales": 10,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.0529
-    },
-    "77": {
-      "algorithm": "croston_sba",
-      "history_days": 90,
-      "total_sales": 3,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0764
-    },
-    "78": {
-      "algorithm": "croston_sba",
-      "history_days": 108,
-      "total_sales": 4,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.073
-    },
-    "79": {
-      "algorithm": "croston_sba",
-      "history_days": 93,
-      "total_sales": 6,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.087
-    },
-    "80": {
-      "algorithm": "croston_sba",
-      "history_days": 173,
-      "total_sales": 18,
-      "zero_ratio": 0.91,
-      "daily_rate": 0.1357
-    },
-    "81": {
-      "algorithm": "croston_sba",
-      "history_days": 178,
-      "total_sales": 3,
-      "zero_ratio": 0.98,
-      "daily_rate": 0.0341
-    },
-    "82": {
-      "algorithm": "croston_sba",
-      "history_days": 192,
-      "total_sales": 3,
-      "zero_ratio": 0.98,
-      "daily_rate": 0.0367
-    },
-    "83": {
-      "algorithm": "croston_sba",
-      "history_days": 25,
-      "total_sales": 3,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.2162
-    },
-    "84": {
-      "algorithm": "croston_sba",
-      "history_days": 201,
-      "total_sales": 10,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0767
-    },
-    "85": {
-      "algorithm": "croston_sba",
-      "history_days": 89,
-      "total_sales": 2,
-      "zero_ratio": 0.98,
-      "daily_rate": 0.0658
-    },
-    "86": {
-      "algorithm": "croston_sba",
-      "history_days": 182,
-      "total_sales": 7,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0459
-    },
-    "87": {
-      "algorithm": "croston_sba",
-      "history_days": 174,
-      "total_sales": 3,
-      "zero_ratio": 0.98,
-      "daily_rate": 0.0381
-    },
-    "89": {
-      "algorithm": "croston_sba",
-      "history_days": 41,
-      "total_sales": 7,
-      "zero_ratio": 0.83,
-      "daily_rate": 0.2189
-    },
-    "90": {
-      "algorithm": "croston_sba",
-      "history_days": 24,
-      "total_sales": 2,
-      "zero_ratio": 0.92,
-      "daily_rate": 0.2151
-    },
-    "91": {
-      "algorithm": "croston_sba",
-      "history_days": 175,
-      "total_sales": 10,
-      "zero_ratio": 0.95,
-      "daily_rate": 0.0593
-    },
-    "92": {
-      "algorithm": "croston_sba",
-      "history_days": 109,
-      "total_sales": 8,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.0839
-    },
-    "93": {
-      "algorithm": "croston_sba",
-      "history_days": 194,
-      "total_sales": 3,
-      "zero_ratio": 0.98,
-      "daily_rate": 0.0312
-    },
-    "94": {
-      "algorithm": "croston_sba",
-      "history_days": 193,
-      "total_sales": 2,
-      "zero_ratio": 0.99,
-      "daily_rate": 0.0312
-    },
-    "95": {
-      "algorithm": "croston_sba",
-      "history_days": 49,
-      "total_sales": 9,
-      "zero_ratio": 0.84,
-      "daily_rate": 0.154
-    },
-    "96": {
-      "algorithm": "croston_sba",
-      "history_days": 100,
-      "total_sales": 4,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0676
-    },
-    "97": {
-      "algorithm": "croston_sba",
-      "history_days": 174,
-      "total_sales": 14,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.0725
-    },
-    "98": {
-      "algorithm": "croston_sba",
-      "history_days": 78,
-      "total_sales": 4,
-      "zero_ratio": 0.95,
-      "daily_rate": 0.0877
-    },
-    "100": {
-      "algorithm": "croston_sba",
-      "history_days": 88,
-      "total_sales": 3,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0726
-    },
-    "101": {
-      "algorithm": "croston_sba",
-      "history_days": 157,
-      "total_sales": 7,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0601
-    },
-    "103": {
-      "algorithm": "croston_sba",
-      "history_days": 193,
-      "total_sales": 10,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0503
-    },
-    "105": {
-      "algorithm": "croston_sba",
-      "history_days": 83,
-      "total_sales": 3,
-      "zero_ratio": 0.98,
-      "daily_rate": 0.1301
-    },
-    "106": {
-      "algorithm": "croston_sba",
-      "history_days": 45,
-      "total_sales": 2,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.1242
-    },
-    "108": {
-      "algorithm": "croston_sba",
-      "history_days": 55,
-      "total_sales": 3,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.1189
-    },
-    "110": {
-      "algorithm": "croston_sba",
-      "history_days": 195,
-      "total_sales": 4,
-      "zero_ratio": 0.98,
-      "daily_rate": 0.0407
-    },
-    "111": {
-      "algorithm": "croston_sba",
-      "history_days": 123,
-      "total_sales": 5,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0575
-    },
-    "114": {
-      "algorithm": "croston_sba",
-      "history_days": 103,
-      "total_sales": 6,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.0898
-    },
-    "115": {
-      "algorithm": "croston_sba",
-      "history_days": 187,
-      "total_sales": 5,
-      "zero_ratio": 0.98,
-      "daily_rate": 0.043
-    },
-    "116": {
-      "algorithm": "croston_sba",
-      "history_days": 178,
-      "total_sales": 17,
-      "zero_ratio": 0.92,
-      "daily_rate": 0.0912
-    },
-    "119": {
-      "algorithm": "croston_sba",
-      "history_days": 109,
-      "total_sales": 5,
-      "zero_ratio": 0.95,
-      "daily_rate": 0.0648
-    },
-    "120": {
-      "algorithm": "croston_sba",
-      "history_days": 177,
-      "total_sales": 8,
-      "zero_ratio": 0.95,
-      "daily_rate": 0.0606
-    },
-    "121": {
-      "algorithm": "croston_sba",
-      "history_days": 162,
-      "total_sales": 15,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.1098
-    },
-    "125": {
-      "algorithm": "croston_sba",
-      "history_days": 177,
-      "total_sales": 26,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.0704
-    },
-    "126": {
-      "algorithm": "croston_sba",
-      "history_days": 179,
-      "total_sales": 36,
-      "zero_ratio": 0.84,
-      "daily_rate": 0.1574
-    },
-    "128": {
-      "algorithm": "croston_sba",
-      "history_days": 197,
-      "total_sales": 24,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.1395
-    },
-    "129": {
-      "algorithm": "croston_sba",
-      "history_days": 188,
-      "total_sales": 27,
-      "zero_ratio": 0.86,
-      "daily_rate": 0.1114
-    },
-    "130": {
-      "algorithm": "croston_sba",
-      "history_days": 68,
-      "total_sales": 10,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.1337
-    },
-    "131": {
-      "algorithm": "croston_sba",
-      "history_days": 114,
-      "total_sales": 10,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.1199
-    },
-    "132": {
-      "algorithm": "croston_sba",
-      "history_days": 186,
-      "total_sales": 31,
-      "zero_ratio": 0.9,
-      "daily_rate": 0.1994
-    },
-    "133": {
-      "algorithm": "croston_sba",
-      "history_days": 162,
-      "total_sales": 32,
-      "zero_ratio": 0.83,
-      "daily_rate": 0.1344
-    },
-    "134": {
-      "algorithm": "croston_sba",
-      "history_days": 94,
-      "total_sales": 5,
-      "zero_ratio": 0.95,
-      "daily_rate": 0.0742
-    },
-    "135": {
-      "algorithm": "croston_sba",
-      "history_days": 150,
-      "total_sales": 17,
-      "zero_ratio": 0.9,
-      "daily_rate": 0.0898
-    },
-    "136": {
-      "algorithm": "croston_sba",
-      "history_days": 191,
-      "total_sales": 31,
-      "zero_ratio": 0.87,
-      "daily_rate": 0.1245
-    },
-    "137": {
-      "algorithm": "croston_sba",
-      "history_days": 142,
-      "total_sales": 17,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.1212
-    },
-    "139": {
-      "algorithm": "croston_sba",
-      "history_days": 142,
-      "total_sales": 22,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.1008
-    },
-    "140": {
-      "algorithm": "croston_sba",
-      "history_days": 157,
-      "total_sales": 4,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0446
-    },
-    "141": {
-      "algorithm": "croston_sba",
-      "history_days": 93,
-      "total_sales": 2,
-      "zero_ratio": 0.98,
-      "daily_rate": 0.0631
-    },
-    "142": {
-      "algorithm": "croston_sba",
-      "history_days": 167,
-      "total_sales": 17,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.0959
-    },
-    "143": {
-      "algorithm": "croston_sba",
-      "history_days": 85,
-      "total_sales": 6,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.0824
-    },
-    "144": {
-      "algorithm": "croston_sba",
-      "history_days": 112,
-      "total_sales": 16,
-      "zero_ratio": 0.9,
-      "daily_rate": 0.1004
-    },
-    "145": {
-      "algorithm": "croston_sba",
-      "history_days": 146,
-      "total_sales": 9,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.088
-    },
-    "146": {
-      "algorithm": "croston_sba",
-      "history_days": 112,
-      "total_sales": 10,
-      "zero_ratio": 0.91,
-      "daily_rate": 0.0848
-    },
-    "147": {
-      "algorithm": "croston_sba",
-      "history_days": 194,
-      "total_sales": 15,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.0633
-    },
-    "148": {
-      "algorithm": "croston_sba",
-      "history_days": 48,
-      "total_sales": 2,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.1171
-    },
-    "149": {
-      "algorithm": "croston_sba",
-      "history_days": 60,
-      "total_sales": 9,
-      "zero_ratio": 0.9,
-      "daily_rate": 0.1554
-    },
-    "150": {
-      "algorithm": "croston_sba",
-      "history_days": 152,
-      "total_sales": 4,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0439
-    },
-    "151": {
-      "algorithm": "croston_sba",
-      "history_days": 54,
-      "total_sales": 4,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.1189
-    },
-    "152": {
-      "algorithm": "croston_sba",
-      "history_days": 188,
-      "total_sales": 14,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.0726
-    },
-    "153": {
-      "algorithm": "croston_sba",
-      "history_days": 117,
-      "total_sales": 3,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0516
-    },
-    "154": {
-      "algorithm": "croston_sba",
-      "history_days": 93,
-      "total_sales": 4,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0809
-    },
-    "155": {
-      "algorithm": "croston_sba",
-      "history_days": 40,
-      "total_sales": 4,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.1755
-    },
-    "156": {
-      "algorithm": "croston_sba",
-      "history_days": 177,
-      "total_sales": 7,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0517
-    },
-    "157": {
-      "algorithm": "croston_sba",
-      "history_days": 36,
-      "total_sales": 2,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.1516
-    },
-    "158": {
-      "algorithm": "croston_sba",
-      "history_days": 62,
-      "total_sales": 3,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.1711
-    },
-    "160": {
-      "algorithm": "croston_sba",
-      "history_days": 115,
-      "total_sales": 6,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0621
-    },
-    "161": {
-      "algorithm": "croston_sba",
-      "history_days": 126,
-      "total_sales": 4,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0539
-    },
-    "165": {
-      "algorithm": "croston_sba",
-      "history_days": 95,
-      "total_sales": 5,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0812
-    },
-    "166": {
-      "algorithm": "croston_sba",
-      "history_days": 164,
-      "total_sales": 21,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.0935
-    },
-    "167": {
-      "algorithm": "croston_sba",
-      "history_days": 88,
-      "total_sales": 5,
-      "zero_ratio": 0.95,
-      "daily_rate": 0.0943
-    },
-    "168": {
-      "algorithm": "croston_sba",
-      "history_days": 98,
-      "total_sales": 9,
-      "zero_ratio": 0.92,
-      "daily_rate": 0.0879
-    },
-    "169": {
-      "algorithm": "croston_sba",
-      "history_days": 111,
-      "total_sales": 6,
-      "zero_ratio": 0.95,
-      "daily_rate": 0.0628
-    },
-    "170": {
-      "algorithm": "croston_sba",
-      "history_days": 142,
-      "total_sales": 19,
-      "zero_ratio": 0.92,
-      "daily_rate": 0.13
-    },
-    "171": {
+    "02fbc34d-c90f-53a3-836f-079cbbef244b": {
       "algorithm": "croston_sba",
       "history_days": 91,
       "total_sales": 13,
       "zero_ratio": 0.88,
       "daily_rate": 0.1277
     },
-    "172": {
+    "03721ca3-7396-574d-90b6-60a9f028aad4": {
       "algorithm": "croston_sba",
-      "history_days": 105,
-      "total_sales": 7,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.0866
-    },
-    "173": {
-      "algorithm": "croston_sba",
-      "history_days": 93,
-      "total_sales": 5,
-      "zero_ratio": 0.95,
-      "daily_rate": 0.0953
-    },
-    "175": {
-      "algorithm": "croston_sba",
-      "history_days": 135,
+      "history_days": 175,
       "total_sales": 10,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.0847
+      "zero_ratio": 0.95,
+      "daily_rate": 0.0593
     },
-    "176": {
+    "05c14c3f-d11d-5329-b888-73f3cbf78cd0": {
       "algorithm": "croston_sba",
-      "history_days": 149,
-      "total_sales": 14,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.1192
+      "history_days": 13,
+      "total_sales": 2,
+      "zero_ratio": 0.85,
+      "daily_rate": 0.3491
     },
-    "177": {
-      "algorithm": "croston_sba",
-      "history_days": 65,
-      "total_sales": 8,
-      "zero_ratio": 0.91,
-      "daily_rate": 0.1303
-    },
-    "178": {
-      "algorithm": "croston_sba",
-      "history_days": 140,
-      "total_sales": 11,
-      "zero_ratio": 0.92,
-      "daily_rate": 0.0726
-    },
-    "179": {
-      "algorithm": "croston_sba",
-      "history_days": 31,
-      "total_sales": 4,
-      "zero_ratio": 0.87,
-      "daily_rate": 0.2204
-    },
-    "180": {
-      "algorithm": "croston_sba",
-      "history_days": 152,
-      "total_sales": 20,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.1409
-    },
-    "181": {
-      "algorithm": "croston_sba",
-      "history_days": 55,
-      "total_sales": 6,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.1522
-    },
-    "182": {
+    "06353763-26b1-594c-9686-3687f2152466": {
       "algorithm": "croston_sba",
       "history_days": 110,
-      "total_sales": 14,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.1018
-    },
-    "183": {
-      "algorithm": "croston_sba",
-      "history_days": 90,
-      "total_sales": 8,
-      "zero_ratio": 0.92,
-      "daily_rate": 0.1104
-    },
-    "200": {
-      "algorithm": "croston_sba",
-      "history_days": 63,
-      "total_sales": 2,
-      "zero_ratio": 0.97,
-      "daily_rate": 0.0911
-    },
-    "202": {
-      "algorithm": "croston_sba",
-      "history_days": 114,
-      "total_sales": 3,
-      "zero_ratio": 0.98,
-      "daily_rate": 0.0961
-    },
-    "203": {
-      "algorithm": "croston_sba",
-      "history_days": 40,
-      "total_sales": 3,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.1528
-    },
-    "204": {
-      "algorithm": "croston_sba",
-      "history_days": 18,
-      "total_sales": 3,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.5033
-    },
-    "206": {
-      "algorithm": "croston_sba",
-      "history_days": 17,
-      "total_sales": 2,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.2846
-    },
-    "207": {
-      "algorithm": "croston_sba",
-      "history_days": 8,
-      "total_sales": 2,
-      "zero_ratio": 0.75,
-      "daily_rate": 0.4868
-    },
-    "210": {
-      "algorithm": "croston_sba",
-      "history_days": 66,
-      "total_sales": 8,
-      "zero_ratio": 0.91,
-      "daily_rate": 0.207
-    },
-    "211": {
-      "algorithm": "croston_sba",
-      "history_days": 59,
-      "total_sales": 9,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.1349
-    },
-    "212": {
-      "algorithm": "croston_sba",
-      "history_days": 48,
       "total_sales": 6,
-      "zero_ratio": 0.9,
-      "daily_rate": 0.1808
-    },
-    "213": {
-      "algorithm": "croston_sba",
-      "history_days": 94,
-      "total_sales": 10,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.1181
-    },
-    "214": {
-      "algorithm": "croston_sba",
-      "history_days": 51,
-      "total_sales": 5,
-      "zero_ratio": 0.9,
-      "daily_rate": 0.1412
-    },
-    "216": {
-      "algorithm": "croston_sba",
-      "history_days": 77,
-      "total_sales": 4,
-      "zero_ratio": 0.96,
-      "daily_rate": 0.14
-    },
-    "218": {
-      "algorithm": "croston_sba",
-      "history_days": 61,
-      "total_sales": 4,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.1118
-    },
-    "219": {
-      "algorithm": "croston_sba",
-      "history_days": 83,
-      "total_sales": 10,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.1123
-    },
-    "220": {
-      "algorithm": "croston_sba",
-      "history_days": 66,
-      "total_sales": 5,
       "zero_ratio": 0.95,
-      "daily_rate": 0.1204
+      "daily_rate": 0.0622
     },
-    "222": {
+    "09550451-1ec1-56f0-9750-f3fd64586694": {
       "algorithm": "croston_sba",
-      "history_days": 83,
-      "total_sales": 8,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.1032
+      "history_days": 62,
+      "total_sales": 3,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.1711
     },
-    "223": {
+    "0bb5c059-d2c8-55f0-9522-aa6d339025e6": {
+      "algorithm": "croston_sba",
+      "history_days": 182,
+      "total_sales": 7,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0459
+    },
+    "0be12d64-1d5e-515c-9ce7-82ebd951c25c": {
+      "algorithm": "croston_sba",
+      "history_days": 243,
+      "total_sales": 24,
+      "zero_ratio": 0.91,
+      "daily_rate": 0.0833
+    },
+    "0cda54ee-1b72-529f-afed-e34417e0f40d": {
+      "algorithm": "croston_sba",
+      "history_days": 85,
+      "total_sales": 6,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.0824
+    },
+    "0d191af7-2d8e-5582-8882-53ccea3dc055": {
+      "algorithm": "croston_sba",
+      "history_days": 172,
+      "total_sales": 21,
+      "zero_ratio": 0.9,
+      "daily_rate": 0.1133
+    },
+    "12911f34-e9af-506c-90e2-e3b71ca6933b": {
+      "algorithm": "croston_sba",
+      "history_days": 253,
+      "total_sales": 38,
+      "zero_ratio": 0.87,
+      "daily_rate": 0.0795
+    },
+    "13cfb82e-540e-5bc8-bf6a-9c1c70d1f345": {
+      "algorithm": "croston_sba",
+      "history_days": 138,
+      "total_sales": 5,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.048
+    },
+    "13decafa-d6bb-5f02-b30b-deaf1058b3b7": {
+      "algorithm": "croston_sba",
+      "history_days": 166,
+      "total_sales": 22,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.1265
+    },
+    "15218a5c-f9c2-5886-b6a6-f8608b5ca1ac": {
+      "algorithm": "croston_sba",
+      "history_days": 62,
+      "total_sales": 7,
+      "zero_ratio": 0.89,
+      "daily_rate": 0.1139
+    },
+    "152560c1-b894-55b9-8f6a-3ea04f57b612": {
       "algorithm": "croston_sba",
       "history_days": 87,
       "total_sales": 6,
       "zero_ratio": 0.95,
       "daily_rate": 0.1914
     },
-    "225": {
+    "15445176-18ef-56da-b94f-79d0c54dda6c": {
       "algorithm": "croston_sba",
-      "history_days": 52,
-      "total_sales": 4,
-      "zero_ratio": 0.92,
-      "daily_rate": 0.1193
+      "history_days": 230,
+      "total_sales": 12,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.044
     },
-    "226": {
+    "1820a6ed-90df-5eb9-84c7-39f27bff2049": {
+      "algorithm": "croston_sba",
+      "history_days": 150,
+      "total_sales": 17,
+      "zero_ratio": 0.9,
+      "daily_rate": 0.0898
+    },
+    "19cf23bd-4d50-530b-a0bc-741a5b73e365": {
+      "algorithm": "croston_sba",
+      "history_days": 13,
+      "total_sales": 2,
+      "zero_ratio": 0.85,
+      "daily_rate": 0.3491
+    },
+    "1ee49655-6f83-5de9-bc6b-fd4d3f87d755": {
       "algorithm": "croston_sba",
       "history_days": 87,
       "total_sales": 15,
       "zero_ratio": 0.84,
       "daily_rate": 0.1766
     },
-    "227": {
+    "1f226a78-92d4-5734-a726-14dfae3fcf34": {
       "algorithm": "croston_sba",
-      "history_days": 70,
+      "history_days": 51,
       "total_sales": 5,
-      "zero_ratio": 0.93,
-      "daily_rate": 0.0886
-    },
-    "228": {
-      "algorithm": "croston_sba",
-      "history_days": 58,
-      "total_sales": 7,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.1402
-    },
-    "229": {
-      "algorithm": "croston_sba",
-      "history_days": 31,
-      "total_sales": 2,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.1729
-    },
-    "230": {
-      "algorithm": "croston_sba",
-      "history_days": 46,
-      "total_sales": 10,
-      "zero_ratio": 0.83,
-      "daily_rate": 0.2391
-    },
-    "232": {
-      "algorithm": "croston_sba",
-      "history_days": 43,
-      "total_sales": 6,
-      "zero_ratio": 0.86,
-      "daily_rate": 0.2031
-    },
-    "233": {
-      "algorithm": "croston_sba",
-      "history_days": 92,
-      "total_sales": 5,
-      "zero_ratio": 0.95,
-      "daily_rate": 0.0795
-    },
-    "234": {
-      "algorithm": "croston_sba",
-      "history_days": 13,
-      "total_sales": 3,
-      "zero_ratio": 0.85,
-      "daily_rate": 0.4014
-    },
-    "237": {
-      "algorithm": "croston_sba",
-      "history_days": 63,
-      "total_sales": 12,
-      "zero_ratio": 0.86,
-      "daily_rate": 0.2229
-    },
-    "241": {
-      "algorithm": "croston_sba",
-      "history_days": 67,
-      "total_sales": 4,
-      "zero_ratio": 0.94,
-      "daily_rate": 0.1065
-    },
-    "242": {
-      "algorithm": "croston_sba",
-      "history_days": 27,
-      "total_sales": 3,
-      "zero_ratio": 0.89,
-      "daily_rate": 0.2103
-    },
-    "243": {
-      "algorithm": "croston_sba",
-      "history_days": 30,
-      "total_sales": 3,
       "zero_ratio": 0.9,
-      "daily_rate": 0.2061
+      "daily_rate": 0.1412
     },
-    "245": {
+    "1fb56a36-687c-57ef-ad95-828fa9e41ec2": {
       "algorithm": "croston_sba",
-      "history_days": 42,
-      "total_sales": 6,
-      "zero_ratio": 0.86,
-      "daily_rate": 0.1674
+      "history_days": 248,
+      "total_sales": 33,
+      "zero_ratio": 0.89,
+      "daily_rate": 0.0735
     },
-    "248": {
+    "1fb9fa98-34ed-501e-9ba9-080bf61dd839": {
       "algorithm": "croston_sba",
-      "history_days": 25,
+      "history_days": 52,
       "total_sales": 4,
-      "zero_ratio": 0.88,
-      "daily_rate": 0.2568
+      "zero_ratio": 0.92,
+      "daily_rate": 0.1193
     },
-    "249": {
+    "216368d3-553f-55b1-acd5-024a419bf75f": {
       "algorithm": "croston_sba",
-      "history_days": 29,
-      "total_sales": 4,
-      "zero_ratio": 0.86,
-      "daily_rate": 0.219
+      "history_days": 168,
+      "total_sales": 3,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0366
     },
-    "252": {
+    "233878de-3746-5dbd-9e66-c8eec8ac27f8": {
       "algorithm": "croston_sba",
-      "history_days": 44,
-      "total_sales": 4,
+      "history_days": 161,
+      "total_sales": 17,
       "zero_ratio": 0.91,
-      "daily_rate": 0.1363
+      "daily_rate": 0.0896
     },
-    "253": {
+    "23de22b6-38f6-55ca-adbd-cc1faeb3a464": {
+      "algorithm": "croston_sba",
+      "history_days": 112,
+      "total_sales": 10,
+      "zero_ratio": 0.91,
+      "daily_rate": 0.0848
+    },
+    "25941302-c491-5916-99fc-48d61c7b174a": {
       "algorithm": "croston_sba",
       "history_days": 51,
       "total_sales": 11,
       "zero_ratio": 0.8,
       "daily_rate": 0.2283
     },
-    "255": {
+    "25b4da2d-bda6-539d-913a-eef24f4506aa": {
       "algorithm": "croston_sba",
-      "history_days": 26,
+      "history_days": 188,
+      "total_sales": 27,
+      "zero_ratio": 0.86,
+      "daily_rate": 0.1114
+    },
+    "25ffbcca-b2df-5c10-aa28-074c78f407bf": {
+      "algorithm": "croston_sba",
+      "history_days": 63,
+      "total_sales": 2,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0911
+    },
+    "2b5687d7-4e75-5e6c-bf04-4ddf45ff6ad1": {
+      "algorithm": "croston_sba",
+      "history_days": 126,
+      "total_sales": 4,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0539
+    },
+    "2f60ce69-75a3-55ad-9d3a-656122cc9dd8": {
+      "algorithm": "croston_sba",
+      "history_days": 246,
+      "total_sales": 19,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.041
+    },
+    "2fce63f7-98d3-5fe1-b8f6-cbc02fd0ec0f": {
+      "algorithm": "croston_sba",
+      "history_days": 24,
+      "total_sales": 2,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.2151
+    },
+    "3044ff18-c2bb-5448-bf12-381b18a76c61": {
+      "algorithm": "croston_sba",
+      "history_days": 13,
+      "total_sales": 3,
+      "zero_ratio": 0.85,
+      "daily_rate": 0.4014
+    },
+    "31e61224-2778-510b-81ce-a73666c1f82c": {
+      "algorithm": "croston_sba",
+      "history_days": 242,
+      "total_sales": 10,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0431
+    },
+    "3366c886-2125-52de-a177-889f00267f3e": {
+      "algorithm": "croston_sba",
+      "history_days": 195,
+      "total_sales": 33,
+      "zero_ratio": 0.9,
+      "daily_rate": 0.2002
+    },
+    "369a1830-5373-55b0-90f8-b07fe6dd38b0": {
+      "algorithm": "croston_sba",
+      "history_days": 13,
+      "total_sales": 2,
+      "zero_ratio": 0.85,
+      "daily_rate": 0.3491
+    },
+    "3785b236-172d-5a93-986e-ae8ca6d34716": {
+      "algorithm": "croston_sba",
+      "history_days": 77,
+      "total_sales": 4,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.14
+    },
+    "37adbfa9-6025-551b-9b62-ffdb0073019c": {
+      "algorithm": "croston_sba",
+      "history_days": 55,
+      "total_sales": 3,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.1189
+    },
+    "38af521b-cf2b-57cf-b50d-f5e7bb1bc1db": {
+      "algorithm": "croston_sba",
+      "history_days": 102,
+      "total_sales": 11,
+      "zero_ratio": 0.9,
+      "daily_rate": 0.095
+    },
+    "38d12c63-1911-5922-a493-27dbeb94f618": {
+      "algorithm": "croston_sba",
+      "history_days": 109,
+      "total_sales": 8,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.0839
+    },
+    "3e75c486-fae5-5a5b-a82c-0eb2d2b5d2aa": {
+      "algorithm": "croston_sba",
+      "history_days": 173,
+      "total_sales": 5,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0384
+    },
+    "3f850092-64d7-5097-9c7c-69e4fb9376b2": {
+      "algorithm": "croston_sba",
+      "history_days": 217,
+      "total_sales": 23,
+      "zero_ratio": 0.91,
+      "daily_rate": 0.136
+    },
+    "418668fe-b9b6-5600-9bb4-9460fc8c90a1": {
+      "algorithm": "croston_sba",
+      "history_days": 247,
+      "total_sales": 39,
+      "zero_ratio": 0.88,
+      "daily_rate": 0.084
+    },
+    "41a3e46d-89f2-541b-98be-1c305ef58d1d": {
+      "algorithm": "croston_sba",
+      "history_days": 162,
+      "total_sales": 16,
+      "zero_ratio": 0.91,
+      "daily_rate": 0.0712
+    },
+    "42f61de4-d24d-561c-a4c6-0aca1372e3a0": {
+      "algorithm": "croston_sba",
+      "history_days": 229,
+      "total_sales": 4,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.032
+    },
+    "4850751f-aa53-582a-9ad9-c7d82928e718": {
+      "algorithm": "croston_sba",
+      "history_days": 83,
+      "total_sales": 9,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.1613
+    },
+    "48d45413-4ad6-577d-b24c-d9a8b351a289": {
+      "algorithm": "croston_sba",
+      "history_days": 22,
+      "total_sales": 6,
+      "zero_ratio": 0.73,
+      "daily_rate": 0.3321
+    },
+    "4b3fa4bb-a8af-584b-9075-7844f082d7a3": {
+      "algorithm": "croston_sba",
+      "history_days": 13,
       "total_sales": 4,
       "zero_ratio": 0.85,
-      "daily_rate": 0.2361
+      "daily_rate": 0.6981
     },
-    "260": {
+    "4c8c8216-8c65-53c6-8fa3-76a68694d751": {
+      "algorithm": "croston_sba",
+      "history_days": 55,
+      "total_sales": 6,
+      "zero_ratio": 0.89,
+      "daily_rate": 0.1522
+    },
+    "4cfdae97-8ce3-5d82-8451-b0af725069c7": {
+      "algorithm": "croston_sba",
+      "history_days": 63,
+      "total_sales": 12,
+      "zero_ratio": 0.86,
+      "daily_rate": 0.2229
+    },
+    "4e4979c1-e867-5a2e-8535-687e07565f03": {
+      "algorithm": "croston_sba",
+      "history_days": 68,
+      "total_sales": 10,
+      "zero_ratio": 0.88,
+      "daily_rate": 0.1337
+    },
+    "50d945aa-7696-5355-9109-abe62d140168": {
+      "algorithm": "croston_sba",
+      "history_days": 218,
+      "total_sales": 27,
+      "zero_ratio": 0.91,
+      "daily_rate": 0.0563
+    },
+    "510aebbd-9875-5a48-ad94-c6a2330822f8": {
+      "algorithm": "croston_sba",
+      "history_days": 112,
+      "total_sales": 5,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0658
+    },
+    "51397760-6a4b-5bb2-811f-0c3b540d287a": {
+      "algorithm": "croston_sba",
+      "history_days": 69,
+      "total_sales": 17,
+      "zero_ratio": 0.83,
+      "daily_rate": 0.2892
+    },
+    "520d3c0a-c87f-516c-8798-42ab3a06e186": {
+      "algorithm": "croston_sba",
+      "history_days": 94,
+      "total_sales": 5,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.0742
+    },
+    "5246fbd6-b47b-5718-a94e-5ebbd7c3dd69": {
+      "algorithm": "croston_sba",
+      "history_days": 48,
+      "total_sales": 6,
+      "zero_ratio": 0.9,
+      "daily_rate": 0.1808
+    },
+    "53507754-76aa-50bb-a0d3-60988e6cd73f": {
+      "algorithm": "croston_sba",
+      "history_days": 223,
+      "total_sales": 3,
+      "zero_ratio": 0.99,
+      "daily_rate": 0.0273
+    },
+    "53f465f5-9912-5591-95b9-350c82f1b8f4": {
+      "algorithm": "croston_sba",
+      "history_days": 217,
+      "total_sales": 12,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.0526
+    },
+    "5605e46c-4cef-5079-86ac-1ad38f15aaa3": {
+      "algorithm": "croston_sba",
+      "history_days": 10,
+      "total_sales": 2,
+      "zero_ratio": 0.8,
+      "daily_rate": 0.4205
+    },
+    "58e4d473-b2cd-591f-969c-48c89fe8344e": {
+      "algorithm": "croston_sba",
+      "history_days": 51,
+      "total_sales": 5,
+      "zero_ratio": 0.9,
+      "daily_rate": 0.1357
+    },
+    "59b57fc2-2c5e-512a-9143-23c0baac89e4": {
+      "algorithm": "croston_sba",
+      "history_days": 54,
+      "total_sales": 4,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.1189
+    },
+    "5b99ee93-c640-5bf3-947b-8c5dbf2f1da6": {
+      "algorithm": "croston_sba",
+      "history_days": 213,
+      "total_sales": 16,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.0609
+    },
+    "5e81fd6e-930f-5e61-bb47-962fa36b445d": {
+      "algorithm": "croston_sba",
+      "history_days": 176,
+      "total_sales": 9,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.0618
+    },
+    "5f0ae331-992d-5163-b05d-494daa4e3c6d": {
+      "algorithm": "croston_sba",
+      "history_days": 13,
+      "total_sales": 2,
+      "zero_ratio": 0.85,
+      "daily_rate": 0.3491
+    },
+    "5f7d5f8f-7106-5a90-aa60-8c34da48a72e": {
+      "algorithm": "croston_sba",
+      "history_days": 162,
+      "total_sales": 15,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.1098
+    },
+    "609d2e82-a72d-5d9d-a24f-589288a2609e": {
+      "algorithm": "croston_sba",
+      "history_days": 152,
+      "total_sales": 7,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.0496
+    },
+    "628427c2-a431-5065-95d8-68412b790bd6": {
+      "algorithm": "croston_sba",
+      "history_days": 139,
+      "total_sales": 4,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0463
+    },
+    "62c2b32e-ac07-53be-a253-fe7a33a0cff1": {
+      "algorithm": "croston_sba",
+      "history_days": 76,
+      "total_sales": 10,
+      "zero_ratio": 0.89,
+      "daily_rate": 0.1273
+    },
+    "65ca5aa2-4a43-535a-a913-2aaf4719042e": {
+      "algorithm": "croston_sba",
+      "history_days": 239,
+      "total_sales": 19,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.047
+    },
+    "66bf937e-5e19-566f-b4cd-c877b4e35ea7": {
+      "algorithm": "croston_sba",
+      "history_days": 235,
+      "total_sales": 8,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0483
+    },
+    "686c3f30-907b-5d80-8245-60ecb2937858": {
+      "algorithm": "croston_sba",
+      "history_days": 88,
+      "total_sales": 3,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0726
+    },
+    "68839ed3-9120-5d10-98ea-71e5b6620e53": {
+      "algorithm": "croston_sba",
+      "history_days": 180,
+      "total_sales": 8,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.056
+    },
+    "692e4dd6-80fa-5263-9014-fb8c4972370e": {
+      "algorithm": "croston_sba",
+      "history_days": 203,
+      "total_sales": 22,
+      "zero_ratio": 0.91,
+      "daily_rate": 0.0916
+    },
+    "6af3fa4f-d391-5bbb-a77d-88a079514944": {
+      "algorithm": "croston_sba",
+      "history_days": 107,
+      "total_sales": 11,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.0965
+    },
+    "6b37bcf5-81a1-532c-838e-19e0f51fb845": {
+      "algorithm": "croston_sba",
+      "history_days": 178,
+      "total_sales": 3,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0341
+    },
+    "6bb6ce5c-63a6-5bc1-9676-0ce6cc370a39": {
+      "algorithm": "croston_sba",
+      "history_days": 193,
+      "total_sales": 2,
+      "zero_ratio": 0.99,
+      "daily_rate": 0.0312
+    },
+    "6c52790b-c69e-5f05-a873-3137e1d1de44": {
+      "algorithm": "croston_sba",
+      "history_days": 59,
+      "total_sales": 9,
+      "zero_ratio": 0.88,
+      "daily_rate": 0.1349
+    },
+    "6e95ccfa-5344-5fca-8ef3-9f31703964d5": {
+      "algorithm": "croston_sba",
+      "history_days": 167,
+      "total_sales": 3,
+      "zero_ratio": 0.99,
+      "daily_rate": 0.0413
+    },
+    "6e964459-ff8d-53d2-82b2-d98fb40b5481": {
+      "algorithm": "croston_sba",
+      "history_days": 142,
+      "total_sales": 22,
+      "zero_ratio": 0.88,
+      "daily_rate": 0.1008
+    },
+    "70ddb8e2-aaa0-58f6-bf28-50c57debe27d": {
+      "algorithm": "croston_sba",
+      "history_days": 17,
+      "total_sales": 2,
+      "zero_ratio": 0.88,
+      "daily_rate": 0.2846
+    },
+    "7168aab4-9130-5973-8917-d83740494249": {
+      "algorithm": "croston_sba",
+      "history_days": 97,
+      "total_sales": 9,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.0964
+    },
+    "7195b116-30e1-5ebd-a1a0-4c647b7bb5ca": {
+      "algorithm": "croston_sba",
+      "history_days": 133,
+      "total_sales": 3,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0464
+    },
+    "734ba171-b779-550c-827d-aee88bc58773": {
+      "algorithm": "croston_sba",
+      "history_days": 150,
+      "total_sales": 3,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0419
+    },
+    "73b24d81-4a45-55f4-9b3b-fb07e5c24a72": {
+      "algorithm": "croston_sba",
+      "history_days": 201,
+      "total_sales": 10,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0767
+    },
+    "749cb827-0f79-593b-882e-8509ba32cdf2": {
+      "algorithm": "croston_sba",
+      "history_days": 88,
+      "total_sales": 4,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0772
+    },
+    "7571a0ff-3543-5ae8-9593-c4d5ec34bc96": {
+      "algorithm": "croston_sba",
+      "history_days": 43,
+      "total_sales": 6,
+      "zero_ratio": 0.86,
+      "daily_rate": 0.2031
+    },
+    "75848e75-7a9c-53a6-8a10-67e1b5d151a3": {
+      "algorithm": "croston_sba",
+      "history_days": 67,
+      "total_sales": 4,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.1065
+    },
+    "781b4fd2-34d2-51d8-aaa3-c261a7d839f6": {
+      "algorithm": "croston_sba",
+      "history_days": 32,
+      "total_sales": 5,
+      "zero_ratio": 0.88,
+      "daily_rate": 0.3137
+    },
+    "79c56cb4-ad34-5434-98f6-da568a167928": {
+      "algorithm": "croston_sba",
+      "history_days": 94,
+      "total_sales": 4,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0731
+    },
+    "7cdf1566-ebcf-531d-8a21-231e4a84ec94": {
+      "algorithm": "croston_sba",
+      "history_days": 203,
+      "total_sales": 17,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.0667
+    },
+    "7ce0f70f-6b81-5d94-be51-51261b5917ad": {
+      "algorithm": "croston_sba",
+      "history_days": 115,
+      "total_sales": 6,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0621
+    },
+    "7d00dd51-1197-5cf4-8c66-6e57b4b7441d": {
+      "algorithm": "croston_sba",
+      "history_days": 155,
+      "total_sales": 24,
+      "zero_ratio": 0.87,
+      "daily_rate": 0.1121
+    },
+    "7f1a6dbd-7bce-5a12-acab-f324a776c1fe": {
+      "algorithm": "croston_sba",
+      "history_days": 105,
+      "total_sales": 7,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0866
+    },
+    "7f3b88dd-c826-5a90-9267-760499644024": {
+      "algorithm": "croston_sba",
+      "history_days": 11,
+      "total_sales": 2,
+      "zero_ratio": 0.82,
+      "daily_rate": 0.3936
+    },
+    "806b6cb3-c197-51ca-8cbd-6ff10c0a4b84": {
+      "algorithm": "croston_sba",
+      "history_days": 117,
+      "total_sales": 3,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0516
+    },
+    "80c3e825-08e3-54fa-a473-a892c35dee16": {
+      "algorithm": "croston_sba",
+      "history_days": 103,
+      "total_sales": 6,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.0898
+    },
+    "81696e63-7feb-5c59-b1d8-7809ef36fe16": {
+      "algorithm": "croston_sba",
+      "history_days": 235,
+      "total_sales": 17,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.0756
+    },
+    "8181c6fd-f6ed-575b-9796-293edfecd636": {
+      "algorithm": "croston_sba",
+      "history_days": 96,
+      "total_sales": 3,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0622
+    },
+    "835a8405-c04a-5686-bb80-3a568751ddba": {
+      "algorithm": "croston_sba",
+      "history_days": 39,
+      "total_sales": 6,
+      "zero_ratio": 0.9,
+      "daily_rate": 0.2102
+    },
+    "83f24279-bc03-53f6-beae-45290c58d17a": {
+      "algorithm": "croston_sba",
+      "history_days": 17,
+      "total_sales": 2,
+      "zero_ratio": 0.88,
+      "daily_rate": 0.2846
+    },
+    "84e8a329-18eb-5ada-8685-5e1e0377e1da": {
+      "algorithm": "croston_sba",
+      "history_days": 142,
+      "total_sales": 17,
+      "zero_ratio": 0.88,
+      "daily_rate": 0.1212
+    },
+    "85ddde6c-270f-5dbf-a563-b7bcdcf1d8e6": {
+      "algorithm": "croston_sba",
+      "history_days": 92,
+      "total_sales": 3,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0651
+    },
+    "8843efd9-f98e-5600-b7af-f4cd8b2102c8": {
+      "algorithm": "croston_sba",
+      "history_days": 188,
+      "total_sales": 14,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.0726
+    },
+    "88a41634-23a5-5fc9-a7eb-d30ab31b9650": {
+      "algorithm": "croston_sba",
+      "history_days": 249,
+      "total_sales": 20,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.0691
+    },
+    "89520db6-4f9b-528d-b26e-e398ac6f2e2d": {
+      "algorithm": "croston_sba",
+      "history_days": 88,
+      "total_sales": 5,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.0943
+    },
+    "89b24bf9-16e2-59cd-8fa5-9e500c3658a1": {
+      "algorithm": "croston_sba",
+      "history_days": 30,
+      "total_sales": 3,
+      "zero_ratio": 0.9,
+      "daily_rate": 0.2061
+    },
+    "9036eecf-a9f0-5b18-ba37-1a6443d73535": {
+      "algorithm": "croston_sba",
+      "history_days": 93,
+      "total_sales": 6,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.087
+    },
+    "90d0a74e-3946-58f2-aa47-10921c7f5544": {
+      "algorithm": "croston_sba",
+      "history_days": 83,
+      "total_sales": 3,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.1301
+    },
+    "916e826e-e583-5a09-a071-7d65c7bae633": {
+      "algorithm": "croston_sba",
+      "history_days": 182,
+      "total_sales": 11,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.0752
+    },
+    "91de7f7c-fe87-5f35-aded-31e849da3426": {
+      "algorithm": "croston_sba",
+      "history_days": 109,
+      "total_sales": 12,
+      "zero_ratio": 0.91,
+      "daily_rate": 0.1151
+    },
+    "91ec4a95-325a-5e37-9f05-9e6ab2793dbc": {
+      "algorithm": "croston_sba",
+      "history_days": 106,
+      "total_sales": 6,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0793
+    },
+    "93893531-0799-5bd8-bf95-e56e6cb47e81": {
+      "algorithm": "croston_sba",
+      "history_days": 212,
+      "total_sales": 6,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0421
+    },
+    "943f37b4-3a56-5d0b-a248-4bd3db0d02d4": {
+      "algorithm": "croston_sba",
+      "history_days": 225,
+      "total_sales": 12,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.0417
+    },
+    "9447b607-8b58-5201-9583-5fcd31dd3de8": {
+      "algorithm": "croston_sba",
+      "history_days": 93,
+      "total_sales": 4,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0809
+    },
+    "96517acf-bc33-5077-bfa9-98fb8852bd37": {
+      "algorithm": "croston_sba",
+      "history_days": 178,
+      "total_sales": 17,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.0912
+    },
+    "993996f1-c7d9-5120-990b-88624c45cf95": {
+      "algorithm": "croston_sba",
+      "history_days": 250,
+      "total_sales": 15,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.0466
+    },
+    "99ba4f2c-39b5-54d9-997a-22559e49d907": {
+      "algorithm": "croston_sba",
+      "history_days": 25,
+      "total_sales": 3,
+      "zero_ratio": 0.88,
+      "daily_rate": 0.2162
+    },
+    "9b29f905-1621-5801-b71b-4d92b51f3946": {
+      "algorithm": "croston_sba",
+      "history_days": 135,
+      "total_sales": 10,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.0847
+    },
+    "9b6ff662-a9cf-5d62-8ee2-5b87e6ac7ece": {
+      "algorithm": "croston_sba",
+      "history_days": 57,
+      "total_sales": 12,
+      "zero_ratio": 0.81,
+      "daily_rate": 0.2574
+    },
+    "9d07e596-707d-5c3b-87f6-e814cf409844": {
+      "algorithm": "croston_sba",
+      "history_days": 193,
+      "total_sales": 10,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0503
+    },
+    "9d2dc958-bba3-5884-ac50-f4182a622119": {
+      "algorithm": "croston_sba",
+      "history_days": 18,
+      "total_sales": 3,
+      "zero_ratio": 0.89,
+      "daily_rate": 0.5033
+    },
+    "9ec6791b-6881-5357-8514-d2784a8962d7": {
+      "algorithm": "croston_sba",
+      "history_days": 63,
+      "total_sales": 2,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0911
+    },
+    "9ecef94c-d0d9-5760-afb3-da2b045f5986": {
+      "algorithm": "croston_sba",
+      "history_days": 152,
+      "total_sales": 4,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0439
+    },
+    "9f27ad56-33fa-5c42-9f44-5f52492451ba": {
+      "algorithm": "croston_sba",
+      "history_days": 54,
+      "total_sales": 4,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.1199
+    },
+    "9fd83391-58fb-5feb-bdb6-2e12e27f6182": {
+      "algorithm": "croston_sba",
+      "history_days": 90,
+      "total_sales": 3,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0764
+    },
+    "a2373918-b224-586e-9c44-a2bf7be8f606": {
+      "algorithm": "croston_sba",
+      "history_days": 212,
+      "total_sales": 14,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.0576
+    },
+    "a30ce4bc-77f4-5b74-9973-9362a039ad89": {
+      "algorithm": "croston_sba",
+      "history_days": 26,
+      "total_sales": 3,
+      "zero_ratio": 0.88,
+      "daily_rate": 0.2339
+    },
+    "a689c882-2aaf-5747-80a5-11d25d8395c7": {
+      "algorithm": "croston_sba",
+      "history_days": 46,
+      "total_sales": 10,
+      "zero_ratio": 0.83,
+      "daily_rate": 0.2391
+    },
+    "a788ba0a-460e-5af8-a827-b5b00e336702": {
+      "algorithm": "croston_sba",
+      "history_days": 156,
+      "total_sales": 12,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.0699
+    },
+    "a977dd8b-a718-5fc9-b128-b1a4d25f9b65": {
+      "algorithm": "croston_sba",
+      "history_days": 141,
+      "total_sales": 4,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0508
+    },
+    "ab100c1d-fc96-5cc4-83ce-d3fa5462ba63": {
+      "algorithm": "croston_sba",
+      "history_days": 179,
+      "total_sales": 36,
+      "zero_ratio": 0.84,
+      "daily_rate": 0.1574
+    },
+    "afc21c93-fd47-59dd-8dad-245045aa755e": {
+      "algorithm": "croston_sba",
+      "history_days": 223,
+      "total_sales": 8,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0418
+    },
+    "b037c44c-af2a-5ccc-be03-1b8105685761": {
+      "algorithm": "croston_sba",
+      "history_days": 242,
+      "total_sales": 3,
+      "zero_ratio": 0.99,
+      "daily_rate": 0.0259
+    },
+    "b03ac053-10cb-5dbd-8198-b6bb3ff3071c": {
+      "algorithm": "croston_sba",
+      "history_days": 202,
+      "total_sales": 33,
+      "zero_ratio": 0.86,
+      "daily_rate": 0.0843
+    },
+    "b1052dc6-f3c8-56e2-8edc-6d44e91d29ec": {
+      "algorithm": "croston_sba",
+      "history_days": 108,
+      "total_sales": 4,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.073
+    },
+    "b10cefff-9ca7-519c-95c7-4d5f24c2bbeb": {
+      "algorithm": "croston_sba",
+      "history_days": 109,
+      "total_sales": 5,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.0648
+    },
+    "b4cbb1fb-96c4-5571-b78f-d8ad4ba69eff": {
+      "algorithm": "croston_sba",
+      "history_days": 100,
+      "total_sales": 5,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.1027
+    },
+    "b56f79e8-2d4e-53e5-b09c-2ca96fc51cd0": {
+      "algorithm": "croston_sba",
+      "history_days": 27,
+      "total_sales": 3,
+      "zero_ratio": 0.89,
+      "daily_rate": 0.2103
+    },
+    "b5705ef2-f548-59f2-9846-ab5516bf9bc2": {
+      "algorithm": "croston_sba",
+      "history_days": 93,
+      "total_sales": 2,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0631
+    },
+    "b602b210-e6e3-5d64-9544-0ca238fbc711": {
+      "algorithm": "croston_sba",
+      "history_days": 238,
+      "total_sales": 10,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0567
+    },
+    "b657d44b-9a5f-5de1-be2e-cab504d0d653": {
+      "algorithm": "croston_sba",
+      "history_days": 89,
+      "total_sales": 4,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0894
+    },
+    "b8f81a30-2900-58cf-b4e8-930d99386123": {
+      "algorithm": "croston_sba",
+      "history_days": 98,
+      "total_sales": 9,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.0879
+    },
+    "b94de299-6ed2-5a2b-969d-511672a733b6": {
+      "algorithm": "croston_sba",
+      "history_days": 85,
+      "total_sales": 7,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.1108
+    },
+    "bdcd4f64-dc65-5725-a944-88c16819a63d": {
+      "algorithm": "croston_sba",
+      "history_days": 219,
+      "total_sales": 21,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.0898
+    },
+    "be1b6c20-1469-5025-ae08-28fd1d969b6f": {
+      "algorithm": "croston_sba",
+      "history_days": 116,
+      "total_sales": 11,
+      "zero_ratio": 0.91,
+      "daily_rate": 0.0929
+    },
+    "c043fe41-7efc-5b4e-8b2c-4bfa567e3ff1": {
+      "algorithm": "croston_sba",
+      "history_days": 230,
+      "total_sales": 7,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0376
+    },
+    "c13b227d-891f-585c-b227-2b3282a684ce": {
+      "algorithm": "croston_sba",
+      "history_days": 177,
+      "total_sales": 8,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.0606
+    },
+    "c187cfad-08f0-50a2-bc28-050000b68810": {
+      "algorithm": "croston_sba",
+      "history_days": 92,
+      "total_sales": 5,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.0795
+    },
+    "c33ecfdd-57dc-5a1e-8d5b-8c85d7f9125e": {
+      "algorithm": "croston_sba",
+      "history_days": 93,
+      "total_sales": 5,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.0953
+    },
+    "c4f5b097-b7c1-50d8-b09f-72dfa3cdb466": {
+      "algorithm": "croston_sba",
+      "history_days": 241,
+      "total_sales": 30,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.0768
+    },
+    "c51f8923-0758-5f59-b5fc-23b43075df29": {
+      "algorithm": "croston_sba",
+      "history_days": 194,
+      "total_sales": 3,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0312
+    },
+    "c7b03e88-08fb-5ad6-bc21-c0334470494c": {
+      "algorithm": "croston_sba",
+      "history_days": 89,
+      "total_sales": 2,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0658
+    },
+    "c97a8135-206b-537a-b8b3-b934b6f816e9": {
+      "algorithm": "croston_sba",
+      "history_days": 247,
+      "total_sales": 33,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.0599
+    },
+    "c995bca5-7fa4-5a6a-ba86-efa403528ada": {
+      "algorithm": "croston_sba",
+      "history_days": 65,
+      "total_sales": 8,
+      "zero_ratio": 0.91,
+      "daily_rate": 0.1303
+    },
+    "ca7a710c-aac0-557b-9a57-4a83cfc2e845": {
+      "algorithm": "croston_sba",
+      "history_days": 222,
+      "total_sales": 19,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.0835
+    },
+    "cb0ba514-941b-5c6e-babe-6b258f31d664": {
+      "algorithm": "croston_sba",
+      "history_days": 108,
+      "total_sales": 5,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.0657
+    },
+    "cb3b296a-01c5-5d31-bfa6-bf3474d25a5c": {
+      "algorithm": "croston_sba",
+      "history_days": 139,
+      "total_sales": 8,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.0521
+    },
+    "cbea16a6-af51-5e49-8bf3-965d84ea3d65": {
+      "algorithm": "croston_sba",
+      "history_days": 234,
+      "total_sales": 5,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0312
+    },
+    "cbf08017-0f24-5b08-8857-16ac91f35e69": {
+      "algorithm": "croston_sba",
+      "history_days": 96,
+      "total_sales": 8,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.1294
+    },
+    "cea73614-27d1-5bfa-989a-aa4b8c317416": {
+      "algorithm": "croston_sba",
+      "history_days": 64,
+      "total_sales": 5,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.1024
+    },
+    "ced1ff82-2061-5d7f-98df-2a351e161a19": {
+      "algorithm": "croston_sba",
+      "history_days": 48,
+      "total_sales": 2,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.1171
+    },
+    "cf4acf6b-6e6d-570d-8875-a53d10280425": {
+      "algorithm": "croston_sba",
+      "history_days": 167,
+      "total_sales": 5,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0386
+    },
+    "cf92ff85-8fe5-56cb-97e7-abc14c33f5db": {
+      "algorithm": "croston_sba",
+      "history_days": 114,
+      "total_sales": 10,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.1199
+    },
+    "cf939d26-ae89-5439-be99-ac9dac11502f": {
+      "algorithm": "croston_sba",
+      "history_days": 61,
+      "total_sales": 5,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.187
+    },
+    "d1019d6b-61e4-5ddc-b717-d86ff1d999b9": {
+      "algorithm": "croston_sba",
+      "history_days": 41,
+      "total_sales": 7,
+      "zero_ratio": 0.83,
+      "daily_rate": 0.2189
+    },
+    "d4d09fff-08fc-59ff-8b9b-fe9fc013ecf7": {
+      "algorithm": "croston_sba",
+      "history_days": 100,
+      "total_sales": 4,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0676
+    },
+    "d4f2df78-6d6b-5547-86a6-5acc7d1b8f52": {
+      "algorithm": "croston_sba",
+      "history_days": 123,
+      "total_sales": 5,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0575
+    },
+    "d5d807f7-b43f-597f-9b0f-d3f1a383e529": {
+      "algorithm": "croston_sba",
+      "history_days": 45,
+      "total_sales": 8,
+      "zero_ratio": 0.87,
+      "daily_rate": 0.2343
+    },
+    "d6debb3f-e936-56cf-9777-3f699aba28ce": {
+      "algorithm": "croston_sba",
+      "history_days": 164,
+      "total_sales": 21,
+      "zero_ratio": 0.88,
+      "daily_rate": 0.0935
+    },
+    "d89e2160-932b-5be9-a5ca-52d713fd7c0d": {
+      "algorithm": "croston_sba",
+      "history_days": 49,
+      "total_sales": 9,
+      "zero_ratio": 0.84,
+      "daily_rate": 0.154
+    },
+    "d8b05930-e13d-5d16-96d6-89e360860bbe": {
+      "algorithm": "croston_sba",
+      "history_days": 92,
+      "total_sales": 3,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0728
+    },
+    "d9e85eb3-eb87-5f32-9ab6-3abdf0789f4d": {
+      "algorithm": "croston_sba",
+      "history_days": 112,
+      "total_sales": 16,
+      "zero_ratio": 0.9,
+      "daily_rate": 0.1004
+    },
+    "deeace3e-1277-55cc-9665-a4198684cbf7": {
+      "algorithm": "croston_sba",
+      "history_days": 40,
+      "total_sales": 4,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.1755
+    },
+    "dfed8d70-75d7-52f8-bffd-9a7ac47bf03f": {
       "algorithm": "croston_sba",
       "history_days": 31,
+      "total_sales": 2,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.1729
+    },
+    "e02132cc-197d-57d9-8478-eb1d19399d13": {
+      "algorithm": "croston_sba",
+      "history_days": 64,
+      "total_sales": 5,
+      "zero_ratio": 0.95,
+      "daily_rate": 0.2544
+    },
+    "e08f072d-c940-5df7-aa9e-92193e7f9f53": {
+      "algorithm": "croston_sba",
+      "history_days": 114,
+      "total_sales": 3,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0961
+    },
+    "e0e33635-cba2-55bd-8b1c-409f0664c635": {
+      "algorithm": "croston_sba",
+      "history_days": 67,
+      "total_sales": 8,
+      "zero_ratio": 0.91,
+      "daily_rate": 0.1578
+    },
+    "e1efe2c7-324c-5426-b5b7-5b5d37c1cc67": {
+      "algorithm": "croston_sba",
+      "history_days": 244,
+      "total_sales": 73,
+      "zero_ratio": 0.77,
+      "daily_rate": 0.1828
+    },
+    "e5276057-6d0f-54e8-9501-c21b9cf7f2f7": {
+      "algorithm": "croston_sba",
+      "history_days": 236,
+      "total_sales": 16,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0523
+    },
+    "e839feed-77c4-5875-9955-061e902fac57": {
+      "algorithm": "croston_sba",
+      "history_days": 224,
+      "total_sales": 24,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.0693
+    },
+    "eaf59d51-bcb7-5e55-beb7-22f4f9fa3dd9": {
+      "algorithm": "croston_sba",
+      "history_days": 235,
+      "total_sales": 22,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.0586
+    },
+    "ed55f287-e262-5b08-bc86-8f27086477cc": {
+      "algorithm": "croston_sba",
+      "history_days": 248,
+      "total_sales": 20,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.097
+    },
+    "f0f15f50-bc6b-5299-89d7-adba526c5da8": {
+      "algorithm": "croston_sba",
+      "history_days": 29,
+      "total_sales": 4,
+      "zero_ratio": 0.86,
+      "daily_rate": 0.219
+    },
+    "f17f1fa5-3847-5199-9357-1ce8b9692338": {
+      "algorithm": "croston_sba",
+      "history_days": 214,
+      "total_sales": 34,
+      "zero_ratio": 0.87,
+      "daily_rate": 0.1262
+    },
+    "f1f38771-7aac-53f6-a2c0-bbf727540bc6": {
+      "algorithm": "croston_sba",
+      "history_days": 157,
+      "total_sales": 4,
+      "zero_ratio": 0.97,
+      "daily_rate": 0.0446
+    },
+    "f41dcffc-c93c-56d1-a58e-16bc046c1abc": {
+      "algorithm": "croston_sba",
+      "history_days": 129,
+      "total_sales": 12,
+      "zero_ratio": 0.92,
+      "daily_rate": 0.1061
+    },
+    "f53f9d39-2fef-5676-83ce-fc6617ccf504": {
+      "algorithm": "croston_sba",
+      "history_days": 218,
+      "total_sales": 26,
+      "zero_ratio": 0.94,
+      "daily_rate": 0.1314
+    },
+    "f7907312-fa9f-52bb-8373-6ef1672a0ead": {
+      "algorithm": "croston_sba",
+      "history_days": 211,
+      "total_sales": 16,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.0676
+    },
+    "f86916d1-58a9-5cc7-8b1b-a26e23eb06d5": {
+      "algorithm": "croston_sba",
+      "history_days": 249,
+      "total_sales": 39,
+      "zero_ratio": 0.88,
+      "daily_rate": 0.1338
+    },
+    "fa12193a-f1e8-5947-a2a6-6bcc6ed1cf19": {
+      "algorithm": "croston_sba",
+      "history_days": 149,
+      "total_sales": 14,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.1192
+    },
+    "fa44f497-d605-576d-8962-83070250c092": {
+      "algorithm": "croston_sba",
+      "history_days": 195,
+      "total_sales": 4,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0407
+    },
+    "faa47c7e-672b-57ec-afa2-febcfbfa8fd6": {
+      "algorithm": "croston_sba",
+      "history_days": 95,
+      "total_sales": 5,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0812
+    },
+    "fb18a359-a0c9-5b17-84d4-d281ff92737b": {
+      "algorithm": "croston_sba",
+      "history_days": 211,
+      "total_sales": 15,
+      "zero_ratio": 0.93,
+      "daily_rate": 0.0459
+    },
+    "fbf46f0a-429c-5a50-864f-3b73378810c1": {
+      "algorithm": "croston_sba",
+      "history_days": 58,
       "total_sales": 7,
-      "zero_ratio": 0.84,
-      "daily_rate": 0.3559
+      "zero_ratio": 0.88,
+      "daily_rate": 0.1402
+    },
+    "fd4eec01-e755-5488-8b43-92c091441e78": {
+      "algorithm": "croston_sba",
+      "history_days": 236,
+      "total_sales": 6,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0601
+    },
+    "fd6039d1-4593-59f2-89ed-3728e98e73db": {
+      "algorithm": "croston_sba",
+      "history_days": 134,
+      "total_sales": 6,
+      "zero_ratio": 0.96,
+      "daily_rate": 0.0647
+    },
+    "ff693ab8-6bc7-5bac-abb6-70a04c24f3ff": {
+      "algorithm": "croston_sba",
+      "history_days": 234,
+      "total_sales": 4,
+      "zero_ratio": 0.98,
+      "daily_rate": 0.0333
     }
   }
 }

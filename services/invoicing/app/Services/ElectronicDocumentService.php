@@ -66,7 +66,7 @@ class ElectronicDocumentService
         $igvAmount   = round($total - $taxableBase, 2);
 
         $nextNumber        = $this->documentSeriesService->generateNextNumber(
-            (int) $sale->warehouse_id,
+            (string) $sale->warehouse_id,
             $documentType,
             $serie,
         );

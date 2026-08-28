@@ -6,6 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    public const CREATED_AT = null;
+
+    public const UPDATED_AT = null;
+
     protected $table = 'customers';
 
     protected $fillable = [

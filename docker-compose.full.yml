@@ -264,6 +264,8 @@ services:
     restart: unless-stopped
     env_file:
       - ./services/ai-engine/.env
+    volumes:
+      - ./services/ai-engine/models:/app/models
     ports:
       - '3008:8000'
     depends_on:

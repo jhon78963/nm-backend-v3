@@ -28,15 +28,16 @@ logger = logging.getLogger(__name__)
 
 DEMAND_QUERY = """
 SELECT
-    sd.product_id,
+    ps.product_id,
     DATE(s.creation_time) AS sale_date,
     SUM(sd.quantity)::integer AS quantity
 FROM sale_details sd
 INNER JOIN sales s ON s.id = sd.sale_id
+INNER JOIN product_size ps ON ps.id = sd.product_size_id
 WHERE s.status = 'COMPLETED'
   AND s.is_deleted = false
-GROUP BY sd.product_id, DATE(s.creation_time)
-ORDER BY sd.product_id, sale_date
+GROUP BY ps.product_id, DATE(s.creation_time)
+ORDER BY ps.product_id, sale_date
 """
 
 PRICE_QUERY = """
@@ -46,37 +47,40 @@ WITH primary_size AS (
         purchase_price,
         sale_price
     FROM product_size
+    WHERE is_deleted = false
     ORDER BY product_id, id
 ),
 sales_30d AS (
     SELECT
-        sd.product_id,
+        ps.product_id,
         COALESCE(SUM(sd.quantity), 0)::integer AS sales_last_month
     FROM sale_details sd
     INNER JOIN sales s ON s.id = sd.sale_id
+    INNER JOIN product_size ps ON ps.id = sd.product_size_id
     WHERE s.status = 'COMPLETED'
       AND s.is_deleted = false
       AND s.creation_time >= NOW() - INTERVAL '30 days'
-    GROUP BY sd.product_id
+    GROUP BY ps.product_id
 ),
 sales_all AS (
     SELECT
-        sd.product_id,
+        ps.product_id,
         COALESCE(SUM(sd.quantity), 0)::integer AS total_sales_all_time,
         MAX(s.creation_time) AS last_sale_at
     FROM sale_details sd
     INNER JOIN sales s ON s.id = sd.sale_id
+    INNER JOIN product_size ps ON ps.id = sd.product_size_id
     WHERE s.status = 'COMPLETED'
       AND s.is_deleted = false
-    GROUP BY sd.product_id
+    GROUP BY ps.product_id
 ),
 stock_totals AS (
     SELECT
-        product_id,
-        COALESCE(SUM(quantity), 0)::integer AS current_stock
-    FROM inventory_balances
-    WHERE color_id IS NULL
-    GROUP BY product_id
+        ps.product_id,
+        COALESCE(SUM(ib.quantity), 0)::integer AS current_stock
+    FROM inventory_balances ib
+    INNER JOIN product_size ps ON ps.id = ib.product_size_id
+    GROUP BY ps.product_id
 )
 SELECT
     p.id AS product_id,

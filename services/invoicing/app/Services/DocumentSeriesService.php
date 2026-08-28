@@ -26,7 +26,7 @@ class DocumentSeriesService
      * @throws \Throwable              Re-lanza cualquier fallo de BD
      */
     public function generateNextNumber(
-        int $warehouseId,
+        string $warehouseId,
         string $documentType,
         string $serie,
     ): int {
@@ -65,7 +65,7 @@ class DocumentSeriesService
      * Atajo: genera el correlativo y devuelve el número completo formateado.
      */
     public function generateInvoiceNumber(
-        int $warehouseId,
+        string $warehouseId,
         string $documentType,
         string $serie,
     ): string {
