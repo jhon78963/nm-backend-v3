@@ -10,11 +10,11 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { STORAGE_PROVIDER, StorageContext, StorageProvider } from '@app/storage';
 import type { FastifyReply } from 'fastify';
 import { Res } from '@nestjs/common';
+import { StorageServiceKeyGuard } from '../guards/storage-service-key.guard';
 
 const VALID_CONTEXTS = new Set<StorageContext>([
   'products',
@@ -25,8 +25,6 @@ const VALID_CONTEXTS = new Set<StorageContext>([
 ]);
 
 @ApiTags('Storage — Files')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller({ path: 'storage/files', version: '1' })
 export class FilesController {
   constructor(
@@ -66,6 +64,7 @@ export class FilesController {
 
   @Delete()
   @HttpCode(HttpStatus.OK)
+  @UseGuards(StorageServiceKeyGuard)
   @ApiOperation({ summary: 'Eliminar un archivo por su ruta lógica' })
   async remove(@Body() body: { path: string }) {
     if (!body?.path) {

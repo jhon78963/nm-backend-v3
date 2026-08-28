@@ -256,6 +256,12 @@ services:
       - storage_uploads:/data/uploads
     ports:
       - '3010:3008'   # host 3010 — evita conflicto con ai-engine (3008:8000)
+    # El volumen montado puede ser root-owned; asegurar permisos al iniciar
+    user: root
+    command: >
+      sh -c "mkdir -p /data/uploads &&
+             chown -R nestjs:nestjs /data/uploads &&
+             exec node dist/apps/storage-service/apps/storage-service/src/main.js"
     depends_on:
       - migrate
 

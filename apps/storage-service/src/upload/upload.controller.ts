@@ -6,13 +6,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
 import type { FastifyRequest } from 'fastify';
+import { StorageServiceKeyGuard } from '../guards/storage-service-key.guard';
 import { UploadService } from './upload.service';
 
 @ApiTags('Storage — Upload')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(StorageServiceKeyGuard)
 @Controller({ path: 'storage/upload', version: '1' })
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
