@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ElectronicDocumentLog extends Model
 {
+    public const UPDATED_AT = null;
+
     protected $table = 'electronic_document_logs';
 
     protected $fillable = [

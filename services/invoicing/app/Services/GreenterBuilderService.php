@@ -36,6 +36,7 @@ class GreenterBuilderService
     private const TIPO_MONEDA    = 'PEN';
     private const BOLETA_700    = 700.0;          // umbral para clientes sin doc en BOLETA
     private const UBL_VERSION   = '2.1';
+    private const PUBLIC_GENERAL_NAME = 'PUBLICO EN GENERAL';
 
     /** Tipos de documento de identidad en cat. 06 SUNAT */
     private const DOC_TYPE_MAP = [
@@ -199,7 +200,7 @@ class GreenterBuilderService
      *
      * Reglas SUNAT:
      *  - FACTURA: tipoDoc='6' (RUC), numDoc=11 dígitos, rznSocial obligatorio.
-     *  - BOLETA < 700 PEN sin cliente: tipoDoc='-', numDoc='-', rznSocial='-'.
+     *  - BOLETA < 700 PEN sin cliente: tipoDoc='-', numDoc='-', rznSocial='PUBLICO EN GENERAL'.
      *  - BOLETA ≥ 700 PEN sin cliente: SUNAT exige dni/ruc; aquí se usa '-' con '0'
      *    (Documento de Identidad del Exterior) como fallback — en la práctica el
      *    cajero debe identificar al cliente antes de emitir por encima del umbral.
@@ -226,16 +227,17 @@ class GreenterBuilderService
             return (new Client())
                 ->setTipoDoc($tipoDoc)
                 ->setNumDoc($numDoc)
-                ->setRznSocial('-');
+                ->setRznSocial(self::PUBLIC_GENERAL_NAME);
         }
 
         $rawType   = strtoupper(trim((string) ($customer->document_type ?? 'DNI')));
         $sunatType = self::DOC_TYPE_MAP[$rawType] ?? '1';
+        $name      = trim((string) ($customer->name ?? ''));
 
         return (new Client())
             ->setTipoDoc($sunatType)
             ->setNumDoc((string) ($customer->document_number ?? ''))
-            ->setRznSocial((string) ($customer->name ?? '-'));
+            ->setRznSocial($name !== '' ? $name : self::PUBLIC_GENERAL_NAME);
     }
 
     /**
