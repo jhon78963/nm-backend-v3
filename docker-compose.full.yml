@@ -326,9 +326,14 @@ services:
       - default
 
 volumes:
+  # Nombres fijos (sin prefijo de proyecto) para que los datos sobrevivan
+  # aunque cambies el nombre del proyecto Compose.
   nm_postgres_data:
+    name: nm_postgres_data
   invoicing_vendor:
+    name: nm_invoicing_vendor
   storage_uploads:
+    name: nm_storage_uploads
 
 networks:
   default:

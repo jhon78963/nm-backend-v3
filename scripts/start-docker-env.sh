@@ -7,6 +7,7 @@ set -euo pipefail
 
 COMPOSE_FILE="$(dirname "$(realpath "$0")")/../docker-compose.full.yml"
 ENV_FILE="$(dirname "$(realpath "$0")")/../.env"
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-nm-backend-v3}"
 
 # ── Colores ──────────────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
@@ -64,9 +65,9 @@ command -v docker-compose >/dev/null 2>&1 || docker compose version >/dev/null 2
 
 # Detectar si usar 'docker-compose' o 'docker compose'
 if command -v docker-compose >/dev/null 2>&1; then
-  DC="docker-compose"
+  DC="docker-compose -p ${COMPOSE_PROJECT_NAME}"
 else
-  DC="docker compose"
+  DC="docker compose -p ${COMPOSE_PROJECT_NAME}"
 fi
 
 sep
@@ -160,7 +161,7 @@ log "Levantando todos los microservicios en segundo plano..."
 $DC -f "$COMPOSE_FILE" $PROFILES up -d \
   gateway auth-service catalog-service inventory-service \
   pos-service finance-service hr-service report-service \
-  ai-engine invoicing-service
+  storage-service ai-engine invoicing-service
 
 # Esperar a que el gateway responda
 log "Esperando a que el Gateway responda en :3000..."
@@ -190,6 +191,7 @@ echo -e "  │  pos-service       → http://localhost:3004/api/docs       │"
 echo -e "  │  finance-service   → http://localhost:3005/api/docs       │"
 echo -e "  │  hr-service        → http://localhost:3006/api/docs       │"
 echo -e "  │  report-service    → http://localhost:3007/api/docs       │"
+echo -e "  │  storage-service   → http://localhost:3010/api/docs       │"
 echo -e "  │  ai-engine         → http://localhost:3008/health          │"
 echo -e "  │  invoicing-service → http://localhost:3009/api/health      │"
 echo -e "  └────────────────────────────────────────────────────────────┘"
