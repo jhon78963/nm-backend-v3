@@ -40,6 +40,34 @@ services:
       timeout: 3s
       retries: 5
 
+  # ── Storage Service (NestJS — subida local de archivos) ───────────────────
+  storage-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: storage-service
+    container_name: nm_storage
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SERVICE_NAME: storage-service
+      APP_PORT: 3008
+      STORAGE_DRIVER: local
+      STORAGE_LOCAL_ROOT: /data/uploads
+      STORAGE_PUBLIC_BASE_URL: http://localhost:3000/api/v1/storage/files
+      STORAGE_SERVICE_KEY: nm-storage-dev-key-change-in-production
+    volumes:
+      - storage_uploads:/data/uploads
+    ports:
+      - '3008:3008'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - default
+
   # ── Invoicing Service (Laravel + Greenter — polyglot PHP) ─────────────────
   invoicing:
     build:
@@ -85,6 +113,7 @@ services:
 volumes:
   nm_postgres_data:
   invoicing_vendor:
+  storage_uploads:
 
 networks:
   default:
