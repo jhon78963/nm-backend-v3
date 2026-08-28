@@ -36,9 +36,11 @@ services/ai-engine/.env
 services/invoicing/.env
 services/invoicing/vendor/
 services/invoicing/storage/logs/
-services/invoicing/storage/framework/cache/
-services/invoicing/storage/framework/sessions/
-services/invoicing/storage/framework/views/
+services/invoicing/storage/framework/
+services/invoicing/storage/app/sunat/xml/
+services/invoicing/storage/app/sunat/cdr/
+services/invoicing/storage/app/sunat/cache/
+services/invoicing/storage/app/private/
 services/invoicing/storage/app/sunat/*.pem
 services/invoicing/storage/app/sunat/*.pfx
 services/invoicing/bootstrap/cache/*.php
