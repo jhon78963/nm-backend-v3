@@ -31,3 +31,14 @@ services/ai-engine/data/
 services/ai-engine/models/demand/product_*.joblib
 services/ai-engine/models/price/
 services/ai-engine/.env
+
+# ── Laravel / services/invoicing ──────────────────────────────────────────────
+services/invoicing/.env
+services/invoicing/vendor/
+services/invoicing/storage/logs/
+services/invoicing/storage/framework/cache/
+services/invoicing/storage/framework/sessions/
+services/invoicing/storage/framework/views/
+services/invoicing/storage/app/sunat/*.pem
+services/invoicing/storage/app/sunat/*.pfx
+services/invoicing/bootstrap/cache/*.php
