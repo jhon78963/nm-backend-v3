@@ -27,7 +27,9 @@
       "@app/database": ["libs/database/src"],
       "@app/database/*": ["libs/database/src/*"],
       "@app/contracts": ["libs/contracts/src"],
-      "@app/contracts/*": ["libs/contracts/src/*"]
+      "@app/contracts/*": ["libs/contracts/src/*"],
+      "@app/storage": ["libs/storage/src"],
+      "@app/storage/*": ["libs/storage/src/*"]
     }
   }
 }

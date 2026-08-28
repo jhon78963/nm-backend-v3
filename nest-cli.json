@@ -90,6 +90,15 @@
         "tsConfigPath": "apps/ai-proxy-service/tsconfig.app.json"
       }
     },
+    "storage-service": {
+      "type": "application",
+      "root": "apps/storage-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/storage-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/storage-service/tsconfig.app.json"
+      }
+    },
     "common": {
       "type": "library",
       "root": "libs/common",
@@ -115,6 +124,15 @@
       "sourceRoot": "libs/contracts/src",
       "compilerOptions": {
         "tsConfigPath": "libs/contracts/tsconfig.lib.json"
+      }
+    },
+    "storage": {
+      "type": "library",
+      "root": "libs/storage",
+      "entryFile": "index",
+      "sourceRoot": "libs/storage/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/storage/tsconfig.lib.json"
       }
     }
   }

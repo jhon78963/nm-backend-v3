@@ -98,6 +98,7 @@ services:
       REPORT_SERVICE_URL: http://report-service:3007
       AI_ENGINE_URL: http://ai-engine:8000
       INVOICING_SERVICE_URL: http://invoicing-service:8000
+      STORAGE_SERVICE_URL: http://storage-service:3008
     ports:
       - '3000:3000'
     depends_on:
@@ -111,6 +112,7 @@ services:
       - report-service
       - ai-engine
       - invoicing-service
+      - storage-service
 
   auth-service:
     <<: *service-defaults
@@ -226,6 +228,28 @@ services:
       - migrate
       - ai-engine
 
+  storage-service:
+    <<: *service-defaults
+    container_name: nm_storage
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: storage-service
+    environment:
+      SERVICE_NAME: storage-service
+      APP_PORT: 3008
+      STORAGE_DRIVER: local
+      STORAGE_LOCAL_ROOT: /data/uploads
+      STORAGE_PUBLIC_BASE_URL: http://localhost:3000/api/v1/storage/files
+      STORAGE_SERVICE_KEY: ${STORAGE_SERVICE_KEY:-nm-storage-dev-key-change-in-production}
+    volumes:
+      - storage_uploads:/data/uploads
+    ports:
+      - '3008:3008'
+    depends_on:
+      - migrate
+
   # ── Invoicing Service (Laravel 12 + Greenter — polyglot PHP) ────────────────
 
   invoicing-service:
@@ -295,6 +319,7 @@ services:
 volumes:
   nm_postgres_data:
   invoicing_vendor:
+  storage_uploads:
 
 networks:
   default:

@@ -19,7 +19,8 @@ type ServiceName =
   | 'finance'
   | 'hr'
   | 'report'
-  | 'ai-proxy';
+  | 'ai-proxy'
+  | 'storage';
 
 /**
  * ProxyService — BFF (Backend for Frontend) del Gateway.
@@ -37,6 +38,7 @@ type ServiceName =
  *   /api/v1/dashboard/*   → report-service    :3007
  *   /api/v1/reports/*     → report-service    :3007
  *   /api/v1/ai/*          → report-service    :3007 (AI proxy)
+ *   /api/v1/storage/*     → storage-service   :3008
  *
  * El JWT ya fue validado en JwtAuthGuard antes de llegar aquí.
  * El gateway reenvía el header Authorization al servicio destino.
@@ -59,6 +61,7 @@ export class ProxyService {
       'hr':        config.get('HR_SERVICE_URL',        'http://localhost:3006'),
       'report':    config.get('REPORT_SERVICE_URL',    'http://localhost:3007'),
       'ai-proxy':  config.get('REPORT_SERVICE_URL',    'http://localhost:3007'),
+      'storage':   config.get('STORAGE_SERVICE_URL',   'http://localhost:3008'),
     };
   }
 
@@ -95,6 +98,7 @@ export class ProxyService {
     if (path.startsWith('/api/v1/dashboard')) return 'report';
     if (path.startsWith('/api/v1/reports'))   return 'report';
     if (path.startsWith('/api/v1/ai'))        return 'ai-proxy';
+    if (path.startsWith('/api/v1/storage'))   return 'storage';
     return 'auth'; // fallback
   }
 
@@ -104,11 +108,31 @@ export class ProxyService {
 
     this.logger.debug(`${req.method} ${req.url} → ${service} (${targetUrl})`);
 
+    const isMultipart = (req.headers['content-type'] ?? '').includes('multipart/form-data');
+
     try {
+      let fetchBody: BodyInit | undefined;
       const headers: Record<string, string> = {
-        'content-type': 'application/json',
         accept: 'application/json',
       };
+
+      if (isMultipart) {
+        // Reenviar el body raw (stream) preservando el boundary del content-type
+        headers['content-type'] = req.headers['content-type'] as string;
+        const rawBody = await req.raw.read?.() ?? (req as unknown as { rawBody?: Buffer }).rawBody;
+        if (rawBody) {
+          fetchBody = rawBody;
+          headers['content-length'] = String(rawBody.length);
+        } else {
+          // Stream directo si rawBody no está disponible (Fastify raw)
+          fetchBody = req.raw as unknown as BodyInit;
+        }
+      } else {
+        headers['content-type'] = 'application/json';
+        fetchBody = ['GET', 'DELETE', 'HEAD'].includes(req.method)
+          ? undefined
+          : JSON.stringify(req.body);
+      }
 
       // Propagar auth, warehouse y tenant headers
       if (req.headers.authorization) headers['authorization'] = req.headers.authorization;
@@ -118,17 +142,27 @@ export class ProxyService {
       const response = await fetch(targetUrl, {
         method: req.method,
         headers,
-        body: ['GET', 'DELETE', 'HEAD'].includes(req.method)
-          ? undefined
-          : JSON.stringify(req.body),
-        signal: AbortSignal.timeout(30_000),
+        body: fetchBody,
+        // @ts-expect-error Node 18+ soporta duplex para streams
+        duplex: isMultipart ? 'half' : undefined,
+        signal: AbortSignal.timeout(60_000),
       });
 
       const contentType = response.headers.get('content-type') ?? 'application/json';
-      const body = await response.text();
 
       this.logHttpActivity(req, response.status);
 
+      // Archivos binarios: reenviar como stream
+      if (contentType.startsWith('image/') || contentType === 'application/pdf' || contentType === 'application/octet-stream') {
+        const buffer = Buffer.from(await response.arrayBuffer());
+        void reply
+          .status(response.status)
+          .header('content-type', contentType)
+          .send(buffer);
+        return;
+      }
+
+      const body = await response.text();
       void reply
         .status(response.status)
         .header('content-type', contentType)
