@@ -153,6 +153,9 @@ export class ProductsService {
             },
           },
         },
+        media: {
+          orderBy: [{ isCover: 'desc' }, { sortOrder: 'asc' }],
+        },
       },
     });
     if (!product) throw new NotFoundException('Producto no encontrado.');
