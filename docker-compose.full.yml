@@ -255,7 +255,7 @@ services:
     volumes:
       - storage_uploads:/data/uploads
     ports:
-      - '3008:3008'
+      - '3010:3008'   # host 3010 — evita conflicto con ai-engine (3008:8000)
     depends_on:
       - migrate
 

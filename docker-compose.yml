@@ -61,12 +61,10 @@ services:
     volumes:
       - storage_uploads:/data/uploads
     ports:
-      - '3008:3008'
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - '3010:3008'   # host 3010 — evita conflicto con ai-engine si el stack full está activo
     networks:
       - default
+    # No depende de postgres — el storage solo guarda archivos en disco
 
   # ── Invoicing Service (Laravel + Greenter — polyglot PHP) ─────────────────
   invoicing:
