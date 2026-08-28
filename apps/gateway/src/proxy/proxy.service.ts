@@ -38,7 +38,7 @@ type ServiceName =
  *   /api/v1/dashboard/*   → report-service    :3007
  *   /api/v1/reports/*     → report-service    :3007
  *   /api/v1/ai/*          → report-service    :3007 (AI proxy)
- *   /api/v1/storage/*     → storage-service   :3008
+ *   /api/v1/storage/*     → storage-service   :3008  (rutas con /v1, igual que auth)
  *
  * El JWT ya fue validado en JwtAuthGuard antes de llegar aquí.
  * El gateway reenvía el header Authorization al servicio destino.
@@ -204,7 +204,8 @@ export class ProxyService {
     originalUrl: string,
     service: ServiceName,
   ): string {
-    if (service === 'auth') {
+    // auth-service y storage-service usan URI versioning (/v1/*).
+    if (service === 'auth' || service === 'storage') {
       const path = originalUrl.startsWith('/api/')
         ? originalUrl.replace(/^\/api/, '')
         : originalUrl;

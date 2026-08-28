@@ -25,7 +25,11 @@ async function bootstrap() {
 
   const config = app.get(ConfigService);
 
-  await app.register(helmet, { contentSecurityPolicy: false });
+  await app.register(helmet, {
+    contentSecurityPolicy: false,
+    // El frontend (4200) carga imágenes del gateway (3000); same-origin las bloquea.
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  });
 
   app.enableCors({
     origin: config.get('FRONTEND_URL', 'http://localhost:4200'),

@@ -17,7 +17,10 @@ async function bootstrap() {
 
   const config = app.get(ConfigService);
 
-  await app.register(helmet, { contentSecurityPolicy: false });
+  await app.register(helmet, {
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  });
 
   // Multipart necesario para recibir archivos
   await app.register(multipart, {
