@@ -283,10 +283,30 @@ model Product {
   productSizes ProductSize[]
   histories    ProductHistory[]
   wooSyncMaps  WoocommerceSyncMap[]
+  media        ProductMedia[]
 
   @@index([warehouseId])
   @@index([isDeleted])
   @@map("products")
+}
+
+model ProductMedia {
+  id          String   @id @default(uuid())
+  productId   String   @map("product_id")
+  url         String
+  path        String
+  mimeType    String   @map("mime_type") @db.VarChar(50)
+  size        Int
+  name        String   @db.VarChar(255)
+  sortOrder   Int      @default(0) @map("sort_order")
+  isCover     Boolean  @default(false) @map("is_cover")
+  uploadedById String? @map("uploaded_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_media")
 }
 
 model ProductSize {
@@ -610,10 +630,13 @@ model CashMovement {
 }
 
 model CashMovementVoucher {
-  id             String @id @default(uuid())
-  cashMovementId String @map("cash_movement_id")
-  voucherPath    String @map("voucher_path")
-  sortOrder      Int    @default(0) @map("sort_order")
+  id             String  @id @default(uuid())
+  cashMovementId String  @map("cash_movement_id")
+  voucherPath    String  @map("voucher_path")
+  voucherUrl     String? @map("voucher_url")
+  mimeType       String? @map("mime_type") @db.VarChar(50)
+  name           String? @db.VarChar(255)
+  sortOrder      Int     @default(0) @map("sort_order")
 
   cashMovement CashMovement @relation(fields: [cashMovementId], references: [id], onDelete: Cascade)
 

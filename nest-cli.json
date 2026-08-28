@@ -134,6 +134,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/storage/tsconfig.lib.json"
       }
+    },
+    "storage-client": {
+      "type": "library",
+      "root": "libs/storage-client",
+      "entryFile": "index",
+      "sourceRoot": "libs/storage-client/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/storage-client/tsconfig.lib.json"
+      }
     }
   }
 }

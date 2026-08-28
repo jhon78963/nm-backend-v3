@@ -125,10 +125,13 @@ services:
     environment:
       SERVICE_NAME: auth-service
       APP_PORT: 3001
+      STORAGE_SERVICE_URL: http://storage-service:3008
+      STORAGE_SERVICE_KEY: ${STORAGE_SERVICE_KEY:-nm-storage-dev-key-change-in-production}
     ports:
       - '3001:3001'
     depends_on:
       - migrate
+      - storage-service
 
   catalog-service:
     <<: *service-defaults
@@ -141,10 +144,13 @@ services:
     environment:
       SERVICE_NAME: catalog-service
       APP_PORT: 3002
+      STORAGE_SERVICE_URL: http://storage-service:3008
+      STORAGE_SERVICE_KEY: ${STORAGE_SERVICE_KEY:-nm-storage-dev-key-change-in-production}
     ports:
       - '3002:3002'
     depends_on:
       - migrate
+      - storage-service
 
   inventory-service:
     <<: *service-defaults
@@ -189,10 +195,13 @@ services:
     environment:
       SERVICE_NAME: finance-service
       APP_PORT: 3005
+      STORAGE_SERVICE_URL: http://storage-service:3008
+      STORAGE_SERVICE_KEY: ${STORAGE_SERVICE_KEY:-nm-storage-dev-key-change-in-production}
     ports:
       - '3005:3005'
     depends_on:
       - migrate
+      - storage-service
 
   hr-service:
     <<: *service-defaults

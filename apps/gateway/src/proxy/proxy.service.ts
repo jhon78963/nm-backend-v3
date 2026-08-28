@@ -117,15 +117,12 @@ export class ProxyService {
       };
 
       if (isMultipart) {
-        // Reenviar el body raw (stream) preservando el boundary del content-type
+        // El addContentTypeParser del gateway almacena el raw buffer en req.body.
         headers['content-type'] = req.headers['content-type'] as string;
-        const rawBody = await req.raw.read?.() ?? (req as unknown as { rawBody?: Buffer }).rawBody;
-        if (rawBody) {
-          fetchBody = rawBody;
+        const rawBody = req.body as Buffer | undefined;
+        if (rawBody && Buffer.isBuffer(rawBody)) {
+          fetchBody = rawBody as unknown as BodyInit;
           headers['content-length'] = String(rawBody.length);
-        } else {
-          // Stream directo si rawBody no está disponible (Fastify raw)
-          fetchBody = req.raw as unknown as BodyInit;
         }
       } else {
         headers['content-type'] = 'application/json';

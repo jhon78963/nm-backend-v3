@@ -10,13 +10,12 @@ import { SizesModule } from './sizes/sizes.module';
 import { GendersModule } from './genders/genders.module';
 import { WoocommerceModule } from './woocommerce/woocommerce-sync.module';
 import { ProductHistoryModule } from './product-history/product-history.module';
+import { MediaModule } from './media/media.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env.local', '.env'] }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
-    // @nestjs/schedule para el cron de sincronización WooCommerce
-    // equivale al artisan SyncWooCommerceCatalogCommand
     ScheduleModule.forRoot(),
     DatabaseModule,
     AuthModule,
@@ -26,6 +25,7 @@ import { ProductHistoryModule } from './product-history/product-history.module';
     GendersModule,
     WoocommerceModule,
     ProductHistoryModule,
+    MediaModule,
   ],
 })
 export class AppModule {}

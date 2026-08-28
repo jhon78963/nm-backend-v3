@@ -7,6 +7,7 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from '@fastify/helmet';
+import multipart from '@fastify/multipart';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from '@app/common/filters/global-exception.filter';
 
@@ -22,6 +23,7 @@ async function bootstrap() {
   await app.register(helmet, {
     contentSecurityPolicy: false,
   });
+  await app.register(multipart, { limits: { fileSize: 5 * 1024 * 1024 } });
 
   app.enableCors({
     origin: config.get<string>('FRONTEND_URL', 'http://localhost:4200'),

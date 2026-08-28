@@ -3,6 +3,7 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from '@fastify/helmet';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from '@app/common/filters/global-exception.filter';
 
@@ -10,6 +11,16 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({ logger: process.env.NODE_ENV !== 'production' }),
+  );
+
+  // Captura el raw body de multipart/form-data para poder reenviarlo a los microservicios.
+  // El gateway NO parsea el contenido — solo lo almacena en rawBody y lo pasa tal cual.
+  (app.getHttpAdapter().getInstance() as FastifyInstance).addContentTypeParser(
+    'multipart/form-data',
+    { parseAs: 'buffer', bodyLimit: 20 * 1024 * 1024 }, // 20 MB gateway limit
+    (_req: FastifyRequest, body: Buffer, done) => {
+      done(null, body);
+    },
   );
 
   const config = app.get(ConfigService);
