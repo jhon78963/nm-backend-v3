@@ -1,14 +1,14 @@
 import {
-  Controller, Get, Query, UseGuards, Res, Header,
+  Controller, Get, Query, UseGuards, Header, StreamableFile, NotImplementedException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { Response } from 'express';
 import dayjs from 'dayjs';
 import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
 import { CurrentUser } from '@app/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@app/common/types/authenticated-user.type';
 import { ReportsService } from './reports.service';
 import { ManagementDashboardService } from './management-dashboard.service';
+import { ProductsInventoryPdfService } from './products-inventory-pdf.service';
 
 @ApiTags('Reports')
 @ApiBearerAuth()
@@ -18,6 +18,7 @@ export class ReportsController {
   constructor(
     private readonly reportsService: ReportsService,
     private readonly managementDashboardService: ManagementDashboardService,
+    private readonly productsInventoryPdfService: ProductsInventoryPdfService,
   ) {}
 
   @Get('dashboard')
@@ -60,13 +61,8 @@ export class ReportsController {
   @Get('sales/daily/pdf')
   @Header('Content-Type', 'application/pdf')
   @ApiOperation({ summary: 'Exportar reporte diario en PDF' })
-  getDailySalesPdf(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query('date') date?: string,
-    @Query('warehouse_id') warehouseId?: string,
-    @Res() res?: Response,
-  ) {
-    res?.status(501).json({ message: 'PDF export not yet implemented.' });
+  getDailySalesPdf() {
+    throw new NotImplementedException('PDF export not yet implemented.');
   }
 
   @Get('sales/monthly')
@@ -87,13 +83,8 @@ export class ReportsController {
   @Get('sales/monthly/pdf')
   @Header('Content-Type', 'application/pdf')
   @ApiOperation({ summary: 'Exportar reporte mensual en PDF' })
-  getMonthlySalesPdf(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query('month') month?: string,
-    @Query('warehouse_id') warehouseId?: string,
-    @Res() res?: Response,
-  ) {
-    res?.status(501).json({ message: 'PDF export not yet implemented.' });
+  getMonthlySalesPdf() {
+    throw new NotImplementedException('PDF export not yet implemented.');
   }
 
   @Get('sales/daily-period')
@@ -119,14 +110,8 @@ export class ReportsController {
   @Get('sales/period/pdf')
   @Header('Content-Type', 'application/pdf')
   @ApiOperation({ summary: 'Exportar reporte de período en PDF' })
-  getPeriodSalesPdf(
-    @CurrentUser() user: AuthenticatedUser,
-    @Query('start_date') startDate?: string,
-    @Query('end_date') endDate?: string,
-    @Query('warehouse_id') warehouseId?: string,
-    @Res() res?: Response,
-  ) {
-    res?.status(501).json({ message: 'PDF export not yet implemented.' });
+  getPeriodSalesPdf() {
+    throw new NotImplementedException('PDF export not yet implemented.');
   }
 
   @Get('products')
@@ -144,13 +129,18 @@ export class ReportsController {
   }
 
   @Get('products/export/pdf')
-  @Header('Content-Type', 'application/pdf')
   @ApiOperation({ summary: 'Exportar inventario en PDF' })
-  getProductsPdf(
+  async getProductsPdf(
     @CurrentUser() user: AuthenticatedUser,
     @Query('warehouse_id') warehouseId?: string,
-    @Res() res?: Response,
   ) {
-    res?.status(501).json({ message: 'PDF export not yet implemented.' });
+    const targetWarehouse = warehouseId ?? user.warehouseId;
+    const buffer = await this.productsInventoryPdfService.generate(targetWarehouse);
+    const filename = `reporte-productos-inventario-${dayjs().format('YYYY-MM-DD')}.pdf`;
+
+    return new StreamableFile(buffer, {
+      type: 'application/pdf',
+      disposition: `attachment; filename="${filename}"`,
+    });
   }
 }

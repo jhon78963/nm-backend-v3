@@ -43,6 +43,9 @@ export class SunatService {
   private readonly logger = new Logger(SunatService.name);
   private readonly backendUrl: string;
   private readonly apiKey: string;
+  private readonly invoicingUrl: string;
+  private readonly invoicingApiKey: string;
+  private readonly useInvoicingService: boolean;
 
   constructor(
     private readonly config: ConfigService,
@@ -50,11 +53,18 @@ export class SunatService {
   ) {
     this.backendUrl = config.get('SUNAT_BACKEND_URL', 'http://localhost:8000');
     this.apiKey = config.get('SUNAT_BACKEND_API_KEY', '');
+    this.invoicingUrl = config.get('INVOICING_SERVICE_URL', 'http://localhost:3009');
+    this.invoicingApiKey = config.get('INVOICING_API_KEY', '');
+    this.useInvoicingService = config.get('USE_INVOICING_SERVICE', 'true') !== 'false';
   }
 
   // ── Emisión de documento fiscal ────────────────────────────────────────────
 
   async emit(saleId: string, documentType: string): Promise<SunatEmitResult> {
+    if (this.useInvoicingService) {
+      return this.emitViaInvoicingService(saleId, documentType);
+    }
+
     try {
       const sale = await this.db.sale.findFirst({
         where: { id: saleId },
@@ -143,6 +153,96 @@ export class SunatService {
   }
 
   // ── Helper HTTP ───────────────────────────────────────────────────────────
+
+  private async emitViaInvoicingService(
+    saleId: string,
+    documentType: string,
+  ): Promise<SunatEmitResult> {
+    try {
+      const sale = await this.db.sale.findFirst({
+        where: { id: saleId },
+      });
+      if (!sale) throw new Error(`Venta ${saleId} no encontrada.`);
+
+      if (sale.sunatStatus !== 'PENDING') {
+        await this.db.sale.update({
+          where: { id: saleId },
+          data: { sunatStatus: 'PENDING' },
+        });
+      }
+
+      const response = await this.invoicingRequest<{
+        success?: boolean;
+        sunat_status?: string;
+        full_invoice_number?: string;
+      }>('POST', `/api/invoices/${saleId}/send`);
+
+      const status = this.mapInvoicingStatus(response.sunat_status);
+      const invoiceNumber = response.full_invoice_number ?? sale.fullInvoiceNumber ?? undefined;
+
+      await this.db.sale.update({
+        where: { id: saleId },
+        data: {
+          sunatStatus: status,
+          fullInvoiceNumber: invoiceNumber ?? sale.fullInvoiceNumber,
+        },
+      });
+
+      await this.db.electronicDocumentLog.create({
+        data: {
+          saleId,
+          action: 'SEND',
+          requestPayload: { documentType, provider: 'invoicing-service' },
+          responsePayload: response as object,
+        },
+      });
+
+      return {
+        status,
+        invoiceNumber: invoiceNumber ?? undefined,
+      };
+    } catch (err) {
+      this.logger.error(
+        `Error al emitir ${documentType} via invoicing-service para venta ${saleId}`,
+        err,
+      );
+      return { status: 'PENDING_EMISSION', description: (err as Error).message };
+    }
+  }
+
+  private mapInvoicingStatus(
+    value?: string,
+  ): SunatEmitResult['status'] {
+    switch ((value ?? '').toUpperCase()) {
+      case 'ACCEPTED':
+        return 'ACCEPTED';
+      case 'REJECTED':
+        return 'REJECTED';
+      case 'PENDING':
+        return 'PENDING_EMISSION';
+      default:
+        return 'PENDING_EMISSION';
+    }
+  }
+
+  private async invoicingRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
+    const response = await fetch(`${this.invoicingUrl}${path}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Service-Key': this.invoicingApiKey,
+        Accept: 'application/json',
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => response.statusText);
+      throw new Error(`invoicing-service → ${response.status}: ${text}`);
+    }
+
+    return response.json() as Promise<T>;
+  }
 
   private async backendRequest<T>(
     method: string,

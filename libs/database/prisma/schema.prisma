@@ -47,6 +47,7 @@ model TenantSetting {
   socialLinks     Json?   @map("social_links")
   logoUrl         String? @map("logo_url")
   ticketFooterNote String? @map("ticket_footer_note")
+  electronicInvoicingEnabled Boolean @default(false) @map("electronic_invoicing_enabled")
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -59,6 +60,7 @@ model Warehouse {
   tenantId           String  @map("tenant_id")
   catalogPublicToken String? @unique @map("catalog_public_token")
   isDeleted          Boolean  @default(false) @map("is_deleted")
+  electronicInvoicingEnabled Boolean @default(false) @map("electronic_invoicing_enabled")
 
   tenant Tenant  @relation(fields: [tenantId], references: [id])
   users  User[]

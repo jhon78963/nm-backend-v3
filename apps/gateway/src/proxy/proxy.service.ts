@@ -29,6 +29,7 @@ type ServiceName =
  *   /api/v1/products/*    → catalog-service   :3002
  *   /api/v1/inventory/*   → inventory-service :3003
  *   /api/v1/checkout/*    → pos-service       :3004
+ *   /api/v1/pos/*         → pos-service       :3004
  *   /api/v1/sales/*       → pos-service       :3004
  *   /api/v1/cashflow/*    → finance-service   :3005
  *   /api/v1/teams/*       → hr-service        :3006
@@ -78,6 +79,7 @@ export class ProxyService {
     if (path.startsWith('/api/v1/purchases')) return 'inventory';
     if (path.startsWith('/api/v1/kardex'))    return 'inventory';
     if (path.startsWith('/api/v1/checkout'))  return 'pos';
+    if (path.startsWith('/api/v1/pos'))       return 'pos';
     if (path.startsWith('/api/v1/sales'))     return 'pos';
     if (path.startsWith('/api/v1/tickets'))   return 'pos';
     if (path.startsWith('/api/v1/sunat'))     return 'pos';

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '@app/database';
 import {
   paginatedResponse,
@@ -35,16 +35,13 @@ export class WarehousesService {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { name: 'asc' },
+        include: { tenant: { include: { setting: true } } },
       }),
       this.db.warehouse.count({ where }),
     ]);
 
     return paginatedResponse(
-      rows.map((w) => ({
-        id: w.id,
-        name: w.name,
-        tenantId: w.tenantId,
-      })),
+      rows.map((w) => this.mapWarehouse(w)),
       total,
       limit,
     );
@@ -53,13 +50,10 @@ export class WarehousesService {
   async getOne(id: string) {
     const warehouse = await this.db.warehouse.findFirst({
       where: { id, isDeleted: false },
+      include: { tenant: { include: { setting: true } } },
     });
     if (!warehouse) throw new NotFoundException('Almacén no encontrado.');
-    return {
-      id: warehouse.id,
-      name: warehouse.name,
-      tenantId: warehouse.tenantId,
-    };
+    return this.mapWarehouse(warehouse);
   }
 
   async create(data: Record<string, unknown>, actor: AuthenticatedUser) {
@@ -69,16 +63,40 @@ export class WarehousesService {
       : actor.tenantId;
 
     await this.db.warehouse.create({
-      data: { name, tenantId },
+      data: {
+        name,
+        tenantId,
+        electronicInvoicingEnabled: Boolean(data.electronicInvoicingEnabled ?? false),
+      },
     });
     return { message: 'Warehouse created successfully.' };
   }
 
   async update(id: string, data: Record<string, unknown>) {
+    const warehouse = await this.db.warehouse.findFirst({
+      where: { id, isDeleted: false },
+      include: { tenant: { include: { setting: true } } },
+    });
+    if (!warehouse) throw new NotFoundException('Almacén no encontrado.');
+
+    const tenantEnabled = warehouse.tenant.setting?.electronicInvoicingEnabled ?? false;
+    const wantsWarehouseFlag = data.electronicInvoicingEnabled != null
+      ? Boolean(data.electronicInvoicingEnabled)
+      : undefined;
+
+    if (wantsWarehouseFlag && !tenantEnabled) {
+      throw new BadRequestException(
+        'La facturación electrónica no está habilitada para el cliente de esta tienda.',
+      );
+    }
+
     await this.db.warehouse.update({
       where: { id },
       data: {
         ...(data.name != null && { name: String(data.name) }),
+        ...(wantsWarehouseFlag != null && {
+          electronicInvoicingEnabled: wantsWarehouseFlag,
+        }),
       },
     });
     return { message: 'Warehouse updated successfully.' };
@@ -90,5 +108,24 @@ export class WarehousesService {
       data: { isDeleted: true },
     });
     return { message: 'Warehouse deleted successfully.' };
+  }
+
+  private mapWarehouse(warehouse: {
+    id: string;
+    name: string;
+    tenantId: string;
+    electronicInvoicingEnabled: boolean;
+    tenant?: {
+      setting?: { electronicInvoicingEnabled: boolean } | null;
+    } | null;
+  }) {
+    return {
+      id: warehouse.id,
+      name: warehouse.name,
+      tenantId: warehouse.tenantId,
+      electronicInvoicingEnabled: warehouse.electronicInvoicingEnabled,
+      tenantElectronicInvoicingEnabled:
+        warehouse.tenant?.setting?.electronicInvoicingEnabled ?? false,
+    };
   }
 }

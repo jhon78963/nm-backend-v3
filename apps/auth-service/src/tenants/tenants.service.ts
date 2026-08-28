@@ -126,6 +126,10 @@ export class TenantsService {
       socialLinks: data.socialLinks ?? undefined,
       logoUrl: data.logoUrl as string | null | undefined,
       ticketFooterNote: data.ticketFooterNote as string | null | undefined,
+      electronicInvoicingEnabled:
+        data.electronicInvoicingEnabled != null
+          ? Boolean(data.electronicInvoicingEnabled)
+          : undefined,
     };
 
     const setting = await this.db.tenantSetting.upsert({
@@ -161,6 +165,7 @@ export class TenantsService {
         socialLinks: unknown;
         logoUrl: string | null;
         ticketFooterNote: string | null;
+        electronicInvoicingEnabled: boolean;
       } | null;
     },
   ) {
@@ -186,6 +191,7 @@ export class TenantsService {
     socialLinks: unknown;
     logoUrl: string | null;
     ticketFooterNote: string | null;
+    electronicInvoicingEnabled: boolean;
   }) {
     const social = (setting.socialLinks ?? {}) as Record<string, string | null>;
     return {
@@ -206,6 +212,7 @@ export class TenantsService {
       },
       logoUrl: setting.logoUrl,
       ticketFooterNote: setting.ticketFooterNote,
+      electronicInvoicingEnabled: setting.electronicInvoicingEnabled,
     };
   }
 
@@ -224,6 +231,7 @@ export class TenantsService {
       socialLinks: { facebook: null, instagram: null, tiktok: null },
       logoUrl: null,
       ticketFooterNote: null,
+      electronicInvoicingEnabled: false,
     };
   }
 }

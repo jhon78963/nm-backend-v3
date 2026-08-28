@@ -6,6 +6,7 @@ import {
 import { DatabaseService } from '@app/database';
 import { SunatService } from '../sunat/sunat.service';
 import { DocumentSeriesService } from '../sunat/document-series.service';
+import { FiscalConfigService } from '../fiscal/fiscal-config.service';
 import { CheckoutDto, DocumentType } from './dto/checkout.dto';
 import Decimal from 'decimal.js';
 import { randomBytes } from 'crypto';
@@ -42,9 +43,40 @@ export class CheckoutService {
     private readonly db: DatabaseService,
     private readonly sunat: SunatService,
     private readonly docSeries: DocumentSeriesService,
+    private readonly fiscalConfig: FiscalConfigService,
   ) {}
 
   async process(dto: CheckoutDto, createdById: string): Promise<CheckoutResult> {
+    const documentType = dto.documentType ?? DocumentType.TICKET;
+
+    if (documentType !== DocumentType.TICKET) {
+      const config = await this.fiscalConfig.getForWarehouse(dto.warehouseId);
+      if (!config.electronicInvoicingEnabled) {
+        throw new BadRequestException(
+          'La facturación electrónica no está habilitada para esta tienda.',
+        );
+      }
+
+      if (documentType === DocumentType.FACTURA) {
+        if (!dto.customerId) {
+          throw new BadRequestException(
+            'Para emitir una Factura debe registrar un cliente con RUC.',
+          );
+        }
+
+        const customer = await this.db.customer.findFirst({
+          where: { id: dto.customerId },
+        });
+        const docType = customer?.documentType?.toUpperCase() ?? '';
+        const docNumber = customer?.documentNumber?.trim() ?? '';
+        if (docType !== 'RUC' || docNumber.length !== 11) {
+          throw new BadRequestException(
+            'Para emitir una Factura el cliente debe tener un RUC válido de 11 dígitos.',
+          );
+        }
+      }
+    }
+
     // ── 1. Validar totales de pagos ──────────────────────────────────────────
     const paymentsTotal = dto.payments.reduce((s, p) => s + p.amount, 0);
     const itemsTotal = dto.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
@@ -96,6 +128,10 @@ export class CheckoutService {
           serie,
           correlativo,
           fullInvoiceNumber,
+          sunatStatus:
+            dto.documentType && dto.documentType !== DocumentType.TICKET
+              ? 'PENDING'
+              : null,
           status: 'COMPLETED',
           notes: dto.notes,
           createdById,
