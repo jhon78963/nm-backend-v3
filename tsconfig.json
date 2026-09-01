@@ -9,7 +9,6 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
@@ -19,21 +18,20 @@
     "noFallthroughCasesInSwitch": true,
     "strict": true,
     "strictPropertyInitialization": false,
-    "noImplicitAny": false,
     "esModuleInterop": true,
     "paths": {
-      "@app/common": ["libs/common/src"],
-      "@app/common/*": ["libs/common/src/*"],
-      "@app/database": ["libs/database/src"],
-      "@app/database/*": ["libs/database/src/*"],
-      "@app/contracts": ["libs/contracts/src"],
-      "@app/contracts/*": ["libs/contracts/src/*"],
-      "@app/storage": ["libs/storage/src"],
-      "@app/storage/*": ["libs/storage/src/*"],
-      "@app/storage-client": ["libs/storage-client/src"],
-      "@app/storage-client/*": ["libs/storage-client/src/*"],
-      "@app/document-client": ["libs/document-client/src"],
-      "@app/document-client/*": ["libs/document-client/src/*"]
+      "@app/common": ["./libs/common/src"],
+      "@app/common/*": ["./libs/common/src/*"],
+      "@app/database": ["./libs/database/src"],
+      "@app/database/*": ["./libs/database/src/*"],
+      "@app/contracts": ["./libs/contracts/src"],
+      "@app/contracts/*": ["./libs/contracts/src/*"],
+      "@app/storage": ["./libs/storage/src"],
+      "@app/storage/*": ["./libs/storage/src/*"],
+      "@app/storage-client": ["./libs/storage-client/src"],
+      "@app/storage-client/*": ["./libs/storage-client/src/*"],
+      "@app/document-client": ["./libs/document-client/src"],
+      "@app/document-client/*": ["./libs/document-client/src/*"]
     }
   }
 }
