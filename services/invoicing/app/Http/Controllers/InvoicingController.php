@@ -90,6 +90,17 @@ class InvoicingController extends Controller
     }
 
     /**
+     * GET /api/invoices/{sale}/hash
+     * Hash de firma del XML (para ticket térmico).
+     */
+    public function hash(Sale $sale): JsonResponse
+    {
+        return response()->json([
+            'hash' => $this->sunatQrService->getXmlHash($sale),
+        ]);
+    }
+
+    /**
      * GET /api/lookup/dni/{dni}
      * Consulta datos de un DNI mediante apis.net.pe.
      */

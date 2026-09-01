@@ -96,6 +96,7 @@ services:
       FINANCE_SERVICE_URL: http://finance-service:3005
       HR_SERVICE_URL: http://hr-service:3006
       REPORT_SERVICE_URL: http://report-service:3007
+      DOCUMENT_SERVICE_URL: http://document-service:3011
       AI_ENGINE_URL: http://ai-engine:8000
       INVOICING_SERVICE_URL: http://invoicing-service:8000
       STORAGE_SERVICE_URL: http://storage-service:3008
@@ -110,6 +111,7 @@ services:
       - finance-service
       - hr-service
       - report-service
+      - document-service
       - ai-engine
       - invoicing-service
       - storage-service
@@ -231,11 +233,32 @@ services:
       SERVICE_NAME: report-service
       APP_PORT: 3007
       AI_ENGINE_URL: http://ai-engine:8000
+      DOCUMENT_SERVICE_URL: http://document-service:3011
+      DOCUMENT_SERVICE_KEY: ${DOCUMENT_SERVICE_KEY:-nm-document-dev-key-change-in-production}
     ports:
       - '3007:3007'
     depends_on:
       - migrate
       - ai-engine
+      - document-service
+
+  document-service:
+    <<: *service-defaults
+    container_name: nm_document
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: document-service
+    environment:
+      SERVICE_NAME: document-service
+      APP_PORT: 3011
+      DOCUMENT_SERVICE_KEY: ${DOCUMENT_SERVICE_KEY:-nm-document-dev-key-change-in-production}
+      PUPPETEER_EXECUTABLE_PATH: ${PUPPETEER_EXECUTABLE_PATH:-/usr/bin/chromium-browser}
+    ports:
+      - '3011:3011'
+    depends_on:
+      - migrate
 
   storage-service:
     <<: *service-defaults

@@ -11,6 +11,7 @@ import { GendersModule } from './genders/genders.module';
 import { WoocommerceModule } from './woocommerce/woocommerce-sync.module';
 import { ProductHistoryModule } from './product-history/product-history.module';
 import { MediaModule } from './media/media.module';
+import { HealthModule } from '@app/common/health/health.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MediaModule } from './media/media.module';
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     ScheduleModule.forRoot(),
     DatabaseModule,
+    HealthModule,
     AuthModule,
     ProductsModule,
     ColorsModule,

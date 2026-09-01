@@ -51,7 +51,14 @@
       "entryFile": "main",
       "sourceRoot": "apps/pos-service/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/pos-service/tsconfig.app.json"
+        "tsConfigPath": "apps/pos-service/tsconfig.app.json",
+        "assets": [
+          {
+            "include": "tickets/templates/**/*",
+            "outDir": "dist/apps/pos-service/apps/pos-service/src",
+            "watchAssets": true
+          }
+        ]
       }
     },
     "finance-service": {
@@ -79,6 +86,22 @@
       "sourceRoot": "apps/report-service/src",
       "compilerOptions": {
         "tsConfigPath": "apps/report-service/tsconfig.app.json"
+      }
+    },
+    "document-service": {
+      "type": "application",
+      "root": "apps/document-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/document-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/document-service/tsconfig.app.json",
+        "assets": [
+          {
+            "include": "templates/**/*",
+            "outDir": "dist/apps/document-service/apps/document-service/src",
+            "watchAssets": true
+          }
+        ]
       }
     },
     "ai-proxy-service": {
@@ -142,6 +165,15 @@
       "sourceRoot": "libs/storage-client/src",
       "compilerOptions": {
         "tsConfigPath": "libs/storage-client/tsconfig.lib.json"
+      }
+    },
+    "document-client": {
+      "type": "library",
+      "root": "libs/document-client",
+      "entryFile": "index",
+      "sourceRoot": "libs/document-client/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/document-client/tsconfig.lib.json"
       }
     }
   }

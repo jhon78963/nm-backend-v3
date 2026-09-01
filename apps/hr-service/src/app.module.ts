@@ -7,6 +7,7 @@ import { CustomersModule } from './customers/customers.module';
 import { VendorsModule } from './vendors/vendors.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { PaymentsModule } from './payments/payments.module';
+import { HealthModule } from '@app/common/health/health.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PaymentsModule } from './payments/payments.module';
       envFilePath: ['.env.local', '.env'],
     }),
     DatabaseModule,
+    HealthModule,
     AuthModule,
     TeamsModule,
     CustomersModule,

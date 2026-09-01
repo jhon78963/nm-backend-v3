@@ -31,7 +31,9 @@
       "@app/storage": ["libs/storage/src"],
       "@app/storage/*": ["libs/storage/src/*"],
       "@app/storage-client": ["libs/storage-client/src"],
-      "@app/storage-client/*": ["libs/storage-client/src/*"]
+      "@app/storage-client/*": ["libs/storage-client/src/*"],
+      "@app/document-client": ["libs/document-client/src"],
+      "@app/document-client/*": ["libs/document-client/src/*"]
     }
   }
 }

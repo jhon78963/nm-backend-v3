@@ -54,6 +54,13 @@ WORKDIR /app
 
 RUN apk add --no-cache openssl libc6-compat
 
+# document-service necesita Chromium para Puppeteer (PDF)
+RUN if [ "$SERVICE" = "document-service" ]; then \
+      apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont; \
+    fi
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 # node_modules ya pruned desde builder (sin segunda descarga de npm)
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules

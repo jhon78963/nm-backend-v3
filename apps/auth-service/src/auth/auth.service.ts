@@ -65,7 +65,8 @@ export class AuthService {
 
     // Obtener roles del usuario para incluirlos en el JWT payload
     const roles = user.userRoles.map((ur: { role: { name: string } }) => ur.role.name);
-    const tokens = await this.generateTokens(user, roles);
+    const permissions = await this.usersService.getPermissionsForUser(user.id, roles);
+    const tokens = await this.generateTokens(user, roles, permissions);
 
     void this.actionLogWriter.logSafely({
       action: 'auth.login',
@@ -96,7 +97,8 @@ export class AuthService {
     await this.db.refreshToken.delete({ where: { id: tokenId } });
 
     const roles = user.userRoles.map((ur: { role: { name: string } }) => ur.role.name);
-    return this.generateTokens(user, roles);
+    const permissions = await this.usersService.getPermissionsForUser(user.id, roles);
+    return this.generateTokens(user, roles, permissions);
   }
 
   // ── Logout ────────────────────────────────────────────────────────────────
@@ -194,6 +196,7 @@ export class AuthService {
   private async generateTokens(
     user: Awaited<ReturnType<UsersService['findById']>>,
     roles: string[],
+    permissions: string[],
   ): Promise<AuthTokens> {
     if (!user) throw new UnauthorizedException();
 
@@ -203,6 +206,7 @@ export class AuthService {
       tenantId: user.tenantId,
       warehouseId: user.warehouseId ?? '',
       roles,
+      permissions,
     };
 
     const accessExpiresIn = this.config.get<string>('JWT_EXPIRES_IN', '15m');

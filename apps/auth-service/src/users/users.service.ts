@@ -284,6 +284,10 @@ export class UsersService {
     };
   }
 
+  async getPermissionsForUser(userId: string, roleNames: string[]): Promise<string[]> {
+    return this.getPermissionNamesForUser(userId, roleNames);
+  }
+
   private async getPermissionNamesForUser(
     userId: string,
     roleNames: string[],

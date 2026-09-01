@@ -19,6 +19,7 @@
     "start:dev:finance": "nest start finance-service --watch",
     "start:dev:hr": "nest start hr-service --watch",
     "start:dev:report": "nest start report-service --watch",
+    "start:dev:document": "nest start document-service --watch",
     "start:dev:gateway": "nest start gateway --watch",
     "test": "jest",
     "test:auth": "jest apps/auth-service --passWithNoTests --forceExit",
@@ -66,11 +67,14 @@
     "class-validator": "^0.14.1",
     "dayjs": "^1.11.13",
     "decimal.js": "^10.6.0",
+    "exceljs": "^4.4.0",
+    "handlebars": "^4.7.9",
     "helmet": "^8.0.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pdfkit": "^0.20.1",
     "prisma": "^5.22.0",
+    "puppeteer": "^24.43.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "uuid": "^10.0.0"
@@ -125,7 +129,8 @@
     "moduleNameMapper": {
       "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1",
       "^@app/database(|/.*)$": "<rootDir>/libs/database/src/$1",
-      "^@app/contracts(|/.*)$": "<rootDir>/libs/contracts/src/$1"
+      "^@app/contracts(|/.*)$": "<rootDir>/libs/contracts/src/$1",
+      "^@app/document-client(|/.*)$": "<rootDir>/libs/document-client/src/$1"
     }
   }
 }

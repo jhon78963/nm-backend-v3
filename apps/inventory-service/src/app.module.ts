@@ -6,6 +6,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { PurchasesModule } from './purchases/purchases.module';
 import { KardexModule } from './kardex/kardex.module';
 import { ReconciliationModule } from './reconciliation/reconciliation.module';
+import { HealthModule } from '@app/common/health/health.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ReconciliationModule } from './reconciliation/reconciliation.module';
       envFilePath: ['.env.local', '.env'],
     }),
     DatabaseModule,
+    HealthModule,
     AuthModule,
     InventoryModule,
     PurchasesModule,

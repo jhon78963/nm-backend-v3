@@ -4,7 +4,7 @@ import { DatabaseModule } from '@app/database';
 import { AuthModule } from '@app/common/auth/auth.module';
 import { CashflowModule } from './cashflow/cashflow.module';
 import { AccumulatedModule } from './accumulated/accumulated.module';
-import { FinancialSummaryModule } from './financial-summary/financial-summary.module';
+import { HealthModule } from '@app/common/health/health.module';
 
 @Module({
   imports: [
@@ -13,10 +13,10 @@ import { FinancialSummaryModule } from './financial-summary/financial-summary.mo
       envFilePath: ['.env.local', '.env'],
     }),
     DatabaseModule,
+    HealthModule,
     AuthModule,
     CashflowModule,
     AccumulatedModule,
-    FinancialSummaryModule,
   ],
 })
 export class AppModule {}

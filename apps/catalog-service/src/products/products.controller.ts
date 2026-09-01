@@ -1,9 +1,11 @@
 import {
   Controller, Get, Post, Patch, Delete,
-  Body, Param, Query, UseGuards, HttpCode, HttpStatus,
+  Body, Param, Query, UseGuards, HttpCode, HttpStatus, StreamableFile,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import dayjs from 'dayjs';
 import { ProductsService } from './products.service';
+import { ProductExportService } from './product-export.service';
 import { CreateProductDto, UpdateProductDto } from './dto/create-product.dto';
 import { ProductFiltersDto } from './dto/product-filters.dto';
 import { AddProductSizeDto, UpdateProductSizeDto } from './dto/add-product-size.dto';
@@ -20,7 +22,10 @@ import type { AuthenticatedUser } from '@app/common/types/authenticated-user.typ
 @UseGuards(JwtAuthGuard, RolesGuard, WarehouseGuard)
 @Controller({ path: 'products', version: '1' })
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly productExportService: ProductExportService,
+  ) {}
 
   // ── GET /v1/products ───────────────────────────────────────────────────────
   @Get()
@@ -37,6 +42,22 @@ export class ProductsController {
   @ApiOperation({ summary: 'Búsqueda rápida para POS (por nombre o barcode)' })
   searchForPos(@Query('q') query: string, @CurrentUser() user: AuthenticatedUser) {
     return this.productsService.searchForPos(query ?? '', user.warehouseId);
+  }
+
+  @Get('export/excel')
+  @ApiOperation({ summary: 'Exportar inventario de productos a Excel' })
+  @ApiQuery({ name: 'warehouseId', required: false })
+  async exportToExcel(
+    @Query('warehouseId') warehouseId: string | undefined,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<StreamableFile> {
+    const buffer = await this.productExportService.export(warehouseId, user);
+    const filename = `productos_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx`;
+
+    return new StreamableFile(buffer, {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      disposition: `attachment; filename="${filename}"`,
+    });
   }
 
   // ── GET /v1/products/:id/history ─────────────────────────────────────────

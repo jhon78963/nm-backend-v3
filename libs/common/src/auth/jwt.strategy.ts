@@ -10,6 +10,7 @@ interface JwtPayload {
   tenantId: string;
   warehouseId: string;
   roles: string[];
+  permissions?: string[];
   mustChangePassword?: boolean;
 }
 
@@ -35,6 +36,7 @@ export class JwtCommonStrategy extends PassportStrategy(Strategy, 'jwt') {
       tenantId: payload.tenantId,
       warehouseId: payload.warehouseId,
       roles: payload.roles,
+      permissions: payload.permissions ?? [],
       mustChangePassword: payload.mustChangePassword ?? false,
     };
   }

@@ -32,7 +32,9 @@ type ServiceName =
  *   /api/v1/checkout/*    → pos-service       :3004
  *   /api/v1/pos/*         → pos-service       :3004
  *   /api/v1/sales/*       → pos-service       :3004
- *   /api/v1/cashflow/*    → finance-service   :3005
+   *   /api/v1/cashflow/daily|monthly|admin/*|accumulated/* → report-service :3007
+   *   /api/v1/cashflow/*    → finance-service   :3005 (CRUD)
+   *   /api/v1/financial-summary → report-service :3007
  *   /api/v1/teams/*       → hr-service        :3006
  *   /api/v1/customers/*   → hr-service        :3006
  *   /api/v1/dashboard/*   → report-service    :3007
@@ -86,9 +88,13 @@ export class ProxyService {
     if (path.startsWith('/api/v1/sales'))     return 'pos';
     if (path.startsWith('/api/v1/tickets'))   return 'pos';
     if (path.startsWith('/api/v1/sunat'))     return 'pos';
+    if (path.startsWith('/api/v1/cashflow/daily')) return 'report';
+    if (path.startsWith('/api/v1/cashflow/monthly')) return 'report';
+    if (path.startsWith('/api/v1/cashflow/admin/monthly')) return 'report';
+    if (path.startsWith('/api/v1/cashflow/accumulated/monthly')) return 'report';
+    if (path.startsWith('/api/v1/financial-summary')) return 'report';
     if (path.startsWith('/api/v1/cashflow'))  return 'finance';
     if (path.startsWith('/api/v1/financial')) return 'finance';
-    if (path.startsWith('/api/v1/financial-summary')) return 'finance';
     if (path.startsWith('/api/v1/accumulated')) return 'finance';
     if (path.startsWith('/api/v1/teams'))     return 'hr';
     if (path.startsWith('/api/v1/customers')) return 'hr';
@@ -150,7 +156,12 @@ export class ProxyService {
       this.logHttpActivity(req, response.status);
 
       // Archivos binarios: reenviar como stream
-      if (contentType.startsWith('image/') || contentType === 'application/pdf' || contentType === 'application/octet-stream') {
+      if (
+        contentType.startsWith('image/')
+        || contentType === 'application/pdf'
+        || contentType === 'application/octet-stream'
+        || contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      ) {
         const buffer = Buffer.from(await response.arrayBuffer());
         void reply
           .status(response.status)

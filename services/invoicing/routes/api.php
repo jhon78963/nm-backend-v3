@@ -14,6 +14,7 @@ Route::prefix('invoices')->group(function () {
     Route::post('/{sale}/send',  [InvoicingController::class, 'send']);
     Route::get('/{sale}/pdf',    [InvoicingController::class, 'pdf']);
     Route::get('/{sale}/qr',     [InvoicingController::class, 'qr']);
+    Route::get('/{sale}/hash',   [InvoicingController::class, 'hash']);
 });
 
 Route::prefix('lookup')->group(function () {

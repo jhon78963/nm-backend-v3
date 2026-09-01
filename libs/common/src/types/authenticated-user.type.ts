@@ -4,5 +4,6 @@ export interface AuthenticatedUser {
   tenantId: string;
   warehouseId: string;
   roles: string[];
+  permissions: string[];
   mustChangePassword: boolean;
 }

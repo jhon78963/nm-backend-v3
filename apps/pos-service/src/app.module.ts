@@ -8,6 +8,7 @@ import { SalesModule } from './sales/sales.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { SunatModule } from './sunat/sunat.module';
 import { FiscalModule } from './fiscal/fiscal.module';
+import { HealthModule } from '@app/common/health/health.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { FiscalModule } from './fiscal/fiscal.module';
     }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     DatabaseModule,
+    HealthModule,
     AuthModule,
     CheckoutModule,
     SalesModule,

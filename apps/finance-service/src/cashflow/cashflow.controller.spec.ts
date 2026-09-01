@@ -11,6 +11,7 @@ const mockUser: AuthenticatedUser = {
   tenantId: 'tenant-uuid',
   warehouseId: 'warehouse-uuid',
   roles: ['Admin'],
+  permissions: ['cashflow.getDaily', 'cashflow.store'],
   mustChangePassword: false,
 };
 
@@ -29,27 +30,6 @@ const mockMovement = {
   vouchers: [],
 };
 
-const mockDailyReport = {
-  date: '2026-08-25',
-  openingBalance: 5000,
-  totalIncome: 2000,
-  totalExpense: 500,
-  closingBalance: 6500,
-  movements: [mockMovement],
-};
-
-const mockMonthlyReport = {
-  accountingMonth: '2026-08',
-  warehouseId: 'warehouse-uuid',
-  totalIncome: 20000,
-  totalExpense: 5000,
-  netBalance: 15000,
-  incomeCount: 10,
-  expenseCount: 3,
-  byCategory: [{ category: 'Alquiler', type: 'EXPENSE', amount: 2000 }],
-  byPaymentMethod: { CASH: 10000, YAPE: 10000 },
-};
-
 describe('CashflowController', () => {
   let controller: CashflowController;
   let service: jest.Mocked<CashflowService>;
@@ -65,10 +45,7 @@ describe('CashflowController', () => {
             update: jest.fn(),
             delete: jest.fn(),
             findById: jest.fn(),
-            getDaily: jest.fn(),
-            getMonthlyReport: jest.fn(),
-            getMonthlyAdminExpenses: jest.fn(),
-            getMonthlyAccumulatedExpenses: jest.fn(),
+            findAll: jest.fn(),
           },
         },
       ],
@@ -80,50 +57,6 @@ describe('CashflowController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
-  });
-
-  describe('getDaily', () => {
-    it('should return daily cashflow report for warehouse', async () => {
-      service.getDaily.mockResolvedValue(mockDailyReport as any);
-      const result = await controller.getDaily(mockUser, '2026-08-25');
-      expect(service.getDaily).toHaveBeenCalledWith('warehouse-uuid', '2026-08-25', undefined);
-      expect(result).toMatchObject({ closingBalance: 6500 });
-    });
-  });
-
-  describe('getMonthlyReport', () => {
-    it('should return monthly report without warehouseId filter', async () => {
-      service.getMonthlyReport.mockResolvedValue(mockMonthlyReport as any);
-      const result = await controller.getMonthlyReport('2026-08', undefined);
-      expect(service.getMonthlyReport).toHaveBeenCalledWith('2026-08', undefined);
-      expect(result).toMatchObject({ netBalance: 15000 });
-    });
-
-    it('should forward optional warehouseId to service', async () => {
-      service.getMonthlyReport.mockResolvedValue(mockMonthlyReport as any);
-      await controller.getMonthlyReport('2026-08', 'warehouse-uuid');
-      expect(service.getMonthlyReport).toHaveBeenCalledWith('2026-08', 'warehouse-uuid');
-    });
-  });
-
-  describe('getAdminMonthlyReport', () => {
-    it('should return administrative monthly expenses', async () => {
-      const report = { success: true, data: { expenses: [] } };
-      service.getMonthlyAdminExpenses.mockResolvedValue(report as any);
-      const result = await controller.getAdminMonthlyReport('2026-08');
-      expect(service.getMonthlyAdminExpenses).toHaveBeenCalledWith('2026-08');
-      expect(result).toEqual(report);
-    });
-  });
-
-  describe('getAccumulatedMonthlyReport', () => {
-    it('should return accumulated monthly expenses', async () => {
-      const report = { success: true, data: { expenses: [] } };
-      service.getMonthlyAccumulatedExpenses.mockResolvedValue(report as any);
-      const result = await controller.getAccumulatedMonthlyReport('2026-08');
-      expect(service.getMonthlyAccumulatedExpenses).toHaveBeenCalledWith('2026-08');
-      expect(result).toEqual(report);
-    });
   });
 
   describe('findById', () => {

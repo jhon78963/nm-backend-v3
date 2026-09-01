@@ -9,6 +9,7 @@ import { TenantsModule } from './tenants/tenants.module';
 import { AuditModule } from './audit/audit.module';
 import { ProfileModule } from './profile/profile.module';
 import { DatabaseModule } from '@app/database';
+import { HealthModule } from '@app/common/health/health.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { DatabaseModule } from '@app/database';
     ]),
 
     DatabaseModule,
+    HealthModule,
     AuthModule,
     UsersModule,
     RolesModule,

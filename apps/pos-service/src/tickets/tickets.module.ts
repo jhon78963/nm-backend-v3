@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TicketsController } from './tickets.controller';
-import { SalesModule } from '../sales/sales.module';
+import { TicketRenderService } from './ticket-render.service';
+import { SunatModule } from '../sunat/sunat.module';
 
 @Module({
-  imports: [SalesModule],
+  imports: [SunatModule],
   controllers: [TicketsController],
+  providers: [TicketRenderService],
 })
 export class TicketsModule {}

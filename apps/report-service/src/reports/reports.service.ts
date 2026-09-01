@@ -1,199 +1,167 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@app/database';
 import dayjs from 'dayjs';
+import {
+  buildCajaIngresosBreakdown,
+  buildDailyBreakdown,
+  buildDailyCajaEntries,
+  buildHourlyCajaChart,
+  DIGITAL_PAYMENT_METHODS,
+  round2,
+  sumPaymentBreakdownByMethods,
+} from './reports-sales.util';
+
+const COMPLETED_SALE_STATUS = 'COMPLETED';
 
 @Injectable()
 export class ReportsService {
   constructor(private readonly db: DatabaseService) {}
 
+  private completedSaleFilter(warehouseId: string, dateRange: { gte: Date; lte: Date }) {
+    return {
+      warehouseId,
+      isDeleted: false,
+      status: COMPLETED_SALE_STATUS,
+      createdAt: dateRange,
+    };
+  }
+
+  private async getStoreIncomeMovements(
+    warehouseId: string,
+    start: Date,
+    end: Date,
+  ) {
+    return this.db.cashMovement.findMany({
+      where: {
+        warehouseId,
+        isDeleted: false,
+        category: 'STORE',
+        type: 'INCOME',
+        date: { gte: start, lte: end },
+      },
+      orderBy: { date: 'asc' },
+      select: {
+        id: true,
+        date: true,
+        amount: true,
+        paymentMethod: true,
+        description: true,
+      },
+    });
+  }
+
   // ── Sales Daily Report ──────────────────────────────────────────────────────
   async getDailySalesReport(date: string, warehouseId: string) {
     const start = dayjs(date).startOf('day').toDate();
-    const end   = dayjs(date).endOf('day').toDate();
+    const end = dayjs(date).endOf('day').toDate();
 
-    const [sales, paymentAggs] = await Promise.all([
+    const [sales, storeIncomes] = await Promise.all([
       this.db.sale.findMany({
-        where: { warehouseId, isDeleted: false, createdAt: { gte: start, lte: end } },
+        where: this.completedSaleFilter(warehouseId, { gte: start, lte: end }),
         include: {
           customer: { select: { name: true } },
           payments: { select: { method: true, amount: true } },
           details: { select: { quantity: true } },
         },
         orderBy: { createdAt: 'asc' },
-      }) as Promise<any[]>,
-      this.db.salePayment.groupBy({
-        by: ['method'],
-        where: {
-          sale: { warehouseId, isDeleted: false, createdAt: { gte: start, lte: end } },
-        },
-        _sum: { amount: true },
-        _count: { id: true },
       }),
+      this.getStoreIncomeMovements(warehouseId, start, end),
     ]);
 
-    const totalAmount = sales.reduce((sum: number, s: any) => sum + Number(s.totalAmount), 0);
-    const totalSales  = sales.length;
-    const itemsSold   = sales.reduce(
-      (sum: number, s: any) => sum + (s.details ?? []).reduce((si: number, i: any) => si + i.quantity, 0),
+    const paymentBreakdown = buildCajaIngresosBreakdown(sales, storeIncomes);
+    const totalAmount = paymentBreakdown.reduce((sum, row) => sum + row.amount, 0);
+    const totalSales = sales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0);
+    const totalStoreIncomes = storeIncomes.reduce(
+      (sum, movement) => sum + Number(movement.amount),
       0,
     );
-
-    const paymentBreakdown = paymentAggs.map((p) => ({
-      method: p.method,
-      label: this.paymentLabel(p.method),
-      amount: Number(p._sum.amount ?? 0),
-      count: p._count.id,
-    }));
-
-    const cashPayment = paymentBreakdown.find((p) => p.method === 'CASH');
-    const cash = cashPayment ? cashPayment.amount : 0;
-    const digital = totalAmount - cash;
-
-    // Hourly chart
-    const hourly: Record<string, { count: number; amount: number }> = {};
-    for (let h = 7; h <= 22; h++) {
-      hourly[`${String(h).padStart(2, '0')}:00`] = { count: 0, amount: 0 };
-    }
-    for (const s of sales as any[]) {
-      const h = dayjs(s.createdAt).format('HH') + ':00';
-      if (hourly[h]) {
-        hourly[h].count++;
-        hourly[h].amount += Number(s.totalAmount);
-      }
-    }
-
-    const transactions = (sales as any[]).map((s: any) => ({
-      id: s.id,
-      source: 'sale',
-      code: s.code ?? s.id.slice(0, 8),
-      time: dayjs(s.createdAt).format('HH:mm'),
-      customer: s.customer ? s.customer.name : 'Público General',
-      itemsCount: (s.details ?? []).reduce((sum: number, i: any) => sum + i.quantity, 0),
-      totalAmount: Number(s.totalAmount),
-      paymentMethod: s.paymentMethod,
-      paymentLabel: this.paymentLabel(s.paymentMethod),
-    }));
+    const itemsSold = sales.reduce(
+      (sum, sale) => sum + sale.details.reduce((itemSum, item) => itemSum + (item.quantity ?? 0), 0),
+      0,
+    );
+    const transactionCount = sales.length + storeIncomes.length;
+    const cash = sumPaymentBreakdownByMethods(paymentBreakdown, ['CASH']);
+    const digital = sumPaymentBreakdownByMethods(paymentBreakdown, DIGITAL_PAYMENT_METHODS);
 
     return {
       date: dayjs(date).format('DD/MM/YYYY'),
       dateIso: date,
       summary: {
         totalAmount: round2(totalAmount),
-        totalSales,
-        totalStoreIncomes: 0,
-        transactionCount: totalSales,
+        totalSales: round2(totalSales),
+        totalStoreIncomes: round2(totalStoreIncomes),
+        transactionCount,
         itemsSold,
-        averageTicket: totalSales > 0 ? round2(totalAmount / totalSales) : 0,
-        cash: round2(cash),
-        digital: round2(digital),
+        averageTicket: transactionCount > 0 ? round2(totalAmount / transactionCount) : 0,
+        cash,
+        digital,
       },
       paymentBreakdown,
-      hourlyChart: {
-        labels: Object.keys(hourly),
-        amounts: Object.values(hourly).map((v) => round2(v.amount)),
-        counts: Object.values(hourly).map((v) => v.count),
-      },
-      sales: transactions,
+      hourlyChart: buildHourlyCajaChart(sales, storeIncomes),
+      sales: buildDailyCajaEntries(sales, storeIncomes),
     };
   }
 
   // ── Sales Monthly Report ────────────────────────────────────────────────────
   async getMonthlySalesReport(month: string, warehouseId: string) {
     const monthStart = dayjs(`${month}-01`).startOf('month').toDate();
-    const monthEnd   = dayjs(`${month}-01`).endOf('month').toDate();
+    const monthEnd = dayjs(`${month}-01`).endOf('month').toDate();
 
-    const [sales, paymentAggs] = await Promise.all([
+    const [sales, storeIncomes] = await Promise.all([
       this.db.sale.findMany({
-        where: { warehouseId, isDeleted: false, createdAt: { gte: monthStart, lte: monthEnd } },
+        where: this.completedSaleFilter(warehouseId, { gte: monthStart, lte: monthEnd }),
         include: {
+          customer: { select: { name: true } },
           payments: { select: { method: true, amount: true } },
           details: { select: { quantity: true } },
         },
         orderBy: { createdAt: 'asc' },
-      }) as Promise<any[]>,
-      this.db.salePayment.groupBy({
-        by: ['method'],
-        where: {
-          sale: { warehouseId, isDeleted: false, createdAt: { gte: monthStart, lte: monthEnd } },
-        },
-        _sum: { amount: true },
-        _count: { id: true },
       }),
+      this.getStoreIncomeMovements(warehouseId, monthStart, monthEnd),
     ]);
 
-    const paymentBreakdown = paymentAggs.map((p) => ({
-      method: p.method,
-      label: this.paymentLabel(p.method),
-      amount: Number(p._sum.amount ?? 0),
-      count: p._count.id,
-    }));
-
-    const totalAmount = (sales as any[]).reduce((sum: number, s: any) => sum + Number(s.totalAmount), 0);
-    const totalSales  = sales.length;
-    const itemsSold   = (sales as any[]).reduce(
-      (sum: number, s: any) => sum + (s.details ?? []).reduce((si: number, i: any) => si + i.quantity, 0),
+    const paymentBreakdown = buildCajaIngresosBreakdown(sales, storeIncomes);
+    const totalAmount = paymentBreakdown.reduce((sum, row) => sum + row.amount, 0);
+    const totalSales = sales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0);
+    const totalStoreIncomes = storeIncomes.reduce(
+      (sum, movement) => sum + Number(movement.amount),
       0,
     );
-    const cashPayment = paymentBreakdown.find((p) => p.method === 'CASH');
-    const cash = cashPayment ? cashPayment.amount : 0;
-    const digital = totalAmount - cash;
-
-    const daysInMonth = dayjs(`${month}-01`).daysInMonth();
-    const dailyMap: Record<string, { count: number; amount: number; cash: number; digital: number }> = {};
-    for (let d = 1; d <= daysInMonth; d++) {
-      const key = dayjs(`${month}-${String(d).padStart(2, '0')}`).format('YYYY-MM-DD');
-      dailyMap[key] = { count: 0, amount: 0, cash: 0, digital: 0 };
-    }
-
-    for (const s of sales as any[]) {
-      const key = dayjs(s.createdAt).format('YYYY-MM-DD');
-      if (dailyMap[key]) {
-        dailyMap[key].count++;
-        const amt = Number(s.totalAmount);
-        dailyMap[key].amount += amt;
-        const salePs = (s.payments ?? []) as { method: string; amount: unknown }[];
-        const saleCash = salePs
-          .filter((p) => p.method === 'CASH')
-          .reduce((sm, p) => sm + Number(p.amount), 0);
-        dailyMap[key].cash += saleCash;
-        dailyMap[key].digital += amt - saleCash;
-      }
-    }
-
-    const daysWithSales = Object.values(dailyMap).filter((v) => v.count > 0).length;
-
-    const dailyBreakdown = Object.entries(dailyMap).map(([dateKey, v]) => ({
-      date: dayjs(dateKey).format('DD/MM/YYYY'),
-      dayOfWeek: dayjs(dateKey).format('dddd'),
-      transactions: v.count,
-      total: round2(v.amount),
-      cash: round2(v.cash),
-      digital: round2(v.digital),
-    }));
-
-    const monthLabel = dayjs(`${month}-01`).format('MMMM YYYY');
+    const itemsSold = sales.reduce(
+      (sum, sale) => sum + sale.details.reduce((itemSum, item) => itemSum + (item.quantity ?? 0), 0),
+      0,
+    );
+    const transactionCount = sales.length + storeIncomes.length;
+    const cash = sumPaymentBreakdownByMethods(paymentBreakdown, ['CASH']);
+    const digital = sumPaymentBreakdownByMethods(paymentBreakdown, DIGITAL_PAYMENT_METHODS);
+    const dailyBreakdown = buildDailyBreakdown(
+      sales,
+      storeIncomes,
+      dayjs(`${month}-01`).format('YYYY-MM-DD'),
+      dayjs(`${month}-01`).endOf('month').format('YYYY-MM-DD'),
+    );
+    const daysWithSales = dailyBreakdown.filter((row) => row.transactions > 0).length;
 
     return {
       monthIso: month,
-      monthLabel,
+      monthLabel: dayjs(`${month}-01`).format('MMMM YYYY'),
       summary: {
         totalAmount: round2(totalAmount),
-        totalSales,
-        totalStoreIncomes: 0,
-        transactionCount: totalSales,
+        totalSales: round2(totalSales),
+        totalStoreIncomes: round2(totalStoreIncomes),
+        transactionCount,
         itemsSold,
-        averageTicket: totalSales > 0 ? round2(totalAmount / totalSales) : 0,
-        cash: round2(cash),
-        digital: round2(digital),
+        averageTicket: transactionCount > 0 ? round2(totalAmount / transactionCount) : 0,
+        cash,
+        digital,
         averageDaily: daysWithSales > 0 ? round2(totalAmount / daysWithSales) : 0,
         daysWithSales,
       },
       paymentBreakdown,
       dailyBreakdown,
       dailyChart: {
-        labels: dailyBreakdown.map((d) => d.date),
-        amounts: dailyBreakdown.map((d) => d.total),
+        labels: dailyBreakdown.map((row) => row.date),
+        amounts: dailyBreakdown.map((row) => row.total),
       },
     };
   }
@@ -201,77 +169,38 @@ export class ReportsService {
   // ── Sales Period Report ─────────────────────────────────────────────────────
   async getPeriodSalesReport(startDate: string, endDate: string, warehouseId: string) {
     const start = dayjs(startDate).startOf('day').toDate();
-    const end   = dayjs(endDate).endOf('day').toDate();
+    const end = dayjs(endDate).endOf('day').toDate();
 
-    const [sales, paymentAggs] = await Promise.all([
+    const [sales, storeIncomes] = await Promise.all([
       this.db.sale.findMany({
-        where: { warehouseId, isDeleted: false, createdAt: { gte: start, lte: end } },
+        where: this.completedSaleFilter(warehouseId, { gte: start, lte: end }),
         include: {
+          customer: { select: { name: true } },
           payments: { select: { method: true, amount: true } },
           details: { select: { quantity: true } },
         },
         orderBy: { createdAt: 'asc' },
-      }) as Promise<any[]>,
-      this.db.salePayment.groupBy({
-        by: ['method'],
-        where: {
-          sale: { warehouseId, isDeleted: false, createdAt: { gte: start, lte: end } },
-        },
-        _sum: { amount: true },
-        _count: { id: true },
       }),
+      this.getStoreIncomeMovements(warehouseId, start, end),
     ]);
 
-    const paymentBreakdown = paymentAggs.map((p) => ({
-      method: p.method,
-      label: this.paymentLabel(p.method),
-      amount: Number(p._sum.amount ?? 0),
-      count: p._count.id,
-    }));
-
-    const totalAmount = (sales as any[]).reduce((sum: number, s: any) => sum + Number(s.totalAmount), 0);
-    const totalSales  = sales.length;
-    const itemsSold   = (sales as any[]).reduce(
-      (sum: number, s: any) => sum + (s.details ?? []).reduce((si: number, i: any) => si + i.quantity, 0),
+    const paymentBreakdown = buildCajaIngresosBreakdown(sales, storeIncomes);
+    const totalAmount = paymentBreakdown.reduce((sum, row) => sum + row.amount, 0);
+    const totalSales = sales.reduce((sum, sale) => sum + Number(sale.totalAmount), 0);
+    const totalStoreIncomes = storeIncomes.reduce(
+      (sum, movement) => sum + Number(movement.amount),
       0,
     );
-    const cashPayment = paymentBreakdown.find((p) => p.method === 'CASH');
-    const cash = cashPayment ? cashPayment.amount : 0;
-    const digital = totalAmount - cash;
-
-    const diffDays = dayjs(endDate).diff(dayjs(startDate), 'day') + 1;
-
-    const dailyMap: Record<string, { count: number; amount: number; cash: number; digital: number }> = {};
-    for (let d = 0; d < diffDays; d++) {
-      const key = dayjs(startDate).add(d, 'day').format('YYYY-MM-DD');
-      dailyMap[key] = { count: 0, amount: 0, cash: 0, digital: 0 };
-    }
-
-    for (const s of sales as any[]) {
-      const key = dayjs(s.createdAt).format('YYYY-MM-DD');
-      if (dailyMap[key]) {
-        dailyMap[key].count++;
-        const amt = Number(s.totalAmount);
-        dailyMap[key].amount += amt;
-        const salePs = (s.payments ?? []) as { method: string; amount: unknown }[];
-        const saleCash = salePs
-          .filter((p) => p.method === 'CASH')
-          .reduce((sm, p) => sm + Number(p.amount), 0);
-        dailyMap[key].cash += saleCash;
-        dailyMap[key].digital += amt - saleCash;
-      }
-    }
-
-    const daysWithSales = Object.values(dailyMap).filter((v) => v.count > 0).length;
-
-    const dailyBreakdown = Object.entries(dailyMap).map(([dateKey, v]) => ({
-      date: dayjs(dateKey).format('DD/MM/YYYY'),
-      dayOfWeek: dayjs(dateKey).format('dddd'),
-      transactions: v.count,
-      total: round2(v.amount),
-      cash: round2(v.cash),
-      digital: round2(v.digital),
-    }));
+    const itemsSold = sales.reduce(
+      (sum, sale) => sum + sale.details.reduce((itemSum, item) => itemSum + (item.quantity ?? 0), 0),
+      0,
+    );
+    const transactionCount = sales.length + storeIncomes.length;
+    const cash = sumPaymentBreakdownByMethods(paymentBreakdown, ['CASH']);
+    const digital = sumPaymentBreakdownByMethods(paymentBreakdown, DIGITAL_PAYMENT_METHODS);
+    const dailyBreakdown = buildDailyBreakdown(sales, storeIncomes, startDate, endDate);
+    const daysWithSales = dailyBreakdown.filter((row) => row.transactions > 0).length;
+    const daysInRange = dayjs(endDate).diff(dayjs(startDate), 'day') + 1;
 
     return {
       startDate,
@@ -279,16 +208,16 @@ export class ReportsService {
       periodLabel: `${dayjs(startDate).format('DD/MM/YYYY')} – ${dayjs(endDate).format('DD/MM/YYYY')}`,
       summary: {
         totalAmount: round2(totalAmount),
-        totalSales,
-        totalStoreIncomes: 0,
-        transactionCount: totalSales,
+        totalSales: round2(totalSales),
+        totalStoreIncomes: round2(totalStoreIncomes),
+        transactionCount,
         itemsSold,
-        averageTicket: totalSales > 0 ? round2(totalAmount / totalSales) : 0,
-        cash: round2(cash),
-        digital: round2(digital),
+        averageTicket: transactionCount > 0 ? round2(totalAmount / transactionCount) : 0,
+        cash,
+        digital,
         averageDaily: daysWithSales > 0 ? round2(totalAmount / daysWithSales) : 0,
         daysWithSales,
-        daysInRange: diffDays,
+        daysInRange,
       },
       paymentBreakdown,
       dailyBreakdown,
@@ -386,19 +315,4 @@ export class ReportsService {
 
     return description.replace(/estándar/gi, 'STD').replace(/estandar/gi, 'STD');
   }
-
-  private paymentLabel(method: string): string {
-    const map: Record<string, string> = {
-      CASH: 'Efectivo',
-      CARD: 'Tarjeta',
-      YAPE: 'Yape',
-      PLIN: 'Plin',
-      TRANSFER: 'Transferencia',
-    };
-    return map[method] ?? method;
-  }
-}
-
-function round2(value: number): number {
-  return Math.round(value * 100) / 100;
 }

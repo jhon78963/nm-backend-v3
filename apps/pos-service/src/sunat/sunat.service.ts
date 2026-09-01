@@ -152,6 +152,34 @@ export class SunatService {
     }
   }
 
+  async fetchTicketQr(saleId: string): Promise<string | null> {
+    if (!this.useInvoicingService) return null;
+    try {
+      const response = await this.invoicingRequest<{ qr?: string | null }>(
+        'GET',
+        `/api/invoices/${saleId}/qr`,
+      );
+      return response.qr ?? null;
+    } catch (err) {
+      this.logger.warn(`No se pudo obtener QR para venta ${saleId}: ${(err as Error).message}`);
+      return null;
+    }
+  }
+
+  async fetchTicketXmlHash(saleId: string): Promise<string | null> {
+    if (!this.useInvoicingService) return null;
+    try {
+      const response = await this.invoicingRequest<{ hash?: string | null }>(
+        'GET',
+        `/api/invoices/${saleId}/hash`,
+      );
+      return response.hash ?? null;
+    } catch (err) {
+      this.logger.warn(`No se pudo obtener hash XML para venta ${saleId}: ${(err as Error).message}`);
+      return null;
+    }
+  }
+
   // ── Helper HTTP ───────────────────────────────────────────────────────────
 
   private async emitViaInvoicingService(
