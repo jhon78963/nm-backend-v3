@@ -22,6 +22,14 @@ function isPublicEcommerceHeaderRequest(method: string, path: string): boolean {
   return method === 'GET' && path === '/api/v1/ecommerce/header';
 }
 
+function isPublicEcommerceBannersRequest(method: string, path: string): boolean {
+  return method === 'GET' && path === '/api/v1/ecommerce/banners';
+}
+
+function isPublicEcommerceHeroSlidesRequest(method: string, path: string): boolean {
+  return method === 'GET' && path === '/api/v1/ecommerce/hero-slides';
+}
+
 @Injectable()
 export class GatewayAuthGuard extends JwtAuthGuard {
   canActivate(context: ExecutionContext) {
@@ -33,6 +41,8 @@ export class GatewayAuthGuard extends JwtAuthGuard {
       PUBLIC_AUTH_PATHS.has(path)
       || isPublicStorageFileRequest(method, path)
       || isPublicEcommerceHeaderRequest(method, path)
+      || isPublicEcommerceBannersRequest(method, path)
+      || isPublicEcommerceHeroSlidesRequest(method, path)
     ) {
       return true;
     }
