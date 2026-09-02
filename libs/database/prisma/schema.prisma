@@ -77,6 +77,7 @@ model Warehouse {
   accumulatedAccountSetting   AccumulatedAccountSetting?
   accumulatedAccountTransfers AccumulatedAccountTransfer[]
   teams             Team[]
+  ecommerceOrders   EcommerceOrder[]
 
   @@map("warehouses")
 }
@@ -812,4 +813,62 @@ model EcommerceMedia {
   @@index([mimeType])
   @@index([createdAt])
   @@map("ecommerce_media")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ECOMMERCE — Pedidos web (equivalente WooCommerce shop_order)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+model EcommerceOrder {
+  id                  String    @id @default(uuid())
+  orderNumber         String    @unique @map("order_number") @db.VarChar(32)
+  warehouseId         String    @map("warehouse_id")
+  status              String    @default("pending") @db.VarChar(30)
+  paymentStatus       String    @default("pending") @map("payment_status") @db.VarChar(20)
+  currency            String    @default("PEN") @db.VarChar(3)
+  email               String    @db.VarChar(255)
+  billingAddress      Json      @map("billing_address")
+  shippingAddress     Json      @map("shipping_address")
+  sameAsBilling       Boolean   @default(true) @map("same_as_billing")
+  orderNotes          String?   @map("order_notes")
+  shippingMethodId    String    @map("shipping_method_id") @db.VarChar(50)
+  shippingMethodTitle String    @map("shipping_method_title") @db.VarChar(255)
+  shippingTotal       Decimal   @map("shipping_total") @db.Decimal(12, 2)
+  paymentMethodId     String    @map("payment_method_id") @db.VarChar(50)
+  paymentMethodTitle  String    @map("payment_method_title") @db.VarChar(255)
+  subtotal            Decimal   @db.Decimal(12, 2)
+  couponCode          String?   @map("coupon_code") @db.VarChar(50)
+  couponDiscount      Decimal   @default(0) @map("coupon_discount") @db.Decimal(12, 2)
+  taxAmount           Decimal   @default(0) @map("tax_amount") @db.Decimal(12, 2)
+  total               Decimal   @db.Decimal(12, 2)
+  cancelledAt         DateTime? @map("cancelled_at")
+  createdAt           DateTime  @default(now()) @map("creation_time")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  warehouse Warehouse            @relation(fields: [warehouseId], references: [id])
+  items     EcommerceOrderItem[]
+
+  @@index([warehouseId, createdAt])
+  @@index([status])
+  @@index([email])
+  @@map("ecommerce_orders")
+}
+
+model EcommerceOrderItem {
+  id             String  @id @default(uuid())
+  orderId        String  @map("order_id")
+  productId      String  @map("product_id")
+  productSizeId  String  @map("product_size_id")
+  colorId        String? @map("color_id")
+  nameSnapshot   String  @map("name_snapshot") @db.VarChar(255)
+  variationLabel String? @map("variation_label") @db.VarChar(255)
+  imageUrl       String? @map("image_url")
+  quantity       Int
+  unitPrice      Decimal @map("unit_price") @db.Decimal(10, 2)
+  subtotal       Decimal @db.Decimal(12, 2)
+
+  order EcommerceOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("ecommerce_order_items")
 }
