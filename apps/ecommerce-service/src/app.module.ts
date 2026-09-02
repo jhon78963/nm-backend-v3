@@ -14,6 +14,7 @@ import { ServicesSectionModule } from './services-section/services-section.modul
 import { SocialMediaModule } from './social-media/social-media.module';
 import { EcommerceProductsModule } from './ecommerce-products/ecommerce-products.module';
 import { CollectionsModule } from './collections/collections.module';
+import { CategoryProductsModule } from './category-products/category-products.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { CollectionsModule } from './collections/collections.module';
     SocialMediaModule,
     EcommerceProductsModule,
     CollectionsModule,
+    CategoryProductsModule,
   ],
 })
 export class AppModule {}

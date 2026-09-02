@@ -53,6 +53,10 @@ function isPublicEcommerceHomeCollectionsRequest(method: string, path: string): 
   return method === 'GET' && path === '/api/v1/ecommerce/home/collections';
 }
 
+function isPublicEcommerceHomeCategoryProductsRequest(method: string, path: string): boolean {
+  return method === 'GET' && path === '/api/v1/ecommerce/home/category-products';
+}
+
 @Injectable()
 export class GatewayAuthGuard extends JwtAuthGuard {
   canActivate(context: ExecutionContext) {
@@ -71,6 +75,7 @@ export class GatewayAuthGuard extends JwtAuthGuard {
       || isPublicEcommerceHomeSocialMediaRequest(method, path)
       || isPublicEcommerceProductsRequest(method, path)
       || isPublicEcommerceHomeCollectionsRequest(method, path)
+      || isPublicEcommerceHomeCategoryProductsRequest(method, path)
     ) {
       return true;
     }
