@@ -22,6 +22,7 @@ const VALID_CONTEXTS = new Set<string>([
   'vouchers',
   'tenants',
   'general',
+  'ecommerce',
 ]);
 
 @Injectable()

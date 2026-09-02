@@ -797,3 +797,19 @@ model StoreSection {
   @@index([slug, isActive])
   @@map("store_sections")
 }
+
+model EcommerceMedia {
+  id           String   @id @default(uuid())
+  url          String
+  path         String
+  mimeType     String   @map("mime_type") @db.VarChar(100)
+  size         Int
+  name         String   @db.VarChar(255)
+  originalName String?  @map("original_name") @db.VarChar(255)
+  uploadedById String?  @map("uploaded_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([mimeType])
+  @@index([createdAt])
+  @@map("ecommerce_media")
+}

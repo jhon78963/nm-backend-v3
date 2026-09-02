@@ -236,11 +236,14 @@ services:
       APP_PORT: 3012
       REDIS_URL: redis://redis:6379
       HEADER_CACHE_TTL_SECONDS: 300
+      STORAGE_SERVICE_URL: http://storage-service:3008
+      STORAGE_SERVICE_KEY: ${STORAGE_SERVICE_KEY:-nm-storage-dev-key-change-in-production}
     ports:
       - '3012:3012'
     depends_on:
       - migrate
       - redis
+      - storage-service
 
   report-service:
     <<: *service-defaults

@@ -30,7 +30,7 @@ export class HomeCategoryProductTabDto {
   @ApiPropertyOptional({ type: [String] })
   @IsOptional()
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID('all', { each: true })
   productIds?: string[];
 }
 
@@ -48,7 +48,7 @@ export class HomeCategoryProductLeftPanelDto {
   @ApiPropertyOptional({ type: [String] })
   @IsOptional()
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID('all', { each: true })
   productIds?: string[];
 }
 

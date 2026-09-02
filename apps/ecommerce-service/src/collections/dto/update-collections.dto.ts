@@ -44,7 +44,7 @@ export class HomeCollectionItemDto {
   })
   @IsOptional()
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID('all', { each: true })
   productIds?: string[];
 }
 

@@ -22,6 +22,7 @@ const VALID_CONTEXTS = new Set<StorageContext>([
   'vouchers',
   'tenants',
   'general',
+  'ecommerce',
 ]);
 
 @ApiTags('Storage — Files')
@@ -56,6 +57,10 @@ export class FilesController {
       png: 'image/png',
       webp: 'image/webp',
       pdf: 'application/pdf',
+      xls: 'application/vnd.ms-excel',
+      xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      doc: 'application/msword',
+      docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     };
     const contentType = mimeMap[ext] ?? 'application/octet-stream';
 

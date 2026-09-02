@@ -24,8 +24,8 @@ export class EcommerceProductsService {
         id: { in: productIds },
         warehouseId: query.warehouseId,
         isDeleted: false,
-        status: 'active',
-        wooStatus: 'publish',
+        status: { in: ['active', 'AVAILABLE'] },
+        wooStatus: { in: ['publish', 'draft'] },
       },
       include: {
         productSizes: {

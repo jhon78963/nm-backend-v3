@@ -11,6 +11,6 @@ export class PublicProductsQueryDto {
   ids!: string;
 
   @ApiProperty({ description: 'UUID del almacén del tenant' })
-  @IsUUID()
+  @IsUUID('all')
   warehouseId!: string;
 }

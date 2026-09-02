@@ -17,6 +17,10 @@ const EXTENSION_MAP: Record<string, string> = {
   'image/png':  '.png',
   'image/webp': '.webp',
   'application/pdf': '.pdf',
+  'application/vnd.ms-excel': '.xls',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+  'application/msword': '.doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
 };
 
 @Injectable()

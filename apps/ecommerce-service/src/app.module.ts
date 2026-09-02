@@ -15,6 +15,7 @@ import { SocialMediaModule } from './social-media/social-media.module';
 import { EcommerceProductsModule } from './ecommerce-products/ecommerce-products.module';
 import { CollectionsModule } from './collections/collections.module';
 import { CategoryProductsModule } from './category-products/category-products.module';
+import { EcommerceMediaModule } from './media/ecommerce-media.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { CategoryProductsModule } from './category-products/category-products.mo
     EcommerceProductsModule,
     CollectionsModule,
     CategoryProductsModule,
+    EcommerceMediaModule,
   ],
 })
 export class AppModule {}
