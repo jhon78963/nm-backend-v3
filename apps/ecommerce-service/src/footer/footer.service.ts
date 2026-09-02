@@ -73,9 +73,72 @@ export class FooterService {
       return { footer: { ...DEFAULT_FOOTER_CONFIG } };
     }
 
+    const normalized = this.normalizeConfig(row.config as Partial<PublicFooterConfig>);
+    const upgraded = this.upgradeLegacyFooterConfig(normalized);
+
+    if (this.hasDifferentFooterLinks(normalized, upgraded)) {
+      await this.db.storeSection.update({
+        where: { slug: DEFAULT_FOOTER_SLUG },
+        data: {
+          config: upgraded as unknown as Prisma.InputJsonValue,
+        },
+      });
+    }
+
+    return { footer: upgraded };
+  }
+
+  private hasDifferentFooterLinks(
+    current: PublicFooterConfig,
+    next: PublicFooterConfig,
+  ): boolean {
+    return (
+      JSON.stringify(current.categories) !== JSON.stringify(next.categories) ||
+      JSON.stringify(current.usefulLinks) !== JSON.stringify(next.usefulLinks) ||
+      JSON.stringify(current.helpCenterLinks) !== JSON.stringify(next.helpCenterLinks)
+    );
+  }
+
+  private upgradeLegacyFooterConfig(config: PublicFooterConfig): PublicFooterConfig {
+    if (!this.isLegacyFooterTemplate(config)) {
+      return config;
+    }
+
     return {
-      footer: this.normalizeConfig(row.config as Partial<PublicFooterConfig>),
+      ...config,
+      aboutText: config.aboutText.includes('Discover the latest')
+        ? DEFAULT_FOOTER_CONFIG.aboutText
+        : config.aboutText,
+      twitterUrl: '',
+      pinterestUrl: '',
+      categories: DEFAULT_FOOTER_CONFIG.categories.map((item) => ({ ...item })),
+      usefulLinks: DEFAULT_FOOTER_CONFIG.usefulLinks.map((item) => ({ ...item })),
+      helpCenterLinks: DEFAULT_FOOTER_CONFIG.helpCenterLinks.map((item) => ({ ...item })),
     };
+  }
+
+  private isLegacyFooterTemplate(config: PublicFooterConfig): boolean {
+    const legacyCategoryNames = new Set([
+      'Baby Essentials',
+      'Bag Emporium',
+      'Books',
+      'Christmas',
+      'Classic Furnishings',
+    ]);
+
+    const hasLegacyCategories = config.categories.some((category) =>
+      legacyCategoryNames.has(category.name),
+    );
+
+    const hasLegacyUsefulLinks = config.usefulLinks.some((link) =>
+      ['Home', 'About Us', 'Offers'].includes(link.name),
+    );
+
+    const hasLegacyHelpLinks = config.helpCenterLinks.some((link) =>
+      ['My Account', 'My Orders', 'Wishlist', "Faq's", 'Contact Us'].includes(link.name),
+    );
+
+    return hasLegacyCategories || hasLegacyUsefulLinks || hasLegacyHelpLinks;
   }
 
   private mergeDtoIntoConfig(
