@@ -1,10 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '@app/database';
 import { buildMasterStockByProductSizeId } from '@app/common/utils/product-inventory.util';
+import { extractProductIdPrefixFromSlug } from '@app/common/utils/product-slug.util';
 
 import { PublicProductsQueryDto } from './dto/public-products-query.dto';
 import {
   mapCatalogProductToPublicItem,
+  type PublicProductItem,
   type PublicProductsResponse,
 } from './ecommerce-products.mapper';
 
@@ -69,6 +71,61 @@ export class EcommerceProductsService {
         .map((id) => productsById.get(id))
         .filter((product): product is NonNullable<typeof product> => Boolean(product)),
     };
+  }
+
+  async getPublicProductBySlug(
+    slug: string,
+    warehouseId: string,
+  ): Promise<PublicProductItem> {
+    const identifier = extractProductIdPrefixFromSlug(slug);
+
+    if (!identifier) {
+      throw new BadRequestException('Slug de producto inválido.');
+    }
+
+    const products = await this.db.product.findMany({
+      where: {
+        warehouseId,
+        isDeleted: false,
+        status: { in: ['active', 'AVAILABLE'] },
+        wooStatus: { in: ['publish', 'draft'] },
+        id: identifier.includes('-')
+          ? identifier
+          : { startsWith: identifier },
+      },
+      include: {
+        productSizes: {
+          where: { isDeleted: false },
+          select: {
+            id: true,
+            salePrice: true,
+            isDeleted: true,
+          },
+        },
+        media: {
+          orderBy: [{ isCover: 'desc' }, { sortOrder: 'asc' }, { createdAt: 'asc' }],
+          select: {
+            url: true,
+            isCover: true,
+            sortOrder: true,
+          },
+        },
+      },
+      take: 2,
+    });
+
+    if (products.length !== 1) {
+      throw new NotFoundException('Producto no encontrado.');
+    }
+
+    const [product] = products;
+    const stockByProductSizeId = await buildMasterStockByProductSizeId(
+      this.db,
+      warehouseId,
+      product.productSizes.map((size) => size.id),
+    );
+
+    return mapCatalogProductToPublicItem(product, stockByProductSizeId);
   }
 
   private parseProductIds(ids: string): string[] {

@@ -44,8 +44,8 @@ export const DEFAULT_FOOTER_CONFIG: PublicFooterConfig = {
   aboutText:
     'Descubre las últimas tendencias y disfruta de una experiencia de compra única con nuestras colecciones exclusivas.',
   address: 'Puesto C-74, Mercado Mayorista, Trujillo, Perú',
-  supportNumber: '+51 984802248',
-  supportEmail: 'novedadesmaritex@gmail.com',
+  supportNumber: '+51 901259663',
+  supportEmail: 'soporte@novedadesmaritex.net.pe',
   socialMediaEnabled: true,
   facebookUrl: 'https://facebook.com/',
   twitterUrl: 'https://twitter.com/',

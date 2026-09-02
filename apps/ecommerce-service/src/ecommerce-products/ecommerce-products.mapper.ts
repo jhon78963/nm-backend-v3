@@ -1,3 +1,5 @@
+import { buildProductSlug } from '@app/common/utils/product-slug.util';
+
 export const PLACEHOLDER_PRODUCT_IMAGE_URL = '/placeholder-product.svg';
 
 export interface PublicProductItem {
@@ -70,7 +72,7 @@ export function mapCatalogProductToPublicItem(
   return {
     id: product.id,
     name: product.name,
-    slug: product.barcode?.trim() || product.id,
+    slug: buildProductSlug(product.name, product.id),
     imageUrl,
     galleryImageUrls: galleryImageUrls.length > 0 ? galleryImageUrls : [imageUrl],
     price,
