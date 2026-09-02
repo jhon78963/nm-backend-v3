@@ -11,6 +11,7 @@ import { BannerModule } from './banner/banner.module';
 import { HeroSlideModule } from './hero-slide/hero-slide.module';
 import { FooterModule } from './footer/footer.module';
 import { ServicesSectionModule } from './services-section/services-section.module';
+import { SocialMediaModule } from './social-media/social-media.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ServicesSectionModule } from './services-section/services-section.modul
     HeroSlideModule,
     FooterModule,
     ServicesSectionModule,
+    SocialMediaModule,
   ],
 })
 export class AppModule {}
