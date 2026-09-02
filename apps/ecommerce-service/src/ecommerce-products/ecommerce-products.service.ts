@@ -15,6 +15,10 @@ export class EcommerceProductsService {
   constructor(private readonly db: DatabaseService) {}
 
   async getPublicProducts(query: PublicProductsQueryDto): Promise<PublicProductsResponse> {
+    if (!query.ids) {
+      throw new BadRequestException('Debe enviar al menos un ID de producto válido.');
+    }
+
     const productIds = this.parseProductIds(query.ids);
 
     if (productIds.length === 0) {

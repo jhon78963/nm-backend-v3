@@ -46,7 +46,13 @@ function isPublicEcommerceHomeSocialMediaRequest(method: string, path: string): 
 }
 
 function isPublicEcommerceProductsRequest(method: string, path: string): boolean {
-  return method === 'GET' && path === '/api/v1/ecommerce/products/public';
+  return (
+    method === 'GET'
+    && (
+      path === '/api/v1/ecommerce/products/public'
+      || /^\/api\/v1\/ecommerce\/products\/public\/by-slug\/[^/]+$/.test(path)
+    )
+  );
 }
 
 function isPublicEcommerceHomeCollectionsRequest(method: string, path: string): boolean {

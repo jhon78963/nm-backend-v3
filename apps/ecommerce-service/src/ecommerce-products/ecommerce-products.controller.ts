@@ -19,6 +19,12 @@ export class EcommerceProductsController {
   @Throttle({ publicProducts: { limit: 30, ttl: 60_000 } })
   @ApiOperation({ summary: 'Obtener productos públicos del catálogo para el storefront' })
   getPublicProducts(@Query() query: PublicProductsQueryDto) {
+    if (query.slug) {
+      return this.ecommerceProductsService
+        .getPublicProductBySlug(query.slug, query.warehouseId)
+        .then((product) => ({ products: [product] }));
+    }
+
     return this.ecommerceProductsService.getPublicProducts(query);
   }
 
