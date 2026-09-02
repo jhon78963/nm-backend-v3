@@ -785,3 +785,15 @@ model StoreBanner {
   @@index([slug, isActive, order])
   @@map("store_banners")
 }
+
+model StoreSection {
+  id        String   @id @default(uuid())
+  slug      String   @unique @db.VarChar(80)
+  config    Json     @default("{}")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("creation_time")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([slug, isActive])
+  @@map("store_sections")
+}
