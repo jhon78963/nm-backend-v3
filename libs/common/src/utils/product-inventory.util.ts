@@ -165,6 +165,34 @@ export async function readColorStock(
   return balance?.quantity ?? 0;
 }
 
+export async function buildStockByProductSizeColorId(
+  tx: Pick<DatabaseService, 'inventoryBalance'>,
+  warehouseId: string,
+  productSizeIds: string[],
+): Promise<Map<string, number>> {
+  const stockByKey = new Map<string, number>();
+  if (productSizeIds.length === 0) {
+    return stockByKey;
+  }
+
+  const balances = await tx.inventoryBalance.findMany({
+    where: {
+      warehouseId,
+      productSizeId: { in: productSizeIds },
+    },
+    select: { productSizeId: true, colorId: true, quantity: true },
+  });
+
+  for (const balance of balances) {
+    stockByKey.set(
+      `${balance.productSizeId}:${balance.colorId}`,
+      balance.quantity,
+    );
+  }
+
+  return stockByKey;
+}
+
 export async function reconcileMasterStock(
   tx: InventoryTx,
   warehouseId: string,

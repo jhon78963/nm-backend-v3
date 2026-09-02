@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '@app/database';
-import { buildMasterStockByProductSizeId } from '@app/common/utils/product-inventory.util';
+import {
+  buildMasterStockByProductSizeId,
+  buildStockByProductSizeColorId,
+} from '@app/common/utils/product-inventory.util';
 
 import {
   mapCatalogProductToPublicItem,
@@ -94,15 +97,21 @@ export class ShopProductsService {
     const totalPages = total === 0 ? 0 : Math.ceil(total / perPage);
     const paginated = sorted.slice((page - 1) * perPage, page * perPage);
 
-    const stockByProductSizeId = await buildMasterStockByProductSizeId(
-      this.db,
-      query.warehouseId,
-      paginated.flatMap((product) => product.productSizes.map((size) => size.id)),
+    const productSizeIds = paginated.flatMap((product) =>
+      product.productSizes.map((size) => size.id),
     );
+    const [stockByProductSizeId, stockByProductSizeColorId] = await Promise.all([
+      buildMasterStockByProductSizeId(this.db, query.warehouseId, productSizeIds),
+      buildStockByProductSizeColorId(this.db, query.warehouseId, productSizeIds),
+    ]);
 
     return {
       products: paginated.map((product) =>
-        mapCatalogProductToPublicItem(product, stockByProductSizeId),
+        mapCatalogProductToPublicItem(
+          product,
+          stockByProductSizeId,
+          stockByProductSizeColorId,
+        ),
       ),
       meta: { total, page, perPage, totalPages },
       facets,

@@ -1,6 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '@app/database';
-import { buildMasterStockByProductSizeId } from '@app/common/utils/product-inventory.util';
+import {
+  buildMasterStockByProductSizeId,
+  buildStockByProductSizeColorId,
+} from '@app/common/utils/product-inventory.util';
 import { extractProductIdPrefixFromSlug } from '@app/common/utils/product-slug.util';
 
 import { PublicProductsQueryDto } from './dto/public-products-query.dto';
@@ -40,6 +43,17 @@ export class EcommerceProductsService {
             id: true,
             salePrice: true,
             isDeleted: true,
+            size: {
+              select: { id: true, description: true, isDeleted: true },
+            },
+            productSizeColors: {
+              select: {
+                colorId: true,
+                color: {
+                  select: { id: true, description: true, hash: true, isDeleted: true },
+                },
+              },
+            },
           },
         },
         media: {
@@ -57,16 +71,19 @@ export class EcommerceProductsService {
       product.productSizes.map((size) => size.id),
     );
 
-    const stockByProductSizeId = await buildMasterStockByProductSizeId(
-      this.db,
-      query.warehouseId,
-      productSizeIds,
-    );
+    const [stockByProductSizeId, stockByProductSizeColorId] = await Promise.all([
+      buildMasterStockByProductSizeId(this.db, query.warehouseId, productSizeIds),
+      buildStockByProductSizeColorId(this.db, query.warehouseId, productSizeIds),
+    ]);
 
     const productsById = new Map(
       products.map((product) => [
         product.id,
-        mapCatalogProductToPublicItem(product, stockByProductSizeId),
+        mapCatalogProductToPublicItem(
+          product,
+          stockByProductSizeId,
+          stockByProductSizeColorId,
+        ),
       ]),
     );
 
@@ -104,6 +121,17 @@ export class EcommerceProductsService {
             id: true,
             salePrice: true,
             isDeleted: true,
+            size: {
+              select: { id: true, description: true, isDeleted: true },
+            },
+            productSizeColors: {
+              select: {
+                colorId: true,
+                color: {
+                  select: { id: true, description: true, hash: true, isDeleted: true },
+                },
+              },
+            },
           },
         },
         media: {
@@ -123,13 +151,17 @@ export class EcommerceProductsService {
     }
 
     const [product] = products;
-    const stockByProductSizeId = await buildMasterStockByProductSizeId(
-      this.db,
-      warehouseId,
-      product.productSizes.map((size) => size.id),
-    );
+    const productSizeIds = product.productSizes.map((size) => size.id);
+    const [stockByProductSizeId, stockByProductSizeColorId] = await Promise.all([
+      buildMasterStockByProductSizeId(this.db, warehouseId, productSizeIds),
+      buildStockByProductSizeColorId(this.db, warehouseId, productSizeIds),
+    ]);
 
-    return mapCatalogProductToPublicItem(product, stockByProductSizeId);
+    return mapCatalogProductToPublicItem(
+      product,
+      stockByProductSizeId,
+      stockByProductSizeColorId,
+    );
   }
 
   private parseProductIds(ids: string): string[] {

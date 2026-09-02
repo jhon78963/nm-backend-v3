@@ -64,13 +64,10 @@ function isPublicEcommerceHomeCategoryProductsRequest(method: string, path: stri
 }
 
 function isPublicEcommerceShopCollectionsRequest(method: string, path: string): boolean {
-  return (
-    method === 'GET'
-    && (
-      path === '/api/v1/ecommerce/shop/collections'
-      || /^\/api\/v1\/ecommerce\/shop\/collections\/[^/]+$/.test(path)
-    )
-  );
+  if (method !== 'GET') return false;
+  if (path === '/api/v1/ecommerce/shop/collections') return true;
+  if (path === '/api/v1/ecommerce/shop/collections/admin') return false;
+  return /^\/api\/v1\/ecommerce\/shop\/collections\/[^/]+$/.test(path);
 }
 
 function isPublicEcommerceShopProductsRequest(method: string, path: string): boolean {
