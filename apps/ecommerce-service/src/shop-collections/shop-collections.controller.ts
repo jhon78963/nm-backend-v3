@@ -30,6 +30,15 @@ export class ShopCollectionsController {
     return this.shopCollectionsService.getPublicCollections();
   }
 
+  @Get('admin')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin', 'Super Admin')
+  @ApiOperation({ summary: 'Listar todas las colecciones de la tienda (admin)' })
+  getAdminCollections() {
+    return this.shopCollectionsService.getAdminCollections();
+  }
+
   @Put('admin')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()

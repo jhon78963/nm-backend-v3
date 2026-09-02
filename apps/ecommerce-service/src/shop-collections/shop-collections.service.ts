@@ -44,6 +44,19 @@ export class ShopCollectionsService {
     return collection;
   }
 
+  async getAdminCollections(): Promise<PublicShopCollectionsResponse> {
+    const row = await this.db.storeSection.findUnique({
+      where: { slug: DEFAULT_SHOP_COLLECTIONS_SLUG },
+    });
+
+    if (!row) {
+      return { collections: [...DEFAULT_SHOP_COLLECTIONS_CONFIG.collections] };
+    }
+
+    const config = this.normalizeConfig(row.config as Partial<ShopCollectionsConfig>);
+    return { collections: config.collections };
+  }
+
   async upsertCollections(dto: UpdateShopCollectionsDto): Promise<PublicShopCollectionsResponse> {
     const nextConfig = this.normalizeConfig({
       collections: dto.collections.map((collection) => this.normalizeCollection(collection)),
@@ -65,9 +78,12 @@ export class ShopCollectionsService {
     });
 
     const response: PublicShopCollectionsResponse = {
-      collections: nextConfig.collections.filter((collection) => collection.status),
+      collections: nextConfig.collections,
     };
-    await this.cache.set(response);
+
+    await this.cache.set({
+      collections: nextConfig.collections.filter((collection) => collection.status),
+    });
     return response;
   }
 
