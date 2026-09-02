@@ -12,11 +12,15 @@ import { HeroSlideModule } from './hero-slide/hero-slide.module';
 import { FooterModule } from './footer/footer.module';
 import { ServicesSectionModule } from './services-section/services-section.module';
 import { SocialMediaModule } from './social-media/social-media.module';
+import { EcommerceProductsModule } from './ecommerce-products/ecommerce-products.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env.local', '.env'] }),
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
+    ThrottlerModule.forRoot([
+      { name: 'default', ttl: 60_000, limit: 120 },
+      { name: 'publicProducts', ttl: 60_000, limit: 30 },
+    ]),
     DatabaseModule,
     HealthModule,
     AuthModule,
@@ -26,6 +30,7 @@ import { SocialMediaModule } from './social-media/social-media.module';
     FooterModule,
     ServicesSectionModule,
     SocialMediaModule,
+    EcommerceProductsModule,
   ],
 })
 export class AppModule {}
