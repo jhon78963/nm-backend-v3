@@ -18,6 +18,10 @@ function isPublicStorageFileRequest(method: string, path: string): boolean {
   return ['GET', 'HEAD'].includes(method) && path.startsWith('/api/v1/storage/files/');
 }
 
+function isPublicEcommerceHeaderRequest(method: string, path: string): boolean {
+  return method === 'GET' && path === '/api/v1/ecommerce/header';
+}
+
 @Injectable()
 export class GatewayAuthGuard extends JwtAuthGuard {
   canActivate(context: ExecutionContext) {
@@ -25,7 +29,11 @@ export class GatewayAuthGuard extends JwtAuthGuard {
     const path = (req.url ?? '').split('?')[0];
     const method = (req.method ?? 'GET').toUpperCase();
 
-    if (PUBLIC_AUTH_PATHS.has(path) || isPublicStorageFileRequest(method, path)) {
+    if (
+      PUBLIC_AUTH_PATHS.has(path)
+      || isPublicStorageFileRequest(method, path)
+      || isPublicEcommerceHeaderRequest(method, path)
+    ) {
       return true;
     }
     return super.canActivate(context);

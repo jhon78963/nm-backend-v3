@@ -20,7 +20,8 @@ type ServiceName =
   | 'hr'
   | 'report'
   | 'ai-proxy'
-  | 'storage';
+  | 'storage'
+  | 'ecommerce';
 
 /**
  * ProxyService — BFF (Backend for Frontend) del Gateway.
@@ -40,7 +41,8 @@ type ServiceName =
  *   /api/v1/dashboard/*   → report-service    :3007
  *   /api/v1/reports/*     → report-service    :3007
  *   /api/v1/ai/*          → report-service    :3007 (AI proxy)
- *   /api/v1/storage/*     → storage-service   :3008  (rutas con /v1, igual que auth)
+   *   /api/v1/storage/*     → storage-service   :3008  (rutas con /v1, igual que auth)
+   *   /api/v1/ecommerce/*   → ecommerce-service :3012
  *
  * El JWT ya fue validado en JwtAuthGuard antes de llegar aquí.
  * El gateway reenvía el header Authorization al servicio destino.
@@ -64,6 +66,7 @@ export class ProxyService {
       'report':    config.get('REPORT_SERVICE_URL',    'http://localhost:3007'),
       'ai-proxy':  config.get('REPORT_SERVICE_URL',    'http://localhost:3007'),
       'storage':   config.get('STORAGE_SERVICE_URL',   'http://localhost:3008'),
+      'ecommerce': config.get('ECOMMERCE_SERVICE_URL', 'http://localhost:3012'),
     };
   }
 
@@ -105,6 +108,7 @@ export class ProxyService {
     if (path.startsWith('/api/v1/reports'))   return 'report';
     if (path.startsWith('/api/v1/ai'))        return 'ai-proxy';
     if (path.startsWith('/api/v1/storage'))   return 'storage';
+    if (path.startsWith('/api/v1/ecommerce')) return 'ecommerce';
     return 'auth'; // fallback
   }
 

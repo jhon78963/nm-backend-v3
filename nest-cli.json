@@ -122,6 +122,15 @@
         "tsConfigPath": "apps/storage-service/tsconfig.app.json"
       }
     },
+    "ecommerce-service": {
+      "type": "application",
+      "root": "apps/ecommerce-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/ecommerce-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/ecommerce-service/tsconfig.app.json"
+      }
+    },
     "common": {
       "type": "library",
       "root": "libs/common",

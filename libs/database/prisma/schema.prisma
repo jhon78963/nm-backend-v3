@@ -27,6 +27,7 @@ model Tenant {
   users      User[]
   roles      Role[]
   setting    TenantSetting?
+  storeHeaderConfig StoreHeaderConfig?
 
   @@map("tenants")
 }
@@ -728,4 +729,44 @@ model TeamPayment {
   team Team @relation(fields: [teamId], references: [id])
 
   @@map("team_payments")
+}
+
+// ─── Ecommerce — Storefront ────────────────────────────────────────────────────
+
+model StoreHeaderConfig {
+  id            String   @id @default(uuid())
+  tenantId      String?  @unique @map("tenant_id")
+  slug          String   @unique @default("default") @db.VarChar(50)
+  topbarMessage String?  @map("topbar_message")
+  supportPhone  String?  @map("support_phone") @db.VarChar(30)
+  logoText      String   @map("logo_text") @db.VarChar(255)
+  logoUrl       String?  @map("logo_url")
+  topBarEnabled Boolean  @default(true) @map("top_bar_enabled")
+  stickyEnabled Boolean  @default(true) @map("sticky_enabled")
+  createdAt     DateTime @default(now()) @map("creation_time")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  tenant          Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  navigationItems NavigationItem[]
+
+  @@map("store_header_configs")
+}
+
+model NavigationItem {
+  id             String   @id @default(uuid())
+  headerConfigId String   @map("header_config_id")
+  label          String   @db.VarChar(100)
+  href           String   @db.VarChar(500)
+  order          Int      @default(0) @map("sort_order")
+  isActive       Boolean  @default(true) @map("is_active")
+  parentId       String?  @map("parent_id")
+  createdAt      DateTime @default(now()) @map("creation_time")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  headerConfig StoreHeaderConfig @relation(fields: [headerConfigId], references: [id], onDelete: Cascade)
+  parent       NavigationItem?   @relation("NavigationHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children     NavigationItem[]  @relation("NavigationHierarchy")
+
+  @@index([headerConfigId, order])
+  @@map("navigation_items")
 }
