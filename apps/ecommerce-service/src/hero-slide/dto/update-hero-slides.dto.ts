@@ -12,8 +12,11 @@ import {
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+import { OptionalUuidProperty } from '../../common/optional-uuid.transform';
+
 export class UpdateHeroSlideItemDto {
   @ApiPropertyOptional({ description: 'ID existente para actualizar el slide' })
+  @OptionalUuidProperty()
   @IsOptional()
   @IsUUID()
   id?: string;

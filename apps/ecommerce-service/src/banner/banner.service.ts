@@ -4,9 +4,13 @@ import { DatabaseService } from '@app/database';
 import { BannerCacheService } from './banner-cache.service';
 import {
   DEFAULT_HOME_BANNERS,
+  DEFAULT_HOME_OFFER_BANNER,
+  DEFAULT_HOME_OFFER_BANNER_SLUG,
+  DEFAULT_OFFER_BANNER_CACHE_KEY,
   DEFAULT_STORE_BANNER_SLUG,
 } from './constants/banner.defaults';
 import { UpdateBannersDto } from './dto/update-banners.dto';
+import { UpdateOfferBannerDto } from './dto/update-offer-banner.dto';
 
 export interface PublicBannerItem {
   id: string;
@@ -17,6 +21,18 @@ export interface PublicBannerItem {
 
 export interface PublicBannersResponse {
   banners: PublicBannerItem[];
+}
+
+export interface PublicOfferBannerItem {
+  id: string;
+  imageUrl: string;
+  href: string;
+  alt?: string;
+  status: boolean;
+}
+
+export interface PublicOfferBannerResponse {
+  banner: PublicOfferBannerItem | null;
 }
 
 @Injectable()
@@ -34,6 +50,53 @@ export class BannerService {
 
     const response = await this.buildPublicBannersFromDatabase();
     await this.cache.set(response);
+    return response;
+  }
+
+  async getPublicOfferBanner(): Promise<PublicOfferBannerResponse> {
+    const cached = await this.cache.get<PublicOfferBannerResponse>(
+      DEFAULT_OFFER_BANNER_CACHE_KEY,
+    );
+    if (cached) {
+      return cached;
+    }
+
+    const response = await this.buildPublicOfferBannerFromDatabase();
+    await this.cache.set(response, DEFAULT_OFFER_BANNER_CACHE_KEY);
+    return response;
+  }
+
+  async upsertOfferBanner(dto: UpdateOfferBannerDto): Promise<PublicOfferBannerResponse> {
+    const existing = await this.db.storeBanner.findFirst({
+      where: { slug: DEFAULT_HOME_OFFER_BANNER_SLUG },
+      orderBy: { order: 'asc' },
+    });
+
+    if (existing) {
+      await this.db.storeBanner.update({
+        where: { id: existing.id },
+        data: {
+          imageUrl: dto.imageUrl,
+          href: dto.href,
+          altText: dto.altText,
+          isActive: dto.isActive ?? true,
+        },
+      });
+    } else {
+      await this.db.storeBanner.create({
+        data: {
+          slug: DEFAULT_HOME_OFFER_BANNER_SLUG,
+          imageUrl: dto.imageUrl,
+          href: dto.href,
+          altText: dto.altText,
+          order: 0,
+          isActive: dto.isActive ?? true,
+        },
+      });
+    }
+
+    const response = await this.buildPublicOfferBannerFromDatabase();
+    await this.cache.set(response, DEFAULT_OFFER_BANNER_CACHE_KEY);
     return response;
   }
 
@@ -108,6 +171,43 @@ export class BannerService {
         href: item.href,
         order: item.order,
       })),
+    };
+  }
+
+  private async buildPublicOfferBannerFromDatabase(): Promise<PublicOfferBannerResponse> {
+    const row = await this.db.storeBanner.findFirst({
+      where: { slug: DEFAULT_HOME_OFFER_BANNER_SLUG },
+      orderBy: { order: 'asc' },
+    });
+
+    if (!row) {
+      return this.getDefaultPublicOfferBanner();
+    }
+
+    if (!row.isActive) {
+      return { banner: null };
+    }
+
+    return {
+      banner: {
+        id: row.id,
+        imageUrl: row.imageUrl,
+        href: row.href,
+        alt: row.altText ?? undefined,
+        status: row.isActive,
+      },
+    };
+  }
+
+  private getDefaultPublicOfferBanner(): PublicOfferBannerResponse {
+    return {
+      banner: {
+        id: 'default-offer-banner',
+        imageUrl: DEFAULT_HOME_OFFER_BANNER.imageUrl,
+        href: DEFAULT_HOME_OFFER_BANNER.href,
+        alt: 'Banner promocional del home',
+        status: true,
+      },
     };
   }
 }

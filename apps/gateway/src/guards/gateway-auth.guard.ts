@@ -23,7 +23,10 @@ function isPublicEcommerceHeaderRequest(method: string, path: string): boolean {
 }
 
 function isPublicEcommerceBannersRequest(method: string, path: string): boolean {
-  return method === 'GET' && path === '/api/v1/ecommerce/banners';
+  return (
+    method === 'GET'
+    && (path === '/api/v1/ecommerce/banners' || path === '/api/v1/ecommerce/banners/offer')
+  );
 }
 
 function isPublicEcommerceHeroSlidesRequest(method: string, path: string): boolean {

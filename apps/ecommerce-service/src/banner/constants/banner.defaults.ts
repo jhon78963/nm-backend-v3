@@ -1,6 +1,8 @@
 export const DEFAULT_STORE_BANNER_SLUG = 'default';
+export const DEFAULT_HOME_OFFER_BANNER_SLUG = 'home-offer-banner';
 
 export const DEFAULT_BANNER_CACHE_KEY = 'ecommerce:banners:public';
+export const DEFAULT_OFFER_BANNER_CACHE_KEY = 'ecommerce:banners:offer:public';
 
 export const DEFAULT_HOME_BANNERS = [
   {
@@ -24,3 +26,9 @@ export const DEFAULT_HOME_BANNERS = [
     order: 3,
   },
 ] as const;
+
+export const DEFAULT_HOME_OFFER_BANNER = {
+  imageUrl: '/images/theme/marketplace_one/marketplace_one_6.png',
+  href: '/tienda',
+  order: 0,
+} as const;
