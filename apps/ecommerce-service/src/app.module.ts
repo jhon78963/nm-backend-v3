@@ -10,6 +10,7 @@ import { HeaderModule } from './header/header.module';
 import { BannerModule } from './banner/banner.module';
 import { HeroSlideModule } from './hero-slide/hero-slide.module';
 import { FooterModule } from './footer/footer.module';
+import { ServicesSectionModule } from './services-section/services-section.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { FooterModule } from './footer/footer.module';
     BannerModule,
     HeroSlideModule,
     FooterModule,
+    ServicesSectionModule,
   ],
 })
 export class AppModule {}
