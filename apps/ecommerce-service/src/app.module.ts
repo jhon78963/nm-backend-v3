@@ -13,6 +13,7 @@ import { FooterModule } from './footer/footer.module';
 import { ServicesSectionModule } from './services-section/services-section.module';
 import { SocialMediaModule } from './social-media/social-media.module';
 import { EcommerceProductsModule } from './ecommerce-products/ecommerce-products.module';
+import { CollectionsModule } from './collections/collections.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { EcommerceProductsModule } from './ecommerce-products/ecommerce-products
     ServicesSectionModule,
     SocialMediaModule,
     EcommerceProductsModule,
+    CollectionsModule,
   ],
 })
 export class AppModule {}
