@@ -100,6 +100,7 @@ services:
       AI_ENGINE_URL: http://ai-engine:8000
       INVOICING_SERVICE_URL: http://invoicing-service:8000
       STORAGE_SERVICE_URL: http://storage-service:3008
+      ECOMMERCE_SERVICE_URL: http://ecommerce-service:3012
     ports:
       - '3000:3000'
     depends_on:
@@ -115,6 +116,7 @@ services:
       - ai-engine
       - invoicing-service
       - storage-service
+      - ecommerce-service
 
   auth-service:
     <<: *service-defaults
@@ -220,6 +222,25 @@ services:
       - '3006:3006'
     depends_on:
       - migrate
+
+  ecommerce-service:
+    <<: *service-defaults
+    container_name: nm_ecommerce
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: ecommerce-service
+    environment:
+      SERVICE_NAME: ecommerce-service
+      APP_PORT: 3012
+      REDIS_URL: redis://redis:6379
+      HEADER_CACHE_TTL_SECONDS: 300
+    ports:
+      - '3012:3012'
+    depends_on:
+      - migrate
+      - redis
 
   report-service:
     <<: *service-defaults

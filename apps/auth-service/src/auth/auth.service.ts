@@ -58,7 +58,10 @@ export class AuthService {
       throw new UnauthorizedException('Tu cuenta ha sido deshabilitada.');
     }
 
-    const passwordValid = await bcrypt.compare(dto.password, user.passwordHash);
+    const passwordValid = await bcrypt.compare(
+      dto.password,
+      this.normalizePasswordHash(user.passwordHash),
+    );
     if (!passwordValid) {
       throw new UnauthorizedException('Credenciales incorrectas.');
     }
@@ -119,7 +122,10 @@ export class AuthService {
     const user = await this.usersService.findById(userId);
     if (!user) throw new NotFoundException('Usuario no encontrado.');
 
-    const currentValid = await bcrypt.compare(dto.current_password, user.passwordHash);
+    const currentValid = await bcrypt.compare(
+      dto.current_password,
+      this.normalizePasswordHash(user.passwordHash),
+    );
     if (!currentValid) {
       throw new BadRequestException('La contraseña actual es incorrecta.');
     }
@@ -255,5 +261,10 @@ export class AuthService {
       d: 86_400_000,
     };
     return value * (multipliers[unit] ?? 1000);
+  }
+
+  /** Laravel/PHP bcrypt usa prefijo $2y$; node-bcrypt solo compara $2a$/$2b$. */
+  private normalizePasswordHash(hash: string): string {
+    return hash.replace(/^\$2y\$/, '$2b$');
   }
 }

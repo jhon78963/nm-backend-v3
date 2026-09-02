@@ -66,6 +66,33 @@ services:
       - default
     # No depende de postgres — el storage solo guarda archivos en disco
 
+  # ── Ecommerce Service (storefront config) ─────────────────────────────────
+  ecommerce-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: ecommerce-service
+    container_name: nm_ecommerce
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SERVICE_NAME: ecommerce-service
+      APP_PORT: 3012
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/nm_services
+      REDIS_URL: redis://redis:6379
+      HEADER_CACHE_TTL_SECONDS: 300
+    ports:
+      - '3012:3012'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+
   # ── Invoicing Service (Laravel + Greenter — polyglot PHP) ─────────────────
   invoicing:
     build:
