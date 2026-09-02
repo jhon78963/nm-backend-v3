@@ -9,6 +9,7 @@ import { DatabaseModule } from '@app/database';
 import { HeaderModule } from './header/header.module';
 import { BannerModule } from './banner/banner.module';
 import { HeroSlideModule } from './hero-slide/hero-slide.module';
+import { FooterModule } from './footer/footer.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { HeroSlideModule } from './hero-slide/hero-slide.module';
     HeaderModule,
     BannerModule,
     HeroSlideModule,
+    FooterModule,
   ],
 })
 export class AppModule {}
