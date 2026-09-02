@@ -15,6 +15,8 @@ import { SocialMediaModule } from './social-media/social-media.module';
 import { EcommerceProductsModule } from './ecommerce-products/ecommerce-products.module';
 import { CollectionsModule } from './collections/collections.module';
 import { CategoryProductsModule } from './category-products/category-products.module';
+import { ShopCollectionsModule } from './shop-collections/shop-collections.module';
+import { ShopProductsModule } from './shop-products/shop-products.module';
 import { EcommerceMediaModule } from './media/ecommerce-media.module';
 
 @Module({
@@ -36,6 +38,8 @@ import { EcommerceMediaModule } from './media/ecommerce-media.module';
     EcommerceProductsModule,
     CollectionsModule,
     CategoryProductsModule,
+    ShopCollectionsModule,
+    ShopProductsModule,
     EcommerceMediaModule,
   ],
 })

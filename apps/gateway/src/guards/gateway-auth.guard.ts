@@ -63,6 +63,20 @@ function isPublicEcommerceHomeCategoryProductsRequest(method: string, path: stri
   return method === 'GET' && path === '/api/v1/ecommerce/home/category-products';
 }
 
+function isPublicEcommerceShopCollectionsRequest(method: string, path: string): boolean {
+  return (
+    method === 'GET'
+    && (
+      path === '/api/v1/ecommerce/shop/collections'
+      || /^\/api\/v1\/ecommerce\/shop\/collections\/[^/]+$/.test(path)
+    )
+  );
+}
+
+function isPublicEcommerceShopProductsRequest(method: string, path: string): boolean {
+  return method === 'GET' && path === '/api/v1/ecommerce/shop/products';
+}
+
 @Injectable()
 export class GatewayAuthGuard extends JwtAuthGuard {
   canActivate(context: ExecutionContext) {
@@ -82,6 +96,8 @@ export class GatewayAuthGuard extends JwtAuthGuard {
       || isPublicEcommerceProductsRequest(method, path)
       || isPublicEcommerceHomeCollectionsRequest(method, path)
       || isPublicEcommerceHomeCategoryProductsRequest(method, path)
+      || isPublicEcommerceShopCollectionsRequest(method, path)
+      || isPublicEcommerceShopProductsRequest(method, path)
     ) {
       return true;
     }
