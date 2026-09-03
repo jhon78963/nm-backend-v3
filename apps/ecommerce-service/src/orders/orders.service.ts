@@ -21,6 +21,7 @@ import {
   resolveShippingZone,
 } from './constants/shipping-payment.constants';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { ListCustomerOrdersQueryDto } from './dto/list-customer-orders-query.dto';
 import { ListOrdersQueryDto } from './dto/list-orders-query.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { buildOrderNumber, buildOrderNumberPrefix } from './utils/order-number.util';
@@ -197,6 +198,69 @@ export class OrdersService {
         orderNumber: orderNumber.trim().toUpperCase(),
         email: email.trim().toLowerCase(),
       },
+      include: { items: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Pedido no encontrado.');
+    }
+
+    return this.mapPublicOrder(order);
+  }
+
+  async listCustomerOrders(customerId: string, query: ListCustomerOrdersQueryDto) {
+    const page = query.page ?? 1;
+    const perPage = query.perPage ?? 10;
+    const skip = (page - 1) * perPage;
+
+    const where = { customerId };
+
+    const [orders, total] = await Promise.all([
+      this.db.ecommerceOrder.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: perPage,
+        select: {
+          id: true,
+          orderNumber: true,
+          status: true,
+          paymentStatus: true,
+          paymentMethodTitle: true,
+          total: true,
+          createdAt: true,
+        },
+      }),
+      this.db.ecommerceOrder.count({ where }),
+    ]);
+
+    return {
+      orders: orders.map((order) => ({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        statusLabel:
+          ECOMMERCE_ORDER_STATUS_LABELS[
+            order.status as keyof typeof ECOMMERCE_ORDER_STATUS_LABELS
+          ] ?? order.status,
+        paymentStatus: order.paymentStatus,
+        paymentMethodTitle: order.paymentMethodTitle,
+        total: Number(order.total),
+        createdAt: order.createdAt,
+      })),
+      meta: {
+        total,
+        page,
+        perPage,
+        totalPages: Math.max(1, Math.ceil(total / perPage)),
+      },
+    };
+  }
+
+  async getCustomerOrder(customerId: string, orderNumber: string) {
+    const normalizedNumber = orderNumber.trim().toUpperCase();
+    const order = await this.db.ecommerceOrder.findFirst({
+      where: { customerId, orderNumber: normalizedNumber },
       include: { items: true },
     });
 

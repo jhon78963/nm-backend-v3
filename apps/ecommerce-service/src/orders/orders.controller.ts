@@ -20,11 +20,14 @@ import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@app/common/guards/roles.guard';
 
 import { CreateOrderDto } from './dto/create-order.dto';
+import { ListCustomerOrdersQueryDto } from './dto/list-customer-orders-query.dto';
 import { ListOrdersQueryDto } from './dto/list-orders-query.dto';
 import { PublicOrderQueryDto, TrackOrderQueryDto } from './dto/track-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrdersService } from './orders.service';
 import { OptionalCustomerJwtAuthGuard } from '../customer-auth/guards/optional-customer-jwt.guard';
+import { CustomerJwtAuthGuard } from '../customer-auth/guards/customer-jwt.guard';
+import { CurrentCustomer } from '../customer-auth/decorators/current-customer.decorator';
 import type { AuthenticatedCustomer } from '../customer-auth/types/authenticated-customer.type';
 
 @ApiTags('Ecommerce Orders')
@@ -43,6 +46,30 @@ export class OrdersController {
     @Req() request: { user?: AuthenticatedCustomer | null },
   ) {
     return this.ordersService.createOrder(dto, request.user ?? undefined);
+  }
+
+  @Get('mine')
+  @ApiBearerAuth()
+  @UseGuards(CustomerJwtAuthGuard, ThrottlerGuard)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Listar pedidos del cliente autenticado' })
+  listCustomerOrders(
+    @CurrentCustomer() customer: AuthenticatedCustomer,
+    @Query() query: ListCustomerOrdersQueryDto,
+  ) {
+    return this.ordersService.listCustomerOrders(customer.id, query);
+  }
+
+  @Get('mine/:orderNumber')
+  @ApiBearerAuth()
+  @UseGuards(CustomerJwtAuthGuard, ThrottlerGuard)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Detalle de pedido del cliente autenticado' })
+  getCustomerOrder(
+    @CurrentCustomer() customer: AuthenticatedCustomer,
+    @Param('orderNumber') orderNumber: string,
+  ) {
+    return this.ordersService.getCustomerOrder(customer.id, orderNumber);
   }
 
   @Get('track')
