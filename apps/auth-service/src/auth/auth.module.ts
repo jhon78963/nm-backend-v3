@@ -10,6 +10,7 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { UsersModule } from '../users/users.module';
 import { AuditLogModule } from '@app/common/audit/audit.module';
 import { DatabaseModule } from '@app/database';
+import { MailClientModule } from '@app/mail-client';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { DatabaseModule } from '@app/database';
     forwardRef(() => UsersModule),
     DatabaseModule,
     AuditLogModule,
+    MailClientModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, CustomerAuthService, JwtStrategy, JwtRefreshStrategy],

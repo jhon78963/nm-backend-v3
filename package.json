@@ -11,6 +11,7 @@
     "build:finance": "nest build finance-service",
     "build:hr": "nest build hr-service",
     "build:ecommerce": "nest build ecommerce-service",
+    "build:mail": "nest build mail-service",
     "build:gateway": "nest build gateway",
     "start:auth": "node dist/apps/auth-service/main",
     "start:dev:auth": "nest start auth-service --watch",
@@ -20,6 +21,7 @@
     "start:dev:finance": "nest start finance-service --watch",
     "start:dev:hr": "nest start hr-service --watch",
     "start:dev:ecommerce": "nest start ecommerce-service --watch",
+    "start:dev:mail": "nest start mail-service --watch",
     "start:dev:report": "nest start report-service --watch",
     "start:dev:document": "nest start document-service --watch",
     "start:dev:gateway": "nest start gateway --watch",
@@ -66,6 +68,7 @@
     "@nestjs/swagger": "^7.4.0",
     "@nestjs/throttler": "^6.2.1",
     "@prisma/client": "^5.22.0",
+    "@types/nodemailer": "^8.0.1",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
@@ -75,6 +78,7 @@
     "handlebars": "^4.7.9",
     "helmet": "^8.0.0",
     "ioredis": "^5.11.1",
+    "nodemailer": "^9.1.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pdfkit": "^0.20.1",
@@ -135,7 +139,8 @@
       "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1",
       "^@app/database(|/.*)$": "<rootDir>/libs/database/src/$1",
       "^@app/contracts(|/.*)$": "<rootDir>/libs/contracts/src/$1",
-      "^@app/document-client(|/.*)$": "<rootDir>/libs/document-client/src/$1"
+      "^@app/document-client(|/.*)$": "<rootDir>/libs/document-client/src/$1",
+      "^@app/mail-client(|/.*)$": "<rootDir>/libs/mail-client/src/$1"
     }
   }
 }

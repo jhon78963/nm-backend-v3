@@ -131,6 +131,15 @@
         "tsConfigPath": "apps/ecommerce-service/tsconfig.app.json"
       }
     },
+    "mail-service": {
+      "type": "application",
+      "root": "apps/mail-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/mail-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/mail-service/tsconfig.app.json"
+      }
+    },
     "common": {
       "type": "library",
       "root": "libs/common",
@@ -183,6 +192,15 @@
       "sourceRoot": "libs/document-client/src",
       "compilerOptions": {
         "tsConfigPath": "libs/document-client/tsconfig.lib.json"
+      }
+    },
+    "mail-client": {
+      "type": "library",
+      "root": "libs/mail-client",
+      "entryFile": "index",
+      "sourceRoot": "libs/mail-client/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/mail-client/tsconfig.lib.json"
       }
     }
   }

@@ -91,6 +91,6 @@ RUN addgroup --system --gid 1001 nestjs && \
     chown -R nestjs:nestjs /app
 USER nestjs
 
-EXPOSE 3000 3001 3002 3003 3004 3005 3006 3007 3012
+EXPOSE 3000 3001 3002 3003 3004 3005 3006 3007 3012 3013
 
 CMD ["sh", "-c", "node dist/apps/${SERVICE_NAME}/apps/${SERVICE_NAME}/src/main.js"]

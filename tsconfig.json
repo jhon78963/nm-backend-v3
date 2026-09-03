@@ -31,7 +31,9 @@
       "@app/storage-client": ["./libs/storage-client/src"],
       "@app/storage-client/*": ["./libs/storage-client/src/*"],
       "@app/document-client": ["./libs/document-client/src"],
-      "@app/document-client/*": ["./libs/document-client/src/*"]
+      "@app/document-client/*": ["./libs/document-client/src/*"],
+      "@app/mail-client": ["./libs/mail-client/src"],
+      "@app/mail-client/*": ["./libs/mail-client/src/*"]
     }
   }
 }

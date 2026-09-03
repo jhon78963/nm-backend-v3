@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { UsersService } from '../users/users.service';
 import { UserActionLogWriter } from '@app/common/audit/user-action-log.writer';
 import { DatabaseService } from '@app/database';
+import { EcommerceMailTemplate, MailClientService } from '@app/mail-client';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtPayload } from './strategies/jwt.strategy';
@@ -39,6 +40,7 @@ export class AuthService {
     private readonly config: ConfigService,
     private readonly db: DatabaseService,
     private readonly actionLogWriter: UserActionLogWriter,
+    private readonly mailClient: MailClientService,
   ) {}
 
   // ── Login ──────────────────────────────────────────────────────────────────
@@ -173,8 +175,29 @@ export class AuthService {
       update: { token, expiresAt },
     });
 
-    // TODO: Implementar envío de email (Nodemailer / SendGrid)
-    console.log(`[DEV] Reset token para ${email}: ${token}`);
+    const ecommerceCustomer = await this.db.ecommerceCustomer.findUnique({
+      where: { email },
+      select: { name: true },
+    });
+    const baseUrl = ecommerceCustomer
+      ? this.config.get<string>(
+          'ECOMMERCE_STORE_URL',
+          this.config.get<string>('FRONTEND_URL', 'http://localhost:3001'),
+        )
+      : this.config.get<string>('FRONTEND_URL', 'http://localhost:4200');
+    const resetUrl = `${baseUrl}/restablecer-contrasena?token=${token}`;
+
+    void this.mailClient
+      .sendEcommerceMail({
+        template: EcommerceMailTemplate.CUSTOMER_PASSWORD_RESET,
+        to: email,
+        data: {
+          customerName: ecommerceCustomer?.name ?? user.name,
+          resetUrl,
+          expiresInMinutes: 60,
+        },
+      })
+      .catch(() => undefined);
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {

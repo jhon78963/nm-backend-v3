@@ -26,6 +26,7 @@ import { ListOrdersQueryDto } from './dto/list-orders-query.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { buildOrderNumber, buildOrderNumberPrefix } from './utils/order-number.util';
 import type { AuthenticatedCustomer } from '../customer-auth/types/authenticated-customer.type';
+import { EcommerceMailNotificationsService } from '../mail/ecommerce-mail-notifications.service';
 
 type ResolvedOrderItem = {
   productId: string;
@@ -44,6 +45,7 @@ export class OrdersService {
   constructor(
     private readonly db: DatabaseService,
     private readonly config: ConfigService,
+    private readonly mailNotifications: EcommerceMailNotificationsService,
   ) {}
 
   async createOrder(dto: CreateOrderDto, customer?: AuthenticatedCustomer) {
@@ -179,6 +181,8 @@ export class OrdersService {
 
       return created;
     });
+
+    void this.mailNotifications.sendOrderConfirmation(order).catch(() => undefined);
 
     return this.mapPublicOrder(order);
   }
@@ -413,6 +417,10 @@ export class OrdersService {
         include: { items: true },
       });
     });
+
+    void this.mailNotifications
+      .sendOrderStatusChange(existing, order)
+      .catch(() => undefined);
 
     return this.mapAdminOrder(order);
   }

@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 
 import { CLIENTE_ROLE } from '@app/common/auth/ecommerce-customer-permissions';
 import { DatabaseService } from '@app/database';
+import { EcommerceMailTemplate, MailClientService } from '@app/mail-client';
 
 import { AuthService } from './auth.service';
 import { LoginCustomerDto } from './dto/login-customer.dto';
@@ -38,6 +39,7 @@ export class CustomerAuthService {
     private readonly config: ConfigService,
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
+    private readonly mailClient: MailClientService,
   ) {}
 
   async register(dto: RegisterCustomerDto): Promise<CustomerAuthResponse> {
@@ -85,6 +87,21 @@ export class CustomerAuthService {
     });
 
     const tokens = await this.authService.issueTokensForUserId(user.id);
+
+    void this.mailClient
+      .sendEcommerceMail({
+        template: EcommerceMailTemplate.CUSTOMER_WELCOME,
+        to: email,
+        data: {
+          customerName: name,
+          storeUrl: this.config.get<string>(
+            'ECOMMERCE_STORE_URL',
+            this.config.get<string>('FRONTEND_URL', 'http://localhost:3001'),
+          ),
+        },
+      })
+      .catch(() => undefined);
+
     return { ...tokens, customer };
   }
 

@@ -127,6 +127,7 @@ services:
       - chatbot-service
       - storage-service
       - ecommerce-service
+      - mail-service
 
   auth-service:
     <<: *service-defaults
@@ -141,11 +142,15 @@ services:
       APP_PORT: 3001
       STORAGE_SERVICE_URL: http://storage-service:3008
       STORAGE_SERVICE_KEY: ${STORAGE_SERVICE_KEY:-nm-storage-dev-key-change-in-production}
+      MAIL_SERVICE_URL: http://mail-service:3013
+      MAIL_SERVICE_KEY: ${MAIL_SERVICE_KEY:-nm-mail-dev-key-change-in-production}
+      ECOMMERCE_STORE_URL: ${ECOMMERCE_STORE_URL:-http://localhost:3001}
     ports:
       - '3001:3001'
     depends_on:
       - migrate
       - storage-service
+      - mail-service
 
   catalog-service:
     <<: *service-defaults
@@ -248,12 +253,16 @@ services:
       HEADER_CACHE_TTL_SECONDS: 300
       STORAGE_SERVICE_URL: http://storage-service:3008
       STORAGE_SERVICE_KEY: ${STORAGE_SERVICE_KEY:-nm-storage-dev-key-change-in-production}
+      MAIL_SERVICE_URL: http://mail-service:3013
+      MAIL_SERVICE_KEY: ${MAIL_SERVICE_KEY:-nm-mail-dev-key-change-in-production}
+      ECOMMERCE_STORE_URL: ${ECOMMERCE_STORE_URL:-http://localhost:3001}
     ports:
       - '3012:3012'
     depends_on:
       - migrate
       - redis
       - storage-service
+      - mail-service
 
   report-service:
     <<: *service-defaults
@@ -321,6 +330,27 @@ services:
              exec node dist/apps/storage-service/apps/storage-service/src/main.js"
     depends_on:
       - migrate
+
+  mail-service:
+    <<: *service-defaults
+    container_name: nm_mail
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: mail-service
+    environment:
+      SERVICE_NAME: mail-service
+      APP_PORT: 3013
+      MAIL_SERVICE_KEY: ${MAIL_SERVICE_KEY:-nm-mail-dev-key-change-in-production}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Novedades Maritex}
+      MAIL_FROM_EMAIL: ${MAIL_FROM_EMAIL:-}
+      GMAIL_USER: ${GMAIL_USER:-}
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:-}
+      ECOMMERCE_STORE_URL: ${ECOMMERCE_STORE_URL:-http://localhost:3001}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
+    ports:
+      - '3013:3013'
 
   # ── Invoicing Service (Laravel 12 + Greenter — polyglot PHP) ────────────────
 
