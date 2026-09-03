@@ -76,6 +76,10 @@ function isPublicEcommerceShopProductsRequest(method: string, path: string): boo
   return method === 'GET' && path === '/api/v1/ecommerce/shop/products';
 }
 
+function isPublicEcommerceSearchRequest(method: string, path: string): boolean {
+  return method === 'GET' && path === '/api/v1/ecommerce/search';
+}
+
 function isPublicEcommerceOrdersRequest(method: string, path: string): boolean {
   if (path === '/api/v1/ecommerce/orders' && method === 'POST') {
     return true;
@@ -114,6 +118,7 @@ export class GatewayAuthGuard extends JwtAuthGuard {
       || isPublicEcommerceHomeCategoryProductsRequest(method, path)
       || isPublicEcommerceShopCollectionsRequest(method, path)
       || isPublicEcommerceShopProductsRequest(method, path)
+      || isPublicEcommerceSearchRequest(method, path)
       || isPublicEcommerceOrdersRequest(method, path)
       || isChatbotProxyRequest(path)
     ) {

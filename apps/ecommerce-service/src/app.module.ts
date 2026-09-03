@@ -22,6 +22,7 @@ import { OrdersModule } from './orders/orders.module';
 import { CustomerAuthModule } from './customer-auth/customer-auth.module';
 import { ProductReviewsModule } from './product-reviews/product-reviews.module';
 import { CustomerAccountModule } from './customer-account/customer-account.module';
+import { StoreSearchModule } from './store-search/store-search.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { CustomerAccountModule } from './customer-account/customer-account.modul
     CustomerAuthModule,
     ProductReviewsModule,
     CustomerAccountModule,
+    StoreSearchModule,
   ],
 })
 export class AppModule {}
