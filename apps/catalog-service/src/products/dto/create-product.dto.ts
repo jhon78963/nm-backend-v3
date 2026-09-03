@@ -69,6 +69,17 @@ export class CreateProductDto {
   @IsOptional()
   description?: string;
 
+  @ApiPropertyOptional({ description: 'Resumen corto para fichas y listados' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(500)
+  shortDescription?: string;
+
+  @ApiPropertyOptional({ description: 'Información adicional (PDP, pestaña detalles)' })
+  @IsString()
+  @IsOptional()
+  additionalInfo?: string;
+
   @ApiPropertyOptional({ example: '7501234567890' })
   @IsString()
   @IsOptional()
@@ -97,6 +108,11 @@ export class CreateProductDto {
   @IsBoolean()
   @IsOptional()
   isOnSale?: boolean;
+
+  @ApiPropertyOptional({ default: false, description: 'Etiqueta "Producto nuevo" en la tienda' })
+  @IsBoolean()
+  @IsOptional()
+  isNew?: boolean;
 
   @ApiPropertyOptional({ enum: WooStatus, default: WooStatus.DRAFT })
   @IsEnum(WooStatus)
@@ -140,6 +156,17 @@ export class UpdateProductDto {
   @IsOptional()
   description?: string;
 
+  @ApiPropertyOptional({ description: 'Resumen corto para fichas y listados' })
+  @IsString()
+  @IsOptional()
+  @MaxLength(500)
+  shortDescription?: string;
+
+  @ApiPropertyOptional({ description: 'Información adicional (PDP, pestaña detalles)' })
+  @IsString()
+  @IsOptional()
+  additionalInfo?: string;
+
   @ApiPropertyOptional({ example: '7501234567890' })
   @IsString()
   @IsOptional()
@@ -170,6 +197,11 @@ export class UpdateProductDto {
   @IsBoolean()
   @IsOptional()
   isOnSale?: boolean;
+
+  @ApiPropertyOptional({ default: false, description: 'Etiqueta "Producto nuevo" en la tienda' })
+  @IsBoolean()
+  @IsOptional()
+  isNew?: boolean;
 
   @ApiPropertyOptional({ enum: WooStatus })
   @IsEnum(WooStatus)

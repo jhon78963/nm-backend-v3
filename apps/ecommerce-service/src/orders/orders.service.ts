@@ -63,10 +63,6 @@ export class OrdersService {
       throw new BadRequestException('Método de pago no válido.');
     }
 
-    if (paymentMethod.trujilloOnly && shippingZone !== 'trujillo') {
-      throw new BadRequestException('El pago contra entrega solo está disponible en Trujillo.');
-    }
-
     const couponDiscount = resolveCouponDiscount(dto.couponCode);
     if (couponDiscount < 0) {
       throw new BadRequestException('Cupón no válido.');

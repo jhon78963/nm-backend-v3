@@ -34,10 +34,13 @@ const FIELD_LABELS: Record<string, string> = {
   status: 'Estado',
   barcode: 'Código Barras',
   description: 'Descripción',
+  shortDescription: 'Descripción corta',
+  additionalInfo: 'Información adicional',
   percentageDiscount: 'Descuento %',
   cashDiscount: 'Descuento efectivo',
   isOnSale: 'En oferta',
   isFeatured: 'Destacado',
+  isNew: 'Producto nuevo',
 };
 
 const SKIP_KEYS = new Set([

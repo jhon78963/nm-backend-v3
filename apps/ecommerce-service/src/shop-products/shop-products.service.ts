@@ -43,7 +43,18 @@ export interface ShopProductsResponse {
 
 type CollectionProductRow = {
   id: string;
+  name: string;
   createdAt: Date;
+  description: string | null;
+  shortDescription: string | null;
+  additionalInfo: string | null;
+  barcode: string | null;
+  isOnSale: boolean;
+  isFeatured: boolean;
+  isNew: boolean;
+  percentageDiscount: string | null;
+  cashDiscount: number | null;
+  gender?: { name: string } | null;
   productSizes: Array<{
     id: string;
     salePrice: { toNumber?: () => number } | number | string;
@@ -56,9 +67,6 @@ type CollectionProductRow = {
     }>;
   }>;
   media: Array<{ url: string; isCover: boolean; sortOrder: number }>;
-  isOnSale: boolean;
-  name: string;
-  barcode: string | null;
 };
 
 @Injectable()
@@ -133,9 +141,17 @@ export class ShopProductsService {
       select: {
         id: true,
         name: true,
+        description: true,
+        shortDescription: true,
+        additionalInfo: true,
         barcode: true,
         isOnSale: true,
+        isFeatured: true,
+        isNew: true,
+        percentageDiscount: true,
+        cashDiscount: true,
         createdAt: true,
+        gender: { select: { name: true } },
         productSizes: {
           where: { isDeleted: false },
           select: {

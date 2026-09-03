@@ -29,6 +29,16 @@ export interface PublicProductItem {
   stockStatus: 'in_stock' | 'out_of_stock';
   ratingCount: null;
   reviewsCount: number;
+  shortDescription: string | null;
+  description: string | null;
+  additionalInfo: string | null;
+  barcode: string | null;
+  isFeatured: boolean;
+  isOnSale: boolean;
+  isNew: boolean;
+  percentageDiscount: string | null;
+  cashDiscount: number | null;
+  genderLabel: string | null;
   sizes: PublicProductSizeItem[];
 }
 
@@ -69,8 +79,16 @@ type ProductMediaRow = {
 export type PublicCatalogProduct = {
   id: string;
   name: string;
+  description: string | null;
+  shortDescription: string | null;
+  additionalInfo: string | null;
   barcode: string | null;
   isOnSale: boolean;
+  isFeatured: boolean;
+  isNew: boolean;
+  percentageDiscount: string | null;
+  cashDiscount: number | null;
+  gender?: { name: string } | null;
   productSizes: ProductSizeRow[];
   media: ProductMediaRow[];
 };
@@ -92,7 +110,9 @@ export function mapCatalogProductToPublicItem(
   const discount =
     product.isOnSale && price > salePrice
       ? Math.round(((price - salePrice) / price) * 100)
-      : 0;
+      : product.percentageDiscount
+        ? Math.max(0, Math.round(Number(product.percentageDiscount)) || 0)
+        : 0;
 
   const galleryImageUrls = product.media
     .slice()
@@ -116,6 +136,16 @@ export function mapCatalogProductToPublicItem(
     stockStatus: hasStock ? 'in_stock' : 'out_of_stock',
     ratingCount: null,
     reviewsCount: 0,
+    shortDescription: product.shortDescription,
+    description: product.description,
+    additionalInfo: product.additionalInfo,
+    barcode: product.barcode,
+    isFeatured: product.isFeatured,
+    isOnSale: product.isOnSale,
+    isNew: product.isNew,
+    percentageDiscount: product.percentageDiscount,
+    cashDiscount: product.cashDiscount,
+    genderLabel: product.gender?.name ?? null,
     sizes,
   };
 }

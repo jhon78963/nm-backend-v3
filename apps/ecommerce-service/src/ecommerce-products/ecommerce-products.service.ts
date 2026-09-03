@@ -37,6 +37,7 @@ export class EcommerceProductsService {
         wooStatus: { in: ['publish', 'draft'] },
       },
       include: {
+        gender: { select: { name: true } },
         productSizes: {
           where: { isDeleted: false },
           select: {
@@ -115,6 +116,7 @@ export class EcommerceProductsService {
           : { startsWith: identifier },
       },
       include: {
+        gender: { select: { name: true } },
         productSizes: {
           where: { isDeleted: false },
           select: {

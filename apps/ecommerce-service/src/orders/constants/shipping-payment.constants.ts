@@ -47,7 +47,6 @@ export const SHIPPING_METHODS: ShippingMethodDefinition[] = [
 export const PAYMENT_METHODS = [
   { id: 'culqi', title: 'Tarjetas, Yape y más (Culqi)', trujilloOnly: false },
   { id: 'bacs', title: 'Transferencia / Yape / Plin', trujilloOnly: false },
-  { id: 'cod', title: 'Contra entrega', trujilloOnly: true },
 ] as const;
 
 export type ShippingZone = 'trujillo' | 'la-libertad' | 'national';

@@ -21,12 +21,15 @@ export function mapProductInput(dto: CreateProductDto | UpdateProductDto) {
 
   if (dto.name !== undefined) data.name = dto.name.trim();
   if (dto.description !== undefined) data.description = emptyToNull(dto.description);
+  if (dto.shortDescription !== undefined) data.shortDescription = emptyToNull(dto.shortDescription);
+  if (dto.additionalInfo !== undefined) data.additionalInfo = emptyToNull(dto.additionalInfo);
   if (dto.barcode !== undefined) data.barcode = emptyToNull(dto.barcode);
   if (dto.genderId !== undefined) data.genderId = dto.genderId;
   if (dto.vendorId !== undefined) data.vendorId = dto.vendorId ?? null;
   if (dto.warehouseId !== undefined) data.warehouseId = dto.warehouseId;
   if (dto.isFeatured !== undefined) data.isFeatured = dto.isFeatured;
   if (dto.isOnSale !== undefined) data.isOnSale = dto.isOnSale;
+  if (dto.isNew !== undefined) data.isNew = dto.isNew;
   if (dto.wooStatus !== undefined) data.wooStatus = dto.wooStatus;
   if (dto.status !== undefined) data.status = dto.status;
   if (dto.percentageDiscount !== undefined) {
@@ -43,12 +46,15 @@ export function mapProductCreateInput(dto: CreateProductDto) {
   return {
     name: dto.name.trim(),
     description: emptyToNull(dto.description),
+    shortDescription: emptyToNull(dto.shortDescription),
+    additionalInfo: emptyToNull(dto.additionalInfo),
     barcode: emptyToNull(dto.barcode),
     genderId: dto.genderId,
     vendorId: dto.vendorId ?? null,
     warehouseId: dto.warehouseId,
     isFeatured: dto.isFeatured ?? false,
     isOnSale: dto.isOnSale ?? false,
+    isNew: dto.isNew ?? false,
     wooStatus: dto.wooStatus ?? 'draft',
     status: dto.status ?? 'active',
     percentageDiscount: toPercentageDiscount(dto.percentageDiscount),
