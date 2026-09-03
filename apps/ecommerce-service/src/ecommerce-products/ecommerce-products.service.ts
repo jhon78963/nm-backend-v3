@@ -7,6 +7,7 @@ import {
 import { extractProductIdPrefixFromSlug } from '@app/common/utils/product-slug.util';
 
 import { PublicProductsQueryDto } from './dto/public-products-query.dto';
+import { ProductReviewsService } from '../product-reviews/product-reviews.service';
 import {
   mapCatalogProductToPublicItem,
   type PublicProductItem,
@@ -15,7 +16,10 @@ import {
 
 @Injectable()
 export class EcommerceProductsService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly productReviewsService: ProductReviewsService,
+  ) {}
 
   async getPublicProducts(query: PublicProductsQueryDto): Promise<PublicProductsResponse> {
     if (!query.ids) {
@@ -72,20 +76,25 @@ export class EcommerceProductsService {
       product.productSizes.map((size) => size.id),
     );
 
-    const [stockByProductSizeId, stockByProductSizeColorId] = await Promise.all([
+    const [stockByProductSizeId, stockByProductSizeColorId, reviewStatsByProductId] = await Promise.all([
       buildMasterStockByProductSizeId(this.db, query.warehouseId, productSizeIds),
       buildStockByProductSizeColorId(this.db, query.warehouseId, productSizeIds),
+      this.productReviewsService.getReviewStatsForProducts(productIds),
     ]);
 
     const productsById = new Map(
-      products.map((product) => [
-        product.id,
-        mapCatalogProductToPublicItem(
-          product,
-          stockByProductSizeId,
-          stockByProductSizeColorId,
-        ),
-      ]),
+      products.map((product) => {
+        const reviewStats = reviewStatsByProductId.get(product.id);
+        return [
+          product.id,
+          mapCatalogProductToPublicItem(
+            product,
+            stockByProductSizeId,
+            stockByProductSizeColorId,
+            reviewStats,
+          ),
+        ];
+      }),
     );
 
     return {
@@ -154,15 +163,17 @@ export class EcommerceProductsService {
 
     const [product] = products;
     const productSizeIds = product.productSizes.map((size) => size.id);
-    const [stockByProductSizeId, stockByProductSizeColorId] = await Promise.all([
+    const [stockByProductSizeId, stockByProductSizeColorId, reviewStatsByProductId] = await Promise.all([
       buildMasterStockByProductSizeId(this.db, warehouseId, productSizeIds),
       buildStockByProductSizeColorId(this.db, warehouseId, productSizeIds),
+      this.productReviewsService.getReviewStatsForProducts([product.id]),
     ]);
 
     return mapCatalogProductToPublicItem(
       product,
       stockByProductSizeId,
       stockByProductSizeColorId,
+      reviewStatsByProductId.get(product.id),
     );
   }
 

@@ -19,6 +19,8 @@ import { ShopCollectionsModule } from './shop-collections/shop-collections.modul
 import { ShopProductsModule } from './shop-products/shop-products.module';
 import { EcommerceMediaModule } from './media/ecommerce-media.module';
 import { OrdersModule } from './orders/orders.module';
+import { CustomerAuthModule } from './customer-auth/customer-auth.module';
+import { ProductReviewsModule } from './product-reviews/product-reviews.module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { OrdersModule } from './orders/orders.module';
     ShopProductsModule,
     EcommerceMediaModule,
     OrdersModule,
+    CustomerAuthModule,
+    ProductReviewsModule,
   ],
 })
 export class AppModule {}

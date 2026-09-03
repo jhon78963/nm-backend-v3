@@ -27,7 +27,7 @@ export interface PublicProductItem {
   salePrice: number;
   discount: number;
   stockStatus: 'in_stock' | 'out_of_stock';
-  ratingCount: null;
+  ratingCount: number | null;
   reviewsCount: number;
   shortDescription: string | null;
   description: string | null;
@@ -97,6 +97,7 @@ export function mapCatalogProductToPublicItem(
   product: PublicCatalogProduct,
   stockByProductSizeId: Map<string, number>,
   stockByProductSizeColorId: Map<string, number> = new Map(),
+  reviewStats?: { averageRating: number; reviewsCount: number },
 ): PublicProductItem {
   const sizes = mapProductSizes(
     product.productSizes,
@@ -134,8 +135,8 @@ export function mapCatalogProductToPublicItem(
     salePrice,
     discount,
     stockStatus: hasStock ? 'in_stock' : 'out_of_stock',
-    ratingCount: null,
-    reviewsCount: 0,
+    ratingCount: reviewStats && reviewStats.reviewsCount > 0 ? reviewStats.averageRating : null,
+    reviewsCount: reviewStats?.reviewsCount ?? 0,
     shortDescription: product.shortDescription,
     description: product.description,
     additionalInfo: product.additionalInfo,
