@@ -161,7 +161,7 @@ log "Levantando todos los microservicios en segundo plano..."
 $DC -f "$COMPOSE_FILE" $PROFILES up -d \
   gateway auth-service catalog-service inventory-service \
   pos-service finance-service hr-service report-service \
-  storage-service ai-engine invoicing-service
+  storage-service ecommerce-service ai-engine invoicing-service
 
 # Esperar a que el gateway responda
 log "Esperando a que el Gateway responda en :3000..."
@@ -192,6 +192,7 @@ echo -e "  │  finance-service   → http://localhost:3005/api/docs       │"
 echo -e "  │  hr-service        → http://localhost:3006/api/docs       │"
 echo -e "  │  report-service    → http://localhost:3007/api/docs       │"
 echo -e "  │  storage-service   → http://localhost:3010/api/docs       │"
+echo -e "  │  ecommerce-service → http://localhost:3012/api/docs       │"
 echo -e "  │  ai-engine         → http://localhost:3008/health          │"
 echo -e "  │  invoicing-service → http://localhost:3009/api/health      │"
 echo -e "  └────────────────────────────────────────────────────────────┘"

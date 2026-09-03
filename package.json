@@ -45,6 +45,7 @@
     "docker:up": "./start-dev.sh --full",
     "docker:down": "./scripts/start-docker-env.sh --down",
     "docker:logs": "docker compose -f docker-compose.full.yml logs -f",
+    "docker:rebuild:reviews": "./scripts/rebuild-reviews-stack.sh",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "format": "prettier --write \"**/*.ts\""
   },
