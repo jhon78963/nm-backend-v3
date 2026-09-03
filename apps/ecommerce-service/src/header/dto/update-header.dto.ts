@@ -12,8 +12,11 @@ import {
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+import { OptionalUuidProperty } from '../../common/optional-uuid.transform';
+
 export class UpdateNavigationItemDto {
   @ApiPropertyOptional({ description: 'ID existente para actualizar el ítem' })
+  @OptionalUuidProperty()
   @IsOptional()
   @IsUUID()
   id?: string;
@@ -39,6 +42,7 @@ export class UpdateNavigationItemDto {
   isActive?: boolean;
 
   @ApiPropertyOptional({ description: 'ID del ítem padre para submenús' })
+  @OptionalUuidProperty()
   @IsOptional()
   @IsUUID()
   parentId?: string | null;

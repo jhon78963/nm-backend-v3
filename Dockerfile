@@ -11,7 +11,8 @@ ARG NODE_VERSION=20-alpine
 FROM node:${NODE_VERSION} AS deps
 WORKDIR /app
 
-RUN apk add --no-cache openssl libc6-compat python3 make g++
+RUN apk update \
+    && apk add --no-cache openssl gcompat python3 make g++
 
 COPY package.json package-lock.json ./
 
@@ -26,12 +27,28 @@ RUN --mount=type=cache,target=/root/.npm \
 # bcrypt necesita compilar su binding nativo (omitido por --ignore-scripts)
 RUN npm rebuild bcrypt
 
+# ─── Stage: Migrator (Prisma + ETL Laravel, conserva devDependencies) ────────
+FROM deps AS migrator
+WORKDIR /app
+
+COPY nest-cli.json tsconfig.json tsconfig.migration.json ./
+COPY libs ./libs
+COPY scripts ./scripts
+
+RUN npx prisma generate --schema=libs/database/prisma/schema.prisma \
+    && apk update \
+    && apk add --no-cache postgresql-client \
+    && chmod +x scripts/docker-prisma-migrate.sh
+
+CMD ["sh", "scripts/docker-prisma-migrate.sh"]
+
 # ─── Stage 2: Builder ────────────────────────────────────────────────────────
 FROM node:${NODE_VERSION} AS builder
 ARG SERVICE
 WORKDIR /app
 
-RUN apk add --no-cache openssl libc6-compat
+RUN apk update \
+    && apk add --no-cache openssl gcompat
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json package-lock.json ./
@@ -52,11 +69,13 @@ ENV NODE_ENV=production
 ENV SERVICE_NAME=${SERVICE}
 WORKDIR /app
 
-RUN apk add --no-cache openssl libc6-compat
+RUN apk update \
+    && apk add --no-cache openssl gcompat
 
 # document-service necesita Chromium para Puppeteer (PDF)
 RUN if [ "$SERVICE" = "document-service" ]; then \
-      apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont; \
+      apk update \
+      && apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont; \
     fi
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser

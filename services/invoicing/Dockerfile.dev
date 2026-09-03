@@ -7,7 +7,8 @@ FROM php:8.3-cli-alpine
 
 LABEL service="invoicing-service-dev"
 
-RUN apk add --no-cache \
+RUN apk update \
+    && apk add --no-cache \
         bash \
         curl \
         curl-dev \

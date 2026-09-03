@@ -22,7 +22,8 @@ LABEL maintainer="Novedades Maritex <dev@nm.pe>"
 LABEL service="invoicing-service"
 
 # ── Dependencias del sistema ────────────────────────────────────────────────
-RUN apk add --no-cache \
+RUN apk update \
+    && apk add --no-cache \
         bash \
         curl \
         curl-dev \
@@ -37,7 +38,6 @@ RUN apk add --no-cache \
         libjpeg-turbo-dev \
         libpng-dev \
         oniguruma-dev \
-        # soap requiere libxml2 y openssl
         openssl-dev
 
 # ── Extensiones PHP obligatorias para Greenter ──────────────────────────────
@@ -93,7 +93,7 @@ RUN php artisan config:cache \
     && php artisan view:cache
 
 # ── Nginx como proxy inverso ─────────────────────────────────────────────────
-RUN apk add --no-cache nginx supervisor
+RUN apk update && apk add --no-cache nginx supervisor
 
 COPY docker/nginx.conf      /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
