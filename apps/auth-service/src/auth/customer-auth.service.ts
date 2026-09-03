@@ -41,7 +41,7 @@ export class CustomerAuthService {
   async register(dto: RegisterCustomerDto): Promise<CustomerAuthResponse> {
     const email = dto.email.trim().toLowerCase();
     const name = dto.name.trim();
-    const { tenantId, warehouseId } = await this.resolveStoreContext();
+    const tenantId = await this.resolveTenantId();
 
     const existingUser = await this.usersService.findByUsernameOrEmail(email);
     if (existingUser) {
@@ -66,7 +66,7 @@ export class CustomerAuthService {
         surname,
         passwordHash,
         tenantId,
-        warehouseId,
+        warehouseId: null,
       },
     });
 
@@ -169,24 +169,24 @@ export class CustomerAuthService {
     });
   }
 
-  private async resolveStoreContext(): Promise<{ tenantId: string; warehouseId: string | null }> {
-    const warehouseId = this.config.get<string>('ECOMMERCE_WAREHOUSE_ID')?.trim();
-    if (!warehouseId) {
+  private async resolveTenantId(): Promise<string> {
+    const tenantId = this.config.get<string>('ECOMMERCE_TENANT_ID')?.trim();
+    if (!tenantId) {
       throw new BadRequestException(
-        'ECOMMERCE_WAREHOUSE_ID no está configurado en auth-service.',
+        'ECOMMERCE_TENANT_ID no está configurado en auth-service.',
       );
     }
 
-    const warehouse = await this.db.warehouse.findUnique({
-      where: { id: warehouseId },
-      select: { id: true, tenantId: true },
+    const tenant = await this.db.tenant.findFirst({
+      where: { id: tenantId, isActive: true },
+      select: { id: true },
     });
 
-    if (!warehouse) {
-      throw new BadRequestException('El almacén configurado para ecommerce no existe.');
+    if (!tenant) {
+      throw new BadRequestException('El tenant configurado para ecommerce no existe o está inactivo.');
     }
 
-    return { tenantId: warehouse.tenantId, warehouseId: warehouse.id };
+    return tenant.id;
   }
 
   private splitName(fullName: string): { name: string; surname: string } {
