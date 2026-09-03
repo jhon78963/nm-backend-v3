@@ -39,6 +39,7 @@
     "db:generate": "prisma generate --schema=libs/database/prisma/schema.prisma",
     "db:studio": "prisma studio --schema=libs/database/prisma/schema.prisma",
     "db:seed": "ts-node libs/database/prisma/seed.ts",
+    "seed:chatbot": "ts-node libs/database/prisma/seeds/chatbot-seed.ts",
     "db:migrate:etl": "ts-node --project tsconfig.migration.json scripts/migrate-laravel-data.ts",
     "db:migrate:action-logs": "ts-node --project tsconfig.migration.json scripts/migrate-action-logs.ts",
     "db:migrate:permissions": "ts-node --project tsconfig.migration.json scripts/migrate-permissions.ts",

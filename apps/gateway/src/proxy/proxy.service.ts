@@ -21,7 +21,8 @@ type ServiceName =
   | 'report'
   | 'ai-proxy'
   | 'storage'
-  | 'ecommerce';
+  | 'ecommerce'
+  | 'chatbot';
 
 /**
  * ProxyService — BFF (Backend for Frontend) del Gateway.
@@ -43,6 +44,7 @@ type ServiceName =
  *   /api/v1/ai/*          → report-service    :3007 (AI proxy)
    *   /api/v1/storage/*     → storage-service   :3008  (rutas con /v1, igual que auth)
    *   /api/v1/ecommerce/*   → ecommerce-service :3012
+   *   /api/v1/chatbot/*     → chatbot-service     :8090 (JWT propio del chatbot)
  *
  * El JWT ya fue validado en JwtAuthGuard antes de llegar aquí.
  * El gateway reenvía el header Authorization al servicio destino.
@@ -67,6 +69,7 @@ export class ProxyService {
       'ai-proxy':  config.get('REPORT_SERVICE_URL',    'http://localhost:3007'),
       'storage':   config.get('STORAGE_SERVICE_URL',   'http://localhost:3008'),
       'ecommerce': config.get('ECOMMERCE_SERVICE_URL', 'http://localhost:3012'),
+      'chatbot':   config.get('CHATBOT_SERVICE_URL',   'http://localhost:8090'),
     };
   }
 
@@ -109,6 +112,7 @@ export class ProxyService {
     if (path.startsWith('/api/v1/ai'))        return 'ai-proxy';
     if (path.startsWith('/api/v1/storage'))   return 'storage';
     if (path.startsWith('/api/v1/ecommerce')) return 'ecommerce';
+    if (path.startsWith('/api/v1/chatbot')) return 'chatbot';
     return 'auth'; // fallback
   }
 
@@ -219,6 +223,17 @@ export class ProxyService {
     originalUrl: string,
     service: ServiceName,
   ): string {
+    // Chatbot: /api/v1/chatbot/* → chatbot /api/v1/* (o /health)
+    if (service === 'chatbot') {
+      const [pathOnly, query = ''] = originalUrl.split('?');
+      const querySuffix = query ? `?${query}` : '';
+      if (pathOnly === '/api/v1/chatbot/health') {
+        return `${serviceUrl}/health${querySuffix}`;
+      }
+      const chatPath = pathOnly.replace(/^\/api\/v1\/chatbot/, '/api/v1');
+      return `${serviceUrl}${chatPath}${querySuffix}`;
+    }
+
     // auth-service y storage-service usan URI versioning (/v1/*).
     if (service === 'auth' || service === 'storage') {
       const path = originalUrl.startsWith('/api/')
