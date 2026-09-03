@@ -277,9 +277,12 @@ export class ProductReviewsService {
   private async findVerifiedPurchase(customer: AuthenticatedCustomer, productId: string) {
     return this.db.ecommerceOrder.findFirst({
       where: {
-        email: customer.email.toLowerCase(),
         status: { in: ELIGIBLE_ORDER_STATUSES },
         items: { some: { productId } },
+        OR: [
+          { customerId: customer.id },
+          { email: customer.email.toLowerCase() },
+        ],
       },
       orderBy: { createdAt: 'desc' },
       select: { id: true },

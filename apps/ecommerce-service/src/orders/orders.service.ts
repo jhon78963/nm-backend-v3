@@ -24,6 +24,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { ListOrdersQueryDto } from './dto/list-orders-query.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { buildOrderNumber, buildOrderNumberPrefix } from './utils/order-number.util';
+import type { AuthenticatedCustomer } from '../customer-auth/types/authenticated-customer.type';
 
 type ResolvedOrderItem = {
   productId: string;
@@ -44,7 +45,7 @@ export class OrdersService {
     private readonly config: ConfigService,
   ) {}
 
-  async createOrder(dto: CreateOrderDto) {
+  async createOrder(dto: CreateOrderDto, customer?: AuthenticatedCustomer) {
     const warehouse = await this.db.warehouse.findFirst({
       where: { id: dto.warehouseId, isDeleted: false },
     });
@@ -52,6 +53,8 @@ export class OrdersService {
     if (!warehouse) {
       throw new NotFoundException('Tienda no encontrada.');
     }
+
+    const customerId = await this.resolveLinkedCustomerId(dto.email, customer);
 
     const shippingZone = resolveShippingZone(dto.shipping.state, dto.shipping.postcode);
     const shippingMethod = getShippingMethod(dto.shippingMethodId, shippingZone);
@@ -85,6 +88,7 @@ export class OrdersService {
         data: {
           orderNumber,
           warehouseId: dto.warehouseId,
+          customerId,
           status: 'pending',
           paymentStatus: 'pending',
           email: dto.email.trim().toLowerCase(),
@@ -473,6 +477,33 @@ export class OrdersService {
     }
 
     return `${prefix}-${Date.now().toString().slice(-6)}`;
+  }
+
+  private async resolveLinkedCustomerId(
+    email: string,
+    customer?: AuthenticatedCustomer,
+  ): Promise<string | null> {
+    if (!customer) {
+      return null;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail !== customer.email.toLowerCase()) {
+      throw new BadRequestException(
+        'El correo del pedido debe coincidir con el de tu cuenta.',
+      );
+    }
+
+    const record = await this.db.ecommerceCustomer.findFirst({
+      where: { id: customer.id, isEnabled: true },
+      select: { id: true },
+    });
+
+    if (!record) {
+      throw new BadRequestException('No se pudo vincular el pedido a tu cuenta.');
+    }
+
+    return record.id;
   }
 
   private async resolveSystemUserId(warehouseId: string): Promise<string> {

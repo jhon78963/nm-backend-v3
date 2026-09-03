@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -23,6 +24,8 @@ import { ListOrdersQueryDto } from './dto/list-orders-query.dto';
 import { PublicOrderQueryDto, TrackOrderQueryDto } from './dto/track-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrdersService } from './orders.service';
+import { OptionalCustomerJwtAuthGuard } from '../customer-auth/guards/optional-customer-jwt.guard';
+import type { AuthenticatedCustomer } from '../customer-auth/types/authenticated-customer.type';
 
 @ApiTags('Ecommerce Orders')
 @Controller('ecommerce/orders')
@@ -31,12 +34,15 @@ export class OrdersController {
 
   @Post()
   @Public()
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(OptionalCustomerJwtAuthGuard, ThrottlerGuard)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Crear pedido web (checkout público)' })
-  createOrder(@Body() dto: CreateOrderDto) {
-    return this.ordersService.createOrder(dto);
+  @ApiOperation({ summary: 'Crear pedido web (checkout público o cliente autenticado)' })
+  createOrder(
+    @Body() dto: CreateOrderDto,
+    @Req() request: { user?: AuthenticatedCustomer | null },
+  ) {
+    return this.ordersService.createOrder(dto, request.user ?? undefined);
   }
 
   @Get('track')
