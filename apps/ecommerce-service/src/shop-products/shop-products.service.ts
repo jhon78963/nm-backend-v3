@@ -9,6 +9,7 @@ import {
   mapCatalogProductToPublicItem,
   type PublicProductItem,
 } from '../ecommerce-products/ecommerce-products.mapper';
+import { ProductReviewsService } from '../product-reviews/product-reviews.service';
 import { ShopCollectionsService } from '../shop-collections/shop-collections.service';
 import { ShopProductSortField, ShopProductsQueryDto } from './dto/shop-products-query.dto';
 
@@ -74,6 +75,7 @@ export class ShopProductsService {
   constructor(
     private readonly db: DatabaseService,
     private readonly shopCollectionsService: ShopCollectionsService,
+    private readonly productReviewsService: ProductReviewsService,
   ) {}
 
   async getShopProducts(query: ShopProductsQueryDto): Promise<ShopProductsResponse> {
@@ -108,10 +110,13 @@ export class ShopProductsService {
     const productSizeIds = paginated.flatMap((product) =>
       product.productSizes.map((size) => size.id),
     );
-    const [stockByProductSizeId, stockByProductSizeColorId] = await Promise.all([
-      buildMasterStockByProductSizeId(this.db, query.warehouseId, productSizeIds),
-      buildStockByProductSizeColorId(this.db, query.warehouseId, productSizeIds),
-    ]);
+    const paginatedProductIds = paginated.map((product) => product.id);
+    const [stockByProductSizeId, stockByProductSizeColorId, reviewStatsByProductId] =
+      await Promise.all([
+        buildMasterStockByProductSizeId(this.db, query.warehouseId, productSizeIds),
+        buildStockByProductSizeColorId(this.db, query.warehouseId, productSizeIds),
+        this.productReviewsService.getReviewStatsForProducts(paginatedProductIds),
+      ]);
 
     return {
       products: paginated.map((product) =>
@@ -119,6 +124,7 @@ export class ShopProductsService {
           product,
           stockByProductSizeId,
           stockByProductSizeColorId,
+          reviewStatsByProductId.get(product.id),
         ),
       ),
       meta: { total, page, perPage, totalPages },
