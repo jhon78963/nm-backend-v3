@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DatabaseService } from '@app/database';
+import { recordProductColorStockHistory } from '@app/common/utils/product-history.util';
+import { syncMasterBalanceToColorSum } from '@app/common/utils/product-inventory.util';
 import Decimal from 'decimal.js';
 
 import { resolveCouponDiscount } from './constants/order-coupons';
@@ -118,6 +120,16 @@ export class OrdersService {
       });
 
       for (const item of resolvedItems) {
+        const existingBalance = await tx.inventoryBalance.findFirst({
+          where: {
+            warehouseId: dto.warehouseId,
+            productSizeId: item.productSizeId,
+            colorId: item.colorId,
+          },
+          select: { quantity: true },
+        });
+        const oldStock = existingBalance?.quantity ?? 0;
+
         const updated = await tx.inventoryBalance.update({
           where: {
             warehouseId_productSizeId_colorId: {
@@ -143,6 +155,20 @@ export class OrdersService {
             occurredAt: new Date(),
             createdById: systemUserId,
           },
+        });
+
+        await syncMasterBalanceToColorSum(tx, dto.warehouseId, item.productSizeId);
+
+        await recordProductColorStockHistory(tx, {
+          productId: item.productId,
+          productSizeId: item.productSizeId,
+          colorId: item.colorId,
+          oldStock,
+          newStock: updated.quantity,
+          createdById: systemUserId,
+          eventType: 'ECOMMERCE_ORDER_STOCK',
+          reason: `Pedido ecommerce ${orderNumber}`,
+          orderNumber,
         });
       }
 
@@ -253,6 +279,16 @@ export class OrdersService {
         for (const item of existing.items) {
           if (!item.colorId) continue;
 
+          const existingBalance = await tx.inventoryBalance.findFirst({
+            where: {
+              warehouseId: existing.warehouseId,
+              productSizeId: item.productSizeId,
+              colorId: item.colorId,
+            },
+            select: { quantity: true },
+          });
+          const oldStock = existingBalance?.quantity ?? 0;
+
           const updated = await tx.inventoryBalance.update({
             where: {
               warehouseId_productSizeId_colorId: {
@@ -278,6 +314,20 @@ export class OrdersService {
               occurredAt: new Date(),
               createdById: systemUserId,
             },
+          });
+
+          await syncMasterBalanceToColorSum(tx, existing.warehouseId, item.productSizeId);
+
+          await recordProductColorStockHistory(tx, {
+            productId: item.productId,
+            productSizeId: item.productSizeId,
+            colorId: item.colorId,
+            oldStock,
+            newStock: updated.quantity,
+            createdById: systemUserId,
+            eventType: 'ECOMMERCE_ORDER_CANCEL_STOCK',
+            reason: `Cancelación pedido ${existing.orderNumber}`,
+            orderNumber: existing.orderNumber,
           });
         }
       }

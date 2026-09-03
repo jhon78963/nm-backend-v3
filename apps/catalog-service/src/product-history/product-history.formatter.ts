@@ -67,6 +67,7 @@ const SKIP_KEYS = new Set([
   'deletionTime',
   'wooStatus',
   'size',
+  'order_number',
 ]);
 
 function asRecord(value: unknown): JsonRecord {
@@ -112,12 +113,20 @@ function getColorLabel(newValues: JsonRecord, oldValues: JsonRecord): string {
     : '';
 }
 
+function getOrderNumberSuffix(newValues: JsonRecord, oldValues: JsonRecord): string {
+  const orderNumber = newValues.order_number ?? oldValues.order_number;
+  return typeof orderNumber === 'string' && orderNumber.trim()
+    ? ` (pedido ${orderNumber.trim()})`
+    : '';
+}
+
 function getActionTitle(log: HistoryLogInput): string {
   const oldValues = asRecord(log.oldValues);
   const newValues = asRecord(log.newValues);
   const sizeLabel = getSizeLabel(newValues, oldValues);
   const sizeSuffix = getSizeSuffix(newValues, oldValues);
   const colorLabel = getColorLabel(newValues, oldValues);
+  const orderSuffix = getOrderNumberSuffix(newValues, oldValues);
 
   switch (log.eventType) {
     case 'CREATED':
@@ -138,6 +147,10 @@ function getActionTitle(log: HistoryLogInput): string {
       return `Actualización de stock de color${colorLabel}${sizeSuffix}`;
     case 'COLOR_REMOVED':
       return `Eliminación de Stock/Color${colorLabel}${sizeSuffix}`;
+    case 'ECOMMERCE_ORDER_STOCK':
+      return `Venta ecommerce — stock${colorLabel}${sizeSuffix}${orderSuffix}`;
+    case 'ECOMMERCE_ORDER_CANCEL_STOCK':
+      return `Cancelación de pedido — devolución de stock${colorLabel}${sizeSuffix}${orderSuffix}`;
     default:
       return 'Movimiento de Producto';
   }
@@ -154,6 +167,10 @@ function getSeverity(eventType: string): string {
     case 'SIZE_STOCK_UPDATED':
     case 'COLOR_STOCK_UPDATED':
       return 'info';
+    case 'ECOMMERCE_ORDER_STOCK':
+      return 'warning';
+    case 'ECOMMERCE_ORDER_CANCEL_STOCK':
+      return 'success';
     case 'SIZE_REMOVED':
     case 'COLOR_REMOVED':
       return 'danger';
@@ -176,6 +193,10 @@ function getIcon(eventType: string): string {
     case 'SIZE_STOCK_UPDATED':
     case 'COLOR_STOCK_UPDATED':
       return 'pi pi-pencil';
+    case 'ECOMMERCE_ORDER_STOCK':
+      return 'pi pi-shopping-cart';
+    case 'ECOMMERCE_ORDER_CANCEL_STOCK':
+      return 'pi pi-undo';
     default:
       return 'pi pi-info-circle';
   }

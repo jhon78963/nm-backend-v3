@@ -50,12 +50,11 @@ export class ProductHistoryService {
     });
   }
 
-  async getFormattedHistory(productId: string, warehouseId?: string) {
+  async getFormattedHistory(productId: string, _warehouseId?: string) {
     const product = await this.db.product.findFirst({
       where: {
         id: productId,
         isDeleted: false,
-        ...(warehouseId ? { warehouseId } : {}),
       },
       select: { id: true },
     });
