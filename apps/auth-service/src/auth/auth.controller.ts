@@ -23,6 +23,7 @@ import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { LoginCustomerDto } from './dto/login-customer.dto';
 import { RegisterCustomerDto } from './dto/register-customer.dto';
+import { UpdateCustomerProfileDto } from './dto/update-customer-profile.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -86,6 +87,33 @@ export class AuthController {
   @ApiOperation({ summary: 'Perfil del cliente autenticado (tienda online)' })
   async getCustomerMe(@CurrentUser() user: AuthenticatedUser) {
     return this.customerAuthService.getProfile(user.id);
+  }
+
+  // ── PATCH /v1/auth/customer/me ─────────────────────────────────────────────
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(CLIENTE_ROLE)
+  @Patch('customer/me')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Actualizar perfil del cliente (solo nombre)' })
+  async updateCustomerMe(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateCustomerProfileDto,
+  ) {
+    return this.customerAuthService.updateProfile(user.id, dto);
+  }
+
+  // ── PATCH /v1/auth/customer/change-password ───────────────────────────────
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(CLIENTE_ROLE)
+  @Patch('customer/change-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cambiar contraseña del cliente de tienda online' })
+  async changeCustomerPassword(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    await this.customerAuthService.changePassword(user.id, dto);
   }
 
   // ── POST /v1/auth/refresh ─────────────────────────────────────────────────

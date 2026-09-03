@@ -21,6 +21,7 @@ import { EcommerceMediaModule } from './media/ecommerce-media.module';
 import { OrdersModule } from './orders/orders.module';
 import { CustomerAuthModule } from './customer-auth/customer-auth.module';
 import { ProductReviewsModule } from './product-reviews/product-reviews.module';
+import { CustomerAccountModule } from './customer-account/customer-account.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { ProductReviewsModule } from './product-reviews/product-reviews.module';
     OrdersModule,
     CustomerAuthModule,
     ProductReviewsModule,
+    CustomerAccountModule,
   ],
 })
 export class AppModule {}

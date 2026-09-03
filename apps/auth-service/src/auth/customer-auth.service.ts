@@ -13,6 +13,8 @@ import { DatabaseService } from '@app/database';
 import { AuthService } from './auth.service';
 import { LoginCustomerDto } from './dto/login-customer.dto';
 import { RegisterCustomerDto } from './dto/register-customer.dto';
+import { UpdateCustomerProfileDto } from './dto/update-customer-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { UsersService } from '../users/users.service';
 
 export interface CustomerAuthProfile {
@@ -123,6 +125,59 @@ export class CustomerAuthService {
     }
 
     return customer;
+  }
+
+  async updateProfile(
+    userId: string,
+    dto: UpdateCustomerProfileDto,
+  ): Promise<CustomerAuthProfile> {
+    const name = dto.name.trim();
+    const customer = await this.db.ecommerceCustomer.findFirst({
+      where: { userId, isEnabled: true },
+      select: { id: true },
+    });
+
+    if (!customer) {
+      throw new UnauthorizedException('Perfil de cliente no encontrado.');
+    }
+
+    const { name: firstName, surname } = this.splitName(name);
+
+    await this.db.$transaction([
+      this.db.user.update({
+        where: { id: userId },
+        data: { name: firstName, surname },
+      }),
+      this.db.ecommerceCustomer.update({
+        where: { id: customer.id },
+        data: { name },
+      }),
+    ]);
+
+    return this.getProfile(userId);
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto): Promise<void> {
+    await this.authService.changePassword(userId, dto);
+
+    const customer = await this.db.ecommerceCustomer.findFirst({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!customer) {
+      return;
+    }
+
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      return;
+    }
+
+    await this.db.ecommerceCustomer.update({
+      where: { id: customer.id },
+      data: { passwordHash: user.passwordHash },
+    });
   }
 
   private async ensureEcommerceCustomer(
