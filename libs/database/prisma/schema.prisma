@@ -112,6 +112,7 @@ model User {
   productHistories     ProductHistory[]
   teams                Team[]
   inventoryMovementsCreated InventoryMovement[] @relation("inventoryMovementsCreated")
+  ecommerceCustomer    EcommerceCustomer?
 
   @@map("users")
 }
@@ -883,6 +884,7 @@ model EcommerceOrderItem {
 
 model EcommerceCustomer {
   id           String   @id @default(uuid())
+  userId       String?  @unique @map("user_id")
   email        String   @unique @db.VarChar(255)
   passwordHash String   @map("password_hash")
   name         String   @db.VarChar(255)
@@ -890,6 +892,7 @@ model EcommerceCustomer {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  user    User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
   orders  EcommerceOrder[]
   reviews ProductReview[]
 

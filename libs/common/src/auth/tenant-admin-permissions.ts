@@ -23,3 +23,4 @@ export const TENANT_ADMIN_PERMISSIONS: readonly string[] = [
 
 export const SUPER_ADMIN_ROLE = 'Super Admin';
 export const ADMIN_ROLE = 'Admin';
+export { CLIENTE_ROLE, ECOMMERCE_CUSTOMER_PERMISSIONS } from './ecommerce-customer-permissions';

@@ -87,6 +87,17 @@ export class AuthService {
     };
   }
 
+  async issueTokensForUserId(userId: string): Promise<AuthTokens> {
+    const user = await this.usersService.findById(userId);
+    if (!user || !user.isEnabled) {
+      throw new UnauthorizedException('Usuario no encontrado.');
+    }
+
+    const roles = user.userRoles.map((ur: { role: { name: string } }) => ur.role.name);
+    const permissions = await this.usersService.getPermissionsForUser(user.id, roles);
+    return this.generateTokens(user, roles, permissions);
+  }
+
   // ── Refresh ────────────────────────────────────────────────────────────────
 
   async refresh(

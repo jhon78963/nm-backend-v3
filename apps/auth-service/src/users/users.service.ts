@@ -288,6 +288,14 @@ export class UsersService {
     return this.getPermissionNamesForUser(userId, roleNames);
   }
 
+  async assignRolesByName(
+    userId: string,
+    roleNames: string[],
+    tenantId: string,
+  ): Promise<void> {
+    await this.syncUserRoles(userId, roleNames, tenantId);
+  }
+
   private async getPermissionNamesForUser(
     userId: string,
     roleNames: string[],

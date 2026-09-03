@@ -18,15 +18,21 @@ import {
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
+import { CustomerAuthService } from './customer-auth.service';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
+import { LoginCustomerDto } from './dto/login-customer.dto';
+import { RegisterCustomerDto } from './dto/register-customer.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from '@app/common/guards/jwt-refresh.guard';
+import { RolesGuard } from '@app/common/guards/roles.guard';
 import { Public } from '@app/common/decorators/public.decorator';
+import { Roles } from '@app/common/decorators/roles.decorator';
+import { CLIENTE_ROLE } from '@app/common/auth/ecommerce-customer-permissions';
 import { CurrentUser } from '@app/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '@app/common/types/authenticated-user.type';
 
@@ -35,6 +41,7 @@ import type { AuthenticatedUser } from '@app/common/types/authenticated-user.typ
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly customerAuthService: CustomerAuthService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -49,6 +56,36 @@ export class AuthController {
   @ApiResponse({ status: 429, description: 'Demasiados intentos. Espera 1 minuto.' })
   async login(@Body() dto: LoginDto, @Req() req: { ip?: string }) {
     return this.authService.login(dto, req.ip);
+  }
+
+  // ── POST /v1/auth/customer/register ───────────────────────────────────────
+  @Public()
+  @Post('customer/register')
+  @HttpCode(HttpStatus.CREATED)
+  @Throttle({ login: { limit: 10, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Registrar cliente de tienda online (rol Cliente)' })
+  async registerCustomer(@Body() dto: RegisterCustomerDto) {
+    return this.customerAuthService.register(dto);
+  }
+
+  // ── POST /v1/auth/customer/login ──────────────────────────────────────────
+  @Public()
+  @Post('customer/login')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ login: { limit: 20, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Iniciar sesión de cliente de tienda online' })
+  async loginCustomer(@Body() dto: LoginCustomerDto) {
+    return this.customerAuthService.login(dto);
+  }
+
+  // ── GET /v1/auth/customer/me ───────────────────────────────────────────────
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(CLIENTE_ROLE)
+  @Get('customer/me')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Perfil del cliente autenticado (tienda online)' })
+  async getCustomerMe(@CurrentUser() user: AuthenticatedUser) {
+    return this.customerAuthService.getProfile(user.id);
   }
 
   // ── POST /v1/auth/refresh ─────────────────────────────────────────────────
