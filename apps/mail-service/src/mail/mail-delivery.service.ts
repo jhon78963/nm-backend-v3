@@ -17,8 +17,8 @@ export class MailDeliveryService {
 
   constructor(private readonly config: ConfigService) {
     this.branding = resolveMailBranding(config);
-    const zohoUser = config.get<string>('ZOHO_USER', '');
-    const fromEmail = config.get<string>('MAIL_FROM_EMAIL', zohoUser);
+    const zohoUser = config.get<string>('ZOHO_USER', '').trim();
+    const fromEmail = config.get<string>('MAIL_FROM_EMAIL', '')?.trim() || zohoUser;
     this.fromAddress = fromEmail ? `"${this.branding.storeName}" <${fromEmail}>` : this.branding.storeName;
     this.dryRun = !zohoUser || !config.get<string>('ZOHO_APP_PASSWORD');
 
