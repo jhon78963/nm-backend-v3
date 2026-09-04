@@ -38,6 +38,7 @@ const FIELD_LABELS: Record<string, string> = {
   additionalInfo: 'Información adicional',
   percentageDiscount: 'Descuento %',
   cashDiscount: 'Descuento efectivo',
+  offerPrice: 'Precio oferta',
   isOnSale: 'En oferta',
   isFeatured: 'Destacado',
   isNew: 'Producto nuevo',

@@ -55,6 +55,7 @@ type CollectionProductRow = {
   isNew: boolean;
   percentageDiscount: string | null;
   cashDiscount: number | null;
+  offerPrice?: { toNumber?: () => number } | number | string | null;
   gender?: { name: string } | null;
   productSizes: Array<{
     id: string;
@@ -156,6 +157,7 @@ export class ShopProductsService {
         isNew: true,
         percentageDiscount: true,
         cashDiscount: true,
+        offerPrice: true,
         createdAt: true,
         gender: { select: { name: true } },
         productSizes: {
@@ -246,7 +248,7 @@ export class ShopProductsService {
         if (!hasColor) return false;
       }
 
-      const minSalePrice = this.getMinSalePrice(activeSizes);
+      const minSalePrice = this.getEffectiveMinPrice(product);
       if (query.minPrice !== undefined && minSalePrice < query.minPrice) {
         return false;
       }
@@ -280,15 +282,22 @@ export class ShopProductsService {
 
     if (sort === ShopProductSortField.PRICE_ASC) {
       return [...products].sort(
-        (a, b) =>
-          this.getMinSalePrice(a.productSizes) - this.getMinSalePrice(b.productSizes),
+        (a, b) => this.getEffectiveMinPrice(a) - this.getEffectiveMinPrice(b),
       );
     }
 
     return [...products].sort(
-      (a, b) =>
-        this.getMinSalePrice(b.productSizes) - this.getMinSalePrice(a.productSizes),
+      (a, b) => this.getEffectiveMinPrice(b) - this.getEffectiveMinPrice(a),
     );
+  }
+
+  private getEffectiveMinPrice(product: CollectionProductRow): number {
+    const offerPrice = product.offerPrice != null ? this.toNumber(product.offerPrice) : 0;
+    if (offerPrice > 0) {
+      return offerPrice;
+    }
+
+    return this.getMinSalePrice(product.productSizes);
   }
 
   private getMinSalePrice(

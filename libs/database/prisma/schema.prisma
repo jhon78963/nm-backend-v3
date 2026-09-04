@@ -267,6 +267,7 @@ model Product {
   barcode            String?   @db.VarChar(50)
   percentageDiscount String?   @map("percentage_discount") @db.VarChar(20)
   cashDiscount       Int?      @map("cash_discount")
+  offerPrice         Decimal?  @map("offer_price") @db.Decimal(10, 2)
   isFeatured         Boolean   @default(false) @map("is_featured")
   isOnSale           Boolean   @default(false) @map("is_on_sale")
   isNew              Boolean   @default(false) @map("is_new")

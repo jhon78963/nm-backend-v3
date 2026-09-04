@@ -88,6 +88,7 @@ export type PublicCatalogProduct = {
   isNew: boolean;
   percentageDiscount: string | null;
   cashDiscount: number | null;
+  offerPrice?: { toNumber?: () => number } | number | string | null;
   gender?: { name: string } | null;
   productSizes: ProductSizeRow[];
   media: ProductMediaRow[];
@@ -104,12 +105,18 @@ export function mapCatalogProductToPublicItem(
     stockByProductSizeId,
     stockByProductSizeColorId,
   );
-  const salePrices = sizes.map((size) => size.salePrice).filter((price) => price > 0);
+  const offerPrice = resolveOfferPrice(product.offerPrice);
+  const sizeSalePrices = sizes.map((size) => size.salePrice).filter((price) => price > 0);
 
-  const price = salePrices.length > 0 ? Math.max(...salePrices) : 0;
-  const salePrice = salePrices.length > 0 ? Math.min(...salePrices) : 0;
+  const price = sizeSalePrices.length > 0 ? Math.max(...sizeSalePrices) : offerPrice ?? 0;
+  const salePrice =
+    offerPrice ?? (sizeSalePrices.length > 0 ? Math.min(...sizeSalePrices) : 0);
+  const displaySizes =
+    offerPrice != null
+      ? sizes.map((size) => ({ ...size, salePrice: offerPrice }))
+      : sizes;
   const discount =
-    product.isOnSale && price > salePrice
+    (product.isOnSale || offerPrice != null) && price > salePrice
       ? Math.round(((price - salePrice) / price) * 100)
       : product.percentageDiscount
         ? Math.max(0, Math.round(Number(product.percentageDiscount)) || 0)
@@ -147,8 +154,19 @@ export function mapCatalogProductToPublicItem(
     percentageDiscount: product.percentageDiscount,
     cashDiscount: product.cashDiscount,
     genderLabel: product.gender?.name ?? null,
-    sizes,
+    sizes: displaySizes,
   };
+}
+
+function resolveOfferPrice(
+  value: PublicCatalogProduct['offerPrice'],
+): number | null {
+  if (value == null) {
+    return null;
+  }
+
+  const parsed = toNumber(value);
+  return parsed > 0 ? parsed : null;
 }
 
 function mapProductSizes(

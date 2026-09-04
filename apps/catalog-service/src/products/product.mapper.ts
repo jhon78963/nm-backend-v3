@@ -16,6 +16,12 @@ function toCashDiscount(value?: number | null): number | null {
   return value;
 }
 
+function toOfferPrice(value?: number | null): number | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  return value;
+}
+
 export function mapProductInput(dto: CreateProductDto | UpdateProductDto) {
   const data: Record<string, unknown> = {};
 
@@ -38,6 +44,9 @@ export function mapProductInput(dto: CreateProductDto | UpdateProductDto) {
   if (dto.cashDiscount !== undefined) {
     data.cashDiscount = toCashDiscount(dto.cashDiscount);
   }
+  if (dto.offerPrice !== undefined) {
+    data.offerPrice = toOfferPrice(dto.offerPrice);
+  }
 
   return data;
 }
@@ -59,5 +68,6 @@ export function mapProductCreateInput(dto: CreateProductDto) {
     status: dto.status ?? 'active',
     percentageDiscount: toPercentageDiscount(dto.percentageDiscount),
     cashDiscount: toCashDiscount(dto.cashDiscount ?? null),
+    offerPrice: toOfferPrice(dto.offerPrice ?? null),
   };
 }

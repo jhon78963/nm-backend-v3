@@ -441,7 +441,7 @@ export class OrdersService {
           },
         },
         include: {
-          product: { select: { name: true } },
+          product: { select: { name: true, offerPrice: true } },
           productSizeColors: { select: { colorId: true } },
         },
       });
@@ -456,7 +456,12 @@ export class OrdersService {
         productSize.productSizeColors.map((link) => link.colorId),
       );
 
-      const serverPrice = Number(productSize.salePrice);
+      const offerPrice =
+        productSize.product.offerPrice != null
+          ? Number(productSize.product.offerPrice)
+          : null;
+      const serverPrice =
+        offerPrice != null && offerPrice > 0 ? offerPrice : Number(productSize.salePrice);
       if (Math.abs(serverPrice - item.unitPrice) > 0.02) {
         throw new BadRequestException(`El precio de "${item.name}" cambió. Actualiza tu carrito.`);
       }

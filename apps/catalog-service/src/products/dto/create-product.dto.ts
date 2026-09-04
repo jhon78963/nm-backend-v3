@@ -135,6 +135,12 @@ export class CreateProductDto {
   @IsOptional()
   cashDiscount?: number;
 
+  @ApiPropertyOptional({ example: 49.9, nullable: true, description: 'Precio promocional fijo en la tienda online' })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @IsOptional()
+  offerPrice?: number | null;
+
   @ApiPropertyOptional({ type: [CreateProductSizeDto] })
   @IsArray()
   @ValidateNested({ each: true })
@@ -223,4 +229,10 @@ export class UpdateProductDto {
   @Min(0)
   @IsOptional()
   cashDiscount?: number;
+
+  @ApiPropertyOptional({ nullable: true, description: 'Precio promocional fijo en la tienda online' })
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  @IsOptional()
+  offerPrice?: number | null;
 }
