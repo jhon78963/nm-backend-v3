@@ -10,6 +10,8 @@ export enum EcommerceMailTemplate {
   REVIEW_APPROVED = 'review.approved',
   REVIEW_REJECTED = 'review.rejected',
   ORDER_PAYMENT_RECEIVED = 'order.payment-received',
+  NEWSLETTER_SUBSCRIBED = 'newsletter.subscribed',
+  NEWSLETTER_CAMPAIGN = 'newsletter.campaign',
 }
 
 export interface OrderMailItem {
@@ -104,6 +106,17 @@ export type EcommerceMailData = {
     orderNumber: string;
     total: number;
     trackUrl: string;
+    storeUrl: string;
+  };
+  [EcommerceMailTemplate.NEWSLETTER_SUBSCRIBED]: {
+    storeUrl: string;
+  };
+  [EcommerceMailTemplate.NEWSLETTER_CAMPAIGN]: {
+    title: string;
+    body: string;
+    previewText?: string;
+    ctaUrl?: string;
+    ctaLabel?: string;
     storeUrl: string;
   };
 };

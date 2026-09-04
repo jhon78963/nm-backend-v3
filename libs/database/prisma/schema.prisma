@@ -900,6 +900,7 @@ model EcommerceCustomer {
   notificationSettings EcommerceCustomerNotificationSetting?
   notifications EcommerceCustomerNotification[]
   refunds EcommerceRefund[]
+  newsletterSubscriptions EcommerceNewsletterSubscriber[]
 
   @@map("ecommerce_customers")
 }
@@ -998,6 +999,43 @@ model ProductReview {
   @@index([productId, status])
   @@index([status, createdAt])
   @@map("product_reviews")
+}
+
+model EcommerceNewsletterSubscriber {
+  id             String    @id @default(uuid())
+  email          String    @unique @db.VarChar(255)
+  status         String    @default("active") @db.VarChar(20)
+  source         String    @default("footer") @db.VarChar(50)
+  customerId     String?   @map("customer_id")
+  subscribedAt   DateTime  @default(now()) @map("subscribed_at")
+  unsubscribedAt DateTime? @map("unsubscribed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  customer EcommerceCustomer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([subscribedAt])
+  @@map("ecommerce_newsletter_subscribers")
+}
+
+model EcommerceNewsletterCampaign {
+  id          String    @id @default(uuid())
+  subject     String    @db.VarChar(255)
+  title       String    @db.VarChar(255)
+  body        String    @db.Text
+  previewText String?   @map("preview_text") @db.VarChar(255)
+  ctaUrl      String?   @map("cta_url") @db.VarChar(500)
+  ctaLabel    String?   @map("cta_label") @db.VarChar(100)
+  status      String    @default("sent") @db.VarChar(20)
+  sentCount   Int       @default(0) @map("sent_count")
+  failedCount Int       @default(0) @map("failed_count")
+  sentAt      DateTime? @map("sent_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([status, createdAt])
+  @@map("ecommerce_newsletter_campaigns")
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

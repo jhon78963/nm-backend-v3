@@ -92,6 +92,10 @@ function isPublicEcommerceOrdersRequest(method: string, path: string): boolean {
   return method === 'GET' && /^\/api\/v1\/ecommerce\/orders\/public\/[^/]+$/.test(path);
 }
 
+function isPublicEcommerceNewsletterRequest(method: string, path: string): boolean {
+  return method === 'POST' && path === '/api/v1/ecommerce/newsletter/subscribe';
+}
+
 /** Chatbot usa JWT propio — el gateway solo proxifica sin validar sesión NM. */
 function isChatbotProxyRequest(path: string): boolean {
   return path.startsWith('/api/v1/chatbot');
@@ -120,6 +124,7 @@ export class GatewayAuthGuard extends JwtAuthGuard {
       || isPublicEcommerceShopProductsRequest(method, path)
       || isPublicEcommerceSearchRequest(method, path)
       || isPublicEcommerceOrdersRequest(method, path)
+      || isPublicEcommerceNewsletterRequest(method, path)
       || isChatbotProxyRequest(path)
     ) {
       return true;

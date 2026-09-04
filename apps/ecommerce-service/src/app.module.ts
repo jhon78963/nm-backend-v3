@@ -24,6 +24,7 @@ import { ProductReviewsModule } from './product-reviews/product-reviews.module';
 import { CustomerAccountModule } from './customer-account/customer-account.module';
 import { AdminCustomersModule } from './admin-customers/admin-customers.module';
 import { StoreSearchModule } from './store-search/store-search.module';
+import { NewsletterModule } from './newsletter/newsletter.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { StoreSearchModule } from './store-search/store-search.module';
     CustomerAccountModule,
     AdminCustomersModule,
     StoreSearchModule,
+    NewsletterModule,
   ],
 })
 export class AppModule {}

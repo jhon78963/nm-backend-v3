@@ -48,6 +48,10 @@ export function buildMailContent(
       return reviewRejectedEmail(data, ctx);
     case EcommerceMailTemplate.ORDER_PAYMENT_RECEIVED:
       return orderPaymentReceivedEmail(data, ctx);
+    case EcommerceMailTemplate.NEWSLETTER_SUBSCRIBED:
+      return newsletterSubscribedEmail(data, ctx);
+    case EcommerceMailTemplate.NEWSLETTER_CAMPAIGN:
+      return newsletterCampaignEmail(data, ctx);
     default:
       throw new Error(`Plantilla no soportada: ${template}`);
   }
@@ -311,5 +315,58 @@ function orderPaymentReceivedEmail(data: Record<string, unknown>, ctx: TemplateC
     subject,
     html: renderLayout({ title: subject, preview: subject, body, ...ctx, footerVariant: 'light' }),
     text: `Pago confirmado para pedido ${orderNumber}.`,
+  };
+}
+
+function newsletterSubscribedEmail(data: Record<string, unknown>, ctx: TemplateContext) {
+  const storeUrl = String(data.storeUrl ?? ctx.storeUrl);
+  const subject = `¡Bienvenido al boletín de ${ctx.storeName}!`;
+  const body = `
+    ${renderHeading('¡Gracias por suscribirte!')}
+    ${renderParagraph(
+      `Ya formas parte del boletín de ${ctx.storeName}. Te enviaremos novedades, lanzamientos y ofertas exclusivas.`,
+    )}
+    ${renderButton(storeUrl, 'Visitar la tienda')}
+  `;
+
+  return {
+    subject,
+    html: renderLayout({ title: subject, preview: subject, body, ...ctx }),
+    text: `Gracias por suscribirte al boletín de ${ctx.storeName}. Visita: ${storeUrl}`,
+  };
+}
+
+function newsletterCampaignEmail(data: Record<string, unknown>, ctx: TemplateContext) {
+  const title = String(data.title ?? 'Novedades');
+  const bodyText = String(data.body ?? '');
+  const previewText = data.previewText ? String(data.previewText) : title;
+  const ctaUrl = data.ctaUrl ? String(data.ctaUrl) : undefined;
+  const ctaLabel = data.ctaLabel ? String(data.ctaLabel) : 'Ver más';
+  const storeUrl = String(data.storeUrl ?? ctx.storeUrl);
+  const subject = title;
+
+  const paragraphs = bodyText
+    .split(/\n{2,}|\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => renderParagraph(paragraph, { centered: false }))
+    .join('');
+
+  const body = `
+    ${renderHeading(title, { centered: false })}
+    ${paragraphs}
+    ${ctaUrl ? renderButton(ctaUrl, ctaLabel) : renderButton(storeUrl, 'Ir a la tienda')}
+  `;
+
+  return {
+    subject,
+    html: renderLayout({
+      title: subject,
+      preview: previewText,
+      body,
+      ...ctx,
+      showSupportBlock: false,
+    }),
+    text: `${title}\n\n${bodyText}${ctaUrl ? `\n\n${ctaLabel}: ${ctaUrl}` : `\n\n${storeUrl}`}`,
   };
 }

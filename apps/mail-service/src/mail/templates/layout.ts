@@ -39,7 +39,6 @@ export type MailLayoutOptions = MailBranding & {
   body: string;
   bannerUrl?: string;
   footerVariant?: 'dark' | 'light';
-  showNav?: boolean;
   showSupportBlock?: boolean;
 };
 
@@ -83,53 +82,20 @@ function joinUrl(base: string, path: string): string {
   return `${normalizedBase}${path}`;
 }
 
-function renderHeader(options: MailBranding & { showNav: boolean }): string {
-  const { storeName, storeUrl, logoUrl, showNav } = options;
+function renderHeader(options: MailBranding): string {
+  const { storeName, storeUrl, logoUrl } = options;
   const logoBlock = logoUrl
     ? `<a href="${escapeHtml(storeUrl)}" style="text-decoration:none;">
-        <img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(storeName)}" width="140" style="width:140px;height:auto;display:block;border:0;" />
+        <img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(storeName)}" width="140" style="width:140px;height:auto;display:block;border:0;margin:0 auto;" />
       </a>`
     : `<a href="${escapeHtml(storeUrl)}" style="text-decoration:none;font-weight:800;font-size:20px;line-height:1.2;color:${MAIL_THEME.text};">
         ${escapeHtml(storeName)}
       </a>`;
 
-  const navItems = [
-    { label: 'Inicio', href: storeUrl },
-    { label: 'Favoritos', href: joinUrl(storeUrl, '/favoritos') },
-    { label: 'Carrito', href: joinUrl(storeUrl, '/carrito') },
-    { label: 'Contacto', href: joinUrl(storeUrl, '/contactanos') },
-  ];
-
-  const navBlock = showNav
-    ? `<td align="right" valign="middle" style="padding:16px 24px;">
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="right">
-          <tr>
-            ${navItems
-              .map(
-                (item) => `
-              <td style="padding-left:12px;">
-                <a href="${escapeHtml(item.href)}" style="text-decoration:none;font-weight:700;font-size:14px;line-height:19px;color:${MAIL_THEME.text};text-transform:capitalize;">
-                  ${escapeHtml(item.label)}
-                </a>
-              </td>`,
-              )
-              .join('')}
-          </tr>
-        </table>
-      </td>`
-    : '';
-
   return `
     <tr>
-      <td style="background:${MAIL_THEME.surface};">
-        <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0">
-          <tr>
-            <td align="left" valign="middle" style="padding:16px 24px;">
-              ${logoBlock}
-            </td>
-            ${navBlock}
-          </tr>
-        </table>
+      <td align="center" style="background:${MAIL_THEME.surface};padding:20px 24px;">
+        ${logoBlock}
       </td>
     </tr>`;
 }
@@ -299,7 +265,6 @@ export function renderLayout(options: MailLayoutOptions): string {
     supportEmail,
     socialLinks,
     footerVariant = 'dark',
-    showNav = true,
     showSupportBlock = true,
   } = options;
 
@@ -334,7 +299,7 @@ export function renderLayout(options: MailLayoutOptions): string {
     <tr>
       <td align="center">
         <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="max-width:${MAIL_THEME.maxWidth}px;background:${MAIL_THEME.surface};border-collapse:collapse;">
-          ${renderHeader({ ...branding, showNav })}
+          ${renderHeader(branding)}
           ${bannerUrl ? renderBanner(bannerUrl) : ''}
           <tr>
             <td style="padding:24px 28px 8px;background:${MAIL_THEME.surface};">
