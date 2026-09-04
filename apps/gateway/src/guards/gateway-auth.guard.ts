@@ -96,6 +96,30 @@ function isPublicEcommerceNewsletterRequest(method: string, path: string): boole
   return method === 'POST' && path === '/api/v1/ecommerce/newsletter/subscribe';
 }
 
+/**
+ * Storefront: JWT de cliente (rol Cliente). El gateway no valida admin JWT;
+ * ecommerce-service valida con CustomerJwtAuthGuard.
+ */
+function isEcommerceCustomerAccountRequest(method: string, path: string): boolean {
+  if (path.startsWith('/api/v1/ecommerce/customer/')) {
+    return true;
+  }
+
+  if (method === 'GET' && path === '/api/v1/ecommerce/orders/mine') {
+    return true;
+  }
+
+  if (method === 'GET' && /^\/api\/v1\/ecommerce\/orders\/mine\/[^/]+$/.test(path)) {
+    return true;
+  }
+
+  if (method === 'POST' && /^\/api\/v1\/ecommerce\/products\/[^/]+\/reviews$/.test(path)) {
+    return true;
+  }
+
+  return false;
+}
+
 /** Chatbot usa JWT propio — el gateway solo proxifica sin validar sesión NM. */
 function isChatbotProxyRequest(path: string): boolean {
   return path.startsWith('/api/v1/chatbot');
@@ -125,6 +149,7 @@ export class GatewayAuthGuard extends JwtAuthGuard {
       || isPublicEcommerceSearchRequest(method, path)
       || isPublicEcommerceOrdersRequest(method, path)
       || isPublicEcommerceNewsletterRequest(method, path)
+      || isEcommerceCustomerAccountRequest(method, path)
       || isChatbotProxyRequest(path)
     ) {
       return true;

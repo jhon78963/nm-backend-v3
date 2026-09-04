@@ -6,6 +6,7 @@ import { AuthModule } from '@app/common/auth/auth.module';
 import { HealthModule } from '@app/common/health/health.module';
 import { DatabaseModule } from '@app/database';
 
+import { CustomerAuthModule } from './customer-auth/customer-auth.module';
 import { HeaderModule } from './header/header.module';
 import { BannerModule } from './banner/banner.module';
 import { HeroSlideModule } from './hero-slide/hero-slide.module';
@@ -19,7 +20,6 @@ import { ShopCollectionsModule } from './shop-collections/shop-collections.modul
 import { ShopProductsModule } from './shop-products/shop-products.module';
 import { EcommerceMediaModule } from './media/ecommerce-media.module';
 import { OrdersModule } from './orders/orders.module';
-import { CustomerAuthModule } from './customer-auth/customer-auth.module';
 import { ProductReviewsModule } from './product-reviews/product-reviews.module';
 import { CustomerAccountModule } from './customer-account/customer-account.module';
 import { AdminCustomersModule } from './admin-customers/admin-customers.module';
@@ -36,6 +36,7 @@ import { NewsletterModule } from './newsletter/newsletter.module';
     DatabaseModule,
     HealthModule,
     AuthModule,
+    CustomerAuthModule,
     HeaderModule,
     BannerModule,
     HeroSlideModule,

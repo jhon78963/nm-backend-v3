@@ -21,6 +21,7 @@ import {
   resolveShippingZone,
 } from './constants/shipping-payment.constants';
 import { CreateOrderDto } from './dto/create-order.dto';
+import type { OrderAddressDto } from './dto/create-order.dto';
 import { ListCustomerOrdersQueryDto } from './dto/list-customer-orders-query.dto';
 import { ListOrdersQueryDto } from './dto/list-orders-query.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -177,6 +178,10 @@ export class OrdersService {
           reason: `Pedido ecommerce ${orderNumber}`,
           orderNumber,
         });
+      }
+
+      if (customerId) {
+        await this.seedDefaultCustomerAddressIfNeeded(tx, customerId, dto.shipping);
       }
 
       return created;
@@ -554,6 +559,37 @@ export class OrdersService {
     }
 
     return `${prefix}-${Date.now().toString().slice(-6)}`;
+  }
+
+  private async seedDefaultCustomerAddressIfNeeded(
+    tx: Pick<DatabaseService, 'ecommerceCustomerAddress'>,
+    customerId: string,
+    address: OrderAddressDto,
+  ): Promise<void> {
+    const savedAddressCount = await tx.ecommerceCustomerAddress.count({
+      where: { customerId },
+    });
+
+    if (savedAddressCount > 0) {
+      return;
+    }
+
+    await tx.ecommerceCustomerAddress.create({
+      data: {
+        customerId,
+        label: 'Principal',
+        firstName: address.firstName.trim(),
+        lastName: address.lastName.trim(),
+        country: address.country.trim().toUpperCase(),
+        address1: address.address1.trim(),
+        address2: address.address2?.trim() || null,
+        city: address.city.trim(),
+        state: address.state.trim(),
+        postcode: address.postcode.trim(),
+        phone: address.phone?.trim() || null,
+        isDefault: true,
+      },
+    });
   }
 
   private async resolveLinkedCustomerId(
