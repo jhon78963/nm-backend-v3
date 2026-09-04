@@ -96,6 +96,10 @@ function isPublicEcommerceNewsletterRequest(method: string, path: string): boole
   return method === 'POST' && path === '/api/v1/ecommerce/newsletter/subscribe';
 }
 
+function isPublicEcommerceCouponsRequest(method: string, path: string): boolean {
+  return method === 'POST' && path === '/api/v1/ecommerce/coupons/validate';
+}
+
 /**
  * Storefront: JWT de cliente (rol Cliente). El gateway no valida admin JWT;
  * ecommerce-service valida con CustomerJwtAuthGuard.
@@ -149,6 +153,7 @@ export class GatewayAuthGuard extends JwtAuthGuard {
       || isPublicEcommerceSearchRequest(method, path)
       || isPublicEcommerceOrdersRequest(method, path)
       || isPublicEcommerceNewsletterRequest(method, path)
+      || isPublicEcommerceCouponsRequest(method, path)
       || isEcommerceCustomerAccountRequest(method, path)
       || isChatbotProxyRequest(path)
     ) {

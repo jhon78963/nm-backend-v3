@@ -11,6 +11,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -147,6 +148,12 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   couponCode?: string;
+
+  @ApiPropertyOptional({ description: 'IP del cliente para límites de uso único' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(45)
+  clientIp?: string;
 
   @ApiProperty({ type: [CreateOrderItemDto] })
   @IsArray()

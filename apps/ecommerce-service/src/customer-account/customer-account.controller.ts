@@ -17,6 +17,7 @@ import { CustomerJwtAuthGuard } from '../customer-auth/guards/customer-jwt.guard
 import { CurrentCustomer } from '../customer-auth/decorators/current-customer.decorator';
 import type { AuthenticatedCustomer } from '../customer-auth/types/authenticated-customer.type';
 import { CustomerAccountService } from './customer-account.service';
+import { CouponsService } from '../coupons/coupons.service';
 import { CreateRefundRequestDto } from './dto/create-refund-request.dto';
 import { UpdateNotificationSettingsDto } from './dto/update-notification-settings.dto';
 import { UpsertCustomerAddressDto } from './dto/upsert-customer-address.dto';
@@ -27,7 +28,16 @@ import { UpsertCustomerAddressDto } from './dto/upsert-customer-address.dto';
 @UseGuards(CustomerJwtAuthGuard, ThrottlerGuard)
 @Throttle({ default: { limit: 60, ttl: 60_000 } })
 export class CustomerAccountController {
-  constructor(private readonly customerAccountService: CustomerAccountService) {}
+  constructor(
+    private readonly customerAccountService: CustomerAccountService,
+    private readonly couponsService: CouponsService,
+  ) {}
+
+  @Get('coupons/welcome')
+  @ApiOperation({ summary: 'Obtener cupón de bienvenida disponible del cliente' })
+  getWelcomeCoupon(@CurrentCustomer() customer: AuthenticatedCustomer) {
+    return this.couponsService.getWelcomeCouponForCustomer(customer.id);
+  }
 
   @Get('addresses')
   @ApiOperation({ summary: 'Listar direcciones guardadas del cliente' })

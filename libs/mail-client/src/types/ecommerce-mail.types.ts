@@ -38,6 +38,10 @@ export type EcommerceMailData = {
   [EcommerceMailTemplate.CUSTOMER_WELCOME]: {
     customerName: string;
     storeUrl: string;
+    welcomeCouponCode?: string;
+    welcomeCouponDescription?: string | null;
+    welcomeCouponDiscountType?: 'percentage' | 'fixed';
+    welcomeCouponDiscountValue?: number;
   };
   [EcommerceMailTemplate.CUSTOMER_PASSWORD_RESET]: {
     customerName?: string;

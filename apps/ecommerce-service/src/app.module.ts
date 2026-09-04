@@ -6,6 +6,7 @@ import { AuthModule } from '@app/common/auth/auth.module';
 import { HealthModule } from '@app/common/health/health.module';
 import { DatabaseModule } from '@app/database';
 
+import { CouponsModule } from './coupons/coupons.module';
 import { CustomerAuthModule } from './customer-auth/customer-auth.module';
 import { HeaderModule } from './header/header.module';
 import { BannerModule } from './banner/banner.module';
@@ -50,7 +51,7 @@ import { NewsletterModule } from './newsletter/newsletter.module';
     ShopProductsModule,
     EcommerceMediaModule,
     OrdersModule,
-    CustomerAuthModule,
+    CouponsModule,
     ProductReviewsModule,
     CustomerAccountModule,
     AdminCustomersModule,

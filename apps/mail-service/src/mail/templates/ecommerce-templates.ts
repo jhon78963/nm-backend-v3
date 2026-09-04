@@ -60,19 +60,42 @@ export function buildMailContent(
 function welcomeEmail(data: Record<string, unknown>, ctx: TemplateContext) {
   const customerName = String(data.customerName ?? 'Cliente');
   const storeUrl = String(data.storeUrl ?? ctx.storeUrl);
+  const welcomeCouponCode = data.welcomeCouponCode ? String(data.welcomeCouponCode) : '';
+  const welcomeCouponDescription = data.welcomeCouponDescription
+    ? String(data.welcomeCouponDescription)
+    : '';
+  const welcomeCouponDiscountType = data.welcomeCouponDiscountType
+    ? String(data.welcomeCouponDiscountType)
+    : '';
+  const welcomeCouponDiscountValue = Number(data.welcomeCouponDiscountValue ?? 0);
+  const couponText =
+    welcomeCouponCode
+      ? welcomeCouponDiscountType === 'percentage'
+        ? `${welcomeCouponDiscountValue}% de descuento con el código ${welcomeCouponCode}`
+        : `S/ ${welcomeCouponDiscountValue.toFixed(2)} de descuento con el código ${welcomeCouponCode}`
+      : '';
   const subject = `¡Bienvenido/a a ${ctx.storeName}!`;
   const body = `
     ${renderHeading(`¡Hola, ${customerName}!`)}
     ${renderParagraph(
       `Gracias por registrarte en ${ctx.storeName}. Tu cuenta ya está lista para que explores nuestro catálogo, guardes tus favoritos y realices pedidos con más rapidez.`,
     )}
+    ${
+      welcomeCouponCode
+        ? `${renderParagraph(
+            `${welcomeCouponDescription || 'Te regalamos un cupón de bienvenida'}: ${couponText}.`,
+          )}${renderMutedNote(`Usa el código ${welcomeCouponCode} en el checkout.`)}`
+        : ''
+    }
     ${renderButton(storeUrl, 'Ir a la tienda')}
   `;
 
   return {
     subject,
     html: renderLayout({ title: subject, preview: subject, body, ...ctx }),
-    text: `Hola ${customerName}, gracias por registrarte en ${ctx.storeName}. Visita: ${storeUrl}`,
+    text: `Hola ${customerName}, gracias por registrarte en ${ctx.storeName}. ${
+      couponText ? `Cupón: ${welcomeCouponCode} (${couponText}). ` : ''
+    }Visita: ${storeUrl}`,
   };
 }
 

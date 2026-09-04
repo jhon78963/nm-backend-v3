@@ -24,12 +24,20 @@ export interface CustomerAuthProfile {
   name: string;
 }
 
+export interface CustomerWelcomeCoupon {
+  code: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  description?: string | null;
+}
+
 export interface CustomerAuthResponse {
   access_token: string;
   refresh_token: string;
   token_type: 'Bearer';
   expires_in: number;
   customer: CustomerAuthProfile;
+  welcomeCoupon?: CustomerWelcomeCoupon | null;
 }
 
 @Injectable()
@@ -87,6 +95,7 @@ export class CustomerAuthService {
     });
 
     const tokens = await this.authService.issueTokensForUserId(user.id);
+    const welcomeCoupon = await this.assignWelcomeCoupon(customer.id);
 
     void this.mailClient
       .sendEcommerceMail({
@@ -98,11 +107,15 @@ export class CustomerAuthService {
             'ECOMMERCE_STORE_URL',
             this.config.get<string>('FRONTEND_URL', 'http://localhost:3001'),
           ),
+          welcomeCouponCode: welcomeCoupon?.code,
+          welcomeCouponDescription: welcomeCoupon?.description,
+          welcomeCouponDiscountType: welcomeCoupon?.discountType,
+          welcomeCouponDiscountValue: welcomeCoupon?.discountValue,
         },
       })
       .catch(() => undefined);
 
-    return { ...tokens, customer };
+    return { ...tokens, customer, welcomeCoupon };
   }
 
   async login(dto: LoginCustomerDto): Promise<CustomerAuthResponse> {
@@ -286,5 +299,34 @@ export class CustomerAuthService {
 
   private normalizePasswordHash(hash: string): string {
     return hash.replace(/^\$2y\$/, '$2b$');
+  }
+
+  private async assignWelcomeCoupon(
+    customerId: string,
+  ): Promise<CustomerWelcomeCoupon | null> {
+    const baseUrl = this.config
+      .get<string>('ECOMMERCE_SERVICE_URL', 'http://localhost:3012')
+      .replace(/\/$/, '');
+    const serviceKey = this.config.get<string>('INTERNAL_SERVICE_KEY', 'nm-internal-dev-key');
+
+    try {
+      const response = await fetch(`${baseUrl}/ecommerce/coupons/internal/assign-welcome`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-internal-service-key': serviceKey,
+        },
+        body: JSON.stringify({ customerId }),
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const payload = (await response.json()) as { coupon?: CustomerWelcomeCoupon | null };
+      return payload.coupon ?? null;
+    } catch {
+      return null;
+    }
   }
 }

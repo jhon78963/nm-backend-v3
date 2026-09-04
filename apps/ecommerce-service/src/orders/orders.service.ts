@@ -10,11 +10,11 @@ import { recordProductColorStockHistory } from '@app/common/utils/product-histor
 import { syncMasterBalanceToColorSum } from '@app/common/utils/product-inventory.util';
 import Decimal from 'decimal.js';
 
-import { resolveCouponDiscount } from './constants/order-coupons';
 import {
   ECOMMERCE_ORDER_STATUS_LABELS,
   isEcommerceOrderStatus,
 } from './constants/order-statuses';
+import { getPaymentStatusLabel } from './constants/order-payment-statuses';
 import {
   getPaymentMethod,
   getShippingMethod,
@@ -28,6 +28,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { buildOrderNumber, buildOrderNumberPrefix } from './utils/order-number.util';
 import type { AuthenticatedCustomer } from '../customer-auth/types/authenticated-customer.type';
 import { EcommerceMailNotificationsService } from '../mail/ecommerce-mail-notifications.service';
+import { CouponsService } from '../coupons/coupons.service';
 
 type ResolvedOrderItem = {
   productId: string;
@@ -47,6 +48,7 @@ export class OrdersService {
     private readonly db: DatabaseService,
     private readonly config: ConfigService,
     private readonly mailNotifications: EcommerceMailNotificationsService,
+    private readonly couponsService: CouponsService,
   ) {}
 
   async createOrder(dto: CreateOrderDto, customer?: AuthenticatedCustomer) {
@@ -72,13 +74,32 @@ export class OrdersService {
       throw new BadRequestException('Método de pago no válido.');
     }
 
-    const couponDiscount = resolveCouponDiscount(dto.couponCode);
-    if (couponDiscount < 0) {
-      throw new BadRequestException('Cupón no válido.');
-    }
-
     const resolvedItems = await this.resolveOrderItems(dto);
     const subtotal = resolvedItems.reduce((sum, item) => sum + item.subtotal, 0);
+
+    let resolvedCoupon = null;
+    if (dto.couponCode?.trim()) {
+      try {
+        resolvedCoupon = await this.couponsService.resolveCouponForOrder(
+          dto.couponCode,
+          subtotal,
+          customerId,
+          dto.warehouseId,
+          dto.clientIp,
+        );
+      } catch (error) {
+        if (error instanceof BadRequestException) {
+          throw error;
+        }
+        throw new BadRequestException('Cupón no válido.');
+      }
+
+      if (!resolvedCoupon) {
+        throw new BadRequestException('Cupón no válido.');
+      }
+    }
+
+    const couponDiscount = resolvedCoupon?.discountAmount ?? 0;
     const shippingTotal = shippingMethod.cost;
     const total = Math.max(0, subtotal + shippingTotal - couponDiscount);
 
@@ -184,6 +205,16 @@ export class OrdersService {
         await this.seedDefaultCustomerAddressIfNeeded(tx, customerId, dto.shipping);
       }
 
+      if (resolvedCoupon) {
+        await this.couponsService.redeemCoupon(tx, {
+          couponId: resolvedCoupon.couponId,
+          orderId: created.id,
+          customerId,
+          clientIp: dto.clientIp,
+          discountAmount: couponDiscount,
+        });
+      }
+
       return created;
     });
 
@@ -253,6 +284,7 @@ export class OrdersService {
             order.status as keyof typeof ECOMMERCE_ORDER_STATUS_LABELS
           ] ?? order.status,
         paymentStatus: order.paymentStatus,
+        paymentStatusLabel: getPaymentStatusLabel(order.paymentStatus),
         paymentMethodTitle: order.paymentMethodTitle,
         total: Number(order.total),
         createdAt: order.createdAt,
@@ -682,6 +714,7 @@ export class OrdersService {
       status: order.status,
       statusLabel: ECOMMERCE_ORDER_STATUS_LABELS[order.status as keyof typeof ECOMMERCE_ORDER_STATUS_LABELS] ?? order.status,
       paymentStatus: order.paymentStatus,
+      paymentStatusLabel: getPaymentStatusLabel(order.paymentStatus),
       createdAt: order.createdAt,
       email: order.email,
       billing: order.billingAddress,

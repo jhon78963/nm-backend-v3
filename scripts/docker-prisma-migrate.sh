@@ -106,10 +106,22 @@ run_laravel_etl() {
   log "ETL completado."
 }
 
+run_dev_admin_seed() {
+  if [ "${SEED_DEV_ADMIN:-false}" != "true" ]; then
+    log "SEED_DEV_ADMIN=false — seed de admin omitido."
+    return 0
+  fi
+
+  log "Sembrando usuario admin de desarrollo..."
+  npx ts-node --project tsconfig.migration.json libs/database/prisma/seed.ts
+  log "Seed de admin completado."
+}
+
 # ── Flujo principal ─────────────────────────────────────────────────────────
 
 if [ "$(has_prisma_migrations)" = "t" ]; then
   apply_prisma_migrations
+  run_dev_admin_seed
   exit 0
 fi
 
@@ -118,6 +130,7 @@ tables="$(table_count)"
 if [ "$tables" = "0" ]; then
   apply_prisma_migrations
   run_laravel_etl
+  run_dev_admin_seed
   exit 0
 fi
 
@@ -125,6 +138,7 @@ if [ "$(tenant_id_type)" = "bigint" ]; then
   recover_laravel_schema_in_services_db
   apply_prisma_migrations
   run_laravel_etl
+  run_dev_admin_seed
   exit 0
 fi
 

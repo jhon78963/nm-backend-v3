@@ -41,6 +41,7 @@
     "db:generate": "prisma generate --schema=libs/database/prisma/schema.prisma",
     "db:studio": "prisma studio --schema=libs/database/prisma/schema.prisma",
     "db:seed": "ts-node libs/database/prisma/seed.ts",
+    "db:seed:dev-admin": "ts-node libs/database/prisma/seed.ts",
     "seed:chatbot": "ts-node libs/database/prisma/seeds/chatbot-seed.ts",
     "db:migrate:etl": "ts-node --project tsconfig.migration.json scripts/migrate-laravel-data.ts",
     "db:migrate:action-logs": "ts-node --project tsconfig.migration.json scripts/migrate-action-logs.ts",
@@ -49,6 +50,7 @@
     "docker:down": "./scripts/start-docker-env.sh --down",
     "docker:logs": "docker compose -f docker-compose.full.yml logs -f",
     "docker:rebuild:reviews": "./scripts/rebuild-reviews-stack.sh",
+    "db:restore:nm-db": "./scripts/restore-nm-db-backup.sh",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "format": "prettier --write \"**/*.ts\"",
     "skills:install": "skills experimental_install",
@@ -148,5 +150,8 @@
       "^@app/mail-client(|/.*)$": "<rootDir>/libs/mail-client/src/$1",
       "^@app/queue-manager(|/.*)$": "<rootDir>/libs/queue-manager/src/$1"
     }
+  },
+  "prisma": {
+    "seed": "ts-node libs/database/prisma/seed.ts"
   }
 }

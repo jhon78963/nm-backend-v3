@@ -18,6 +18,7 @@ import { Public } from '@app/common/decorators/public.decorator';
 import { Roles } from '@app/common/decorators/roles.decorator';
 import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@app/common/guards/roles.guard';
+import { resolveClientIp } from '@app/common/utils/client-ip.util';
 
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ListCustomerOrdersQueryDto } from './dto/list-customer-orders-query.dto';
@@ -43,9 +44,15 @@ export class OrdersController {
   @ApiOperation({ summary: 'Crear pedido web (checkout público o cliente autenticado)' })
   createOrder(
     @Body() dto: CreateOrderDto,
-    @Req() request: { user?: AuthenticatedCustomer | null },
+    @Req() request: { user?: AuthenticatedCustomer | null; headers: Record<string, string | string[] | undefined> },
   ) {
-    return this.ordersService.createOrder(dto, request.user ?? undefined);
+    return this.ordersService.createOrder(
+      {
+        ...dto,
+        clientIp: dto.clientIp ?? resolveClientIp(request.headers),
+      },
+      request.user ?? undefined,
+    );
   }
 
   @Get('mine')
