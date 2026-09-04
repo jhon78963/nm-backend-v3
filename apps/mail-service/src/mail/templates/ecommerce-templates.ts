@@ -1,11 +1,16 @@
 import { EcommerceMailTemplate } from '@app/mail-client';
 
-import { formatAddress, formatMoney, renderButton, renderLayout } from './layout';
+import {
+  formatAddress,
+  formatMoney,
+  MailBranding,
+  renderButton,
+  renderHeading,
+  renderLayout,
+  renderParagraph,
+} from './layout';
 
-type TemplateContext = {
-  storeName: string;
-  storeUrl: string;
-};
+type TemplateContext = MailBranding;
 
 export function buildMailContent(
   template: EcommerceMailTemplate,
@@ -43,17 +48,16 @@ function welcomeEmail(data: Record<string, unknown>, ctx: TemplateContext) {
   const storeUrl = String(data.storeUrl ?? ctx.storeUrl);
   const subject = `¡Bienvenido/a a ${ctx.storeName}!`;
   const body = `
-    <h1 style="margin:0 0 16px;font-size:24px;">¡Hola, ${customerName}!</h1>
-    <p style="line-height:1.6;margin:0 0 16px;">
-      Gracias por registrarte en ${ctx.storeName}. Tu cuenta ya está lista para que explores nuestro catálogo,
-      guardes tus favoritos y realices pedidos con más rapidez.
-    </p>
+    ${renderHeading(`¡Hola, ${customerName}!`)}
+    ${renderParagraph(
+      `Gracias por registrarte en ${ctx.storeName}. Tu cuenta ya está lista para que explores nuestro catálogo, guardes tus favoritos y realices pedidos con más rapidez.`,
+    )}
     ${renderButton(storeUrl, 'Ir a la tienda')}
   `;
 
   return {
     subject,
-    html: renderLayout({ title: subject, preview: subject, body, storeUrl, storeName: ctx.storeName }),
+    html: renderLayout({ title: subject, preview: subject, body, ...ctx }),
     text: `Hola ${customerName}, gracias por registrarte en ${ctx.storeName}. Visita: ${storeUrl}`,
   };
 }
@@ -77,7 +81,7 @@ function passwordResetEmail(data: Record<string, unknown>, ctx: TemplateContext)
 
   return {
     subject,
-    html: renderLayout({ title: subject, preview: subject, body, storeUrl: ctx.storeUrl, storeName: ctx.storeName }),
+    html: renderLayout({ title: subject, preview: subject, body, ...ctx }),
     text: `Restablece tu contraseña: ${resetUrl}`,
   };
 }
@@ -135,7 +139,7 @@ function orderConfirmationEmail(data: Record<string, unknown>, ctx: TemplateCont
 
   return {
     subject,
-    html: renderLayout({ title: subject, preview: `Tu pedido ${orderNumber} fue registrado`, body, storeUrl, storeName: ctx.storeName }),
+    html: renderLayout({ title: subject, preview: `Tu pedido ${orderNumber} fue registrado`, body, ...ctx, footerVariant: 'light' }),
     text: `Pedido ${orderNumber} confirmado. Total: ${formatMoney(total)}. Seguimiento: ${trackUrl}`,
   };
 }
@@ -163,7 +167,7 @@ function orderStatusUpdateEmail(data: Record<string, unknown>, ctx: TemplateCont
 
   return {
     subject,
-    html: renderLayout({ title: subject, preview: `Estado: ${statusLabel}`, body, storeUrl, storeName: ctx.storeName }),
+    html: renderLayout({ title: subject, preview: `Estado: ${statusLabel}`, body, ...ctx }),
     text: `Pedido ${orderNumber} — ${statusLabel}. ${trackUrl}`,
   };
 }
@@ -186,7 +190,7 @@ function orderDeliveredEmail(data: Record<string, unknown>, ctx: TemplateContext
 
   return {
     subject,
-    html: renderLayout({ title: subject, preview: subject, body, storeUrl, storeName: ctx.storeName }),
+    html: renderLayout({ title: subject, preview: subject, body, ...ctx }),
     text: `Pedido ${orderNumber} entregado. Reseña: ${reviewUrl}`,
   };
 }
@@ -209,7 +213,7 @@ function orderCancelledEmail(data: Record<string, unknown>, ctx: TemplateContext
 
   return {
     subject,
-    html: renderLayout({ title: subject, preview: subject, body, storeUrl, storeName: ctx.storeName }),
+    html: renderLayout({ title: subject, preview: subject, body, ...ctx }),
     text: `Pedido ${orderNumber} cancelado.`,
   };
 }
@@ -236,7 +240,7 @@ function refundStatusUpdateEmail(data: Record<string, unknown>, ctx: TemplateCon
 
   return {
     subject,
-    html: renderLayout({ title: subject, preview: subject, body, storeUrl, storeName: ctx.storeName }),
+    html: renderLayout({ title: subject, preview: subject, body, ...ctx }),
     text: `Reembolso ${orderNumber}: ${statusLabel}`,
   };
 }
@@ -258,7 +262,7 @@ function reviewApprovedEmail(data: Record<string, unknown>, ctx: TemplateContext
 
   return {
     subject,
-    html: renderLayout({ title: subject, preview: subject, body, storeUrl, storeName: ctx.storeName }),
+    html: renderLayout({ title: subject, preview: subject, body, ...ctx }),
     text: `Tu reseña de ${productName} fue publicada.`,
   };
 }
@@ -281,7 +285,7 @@ function reviewRejectedEmail(data: Record<string, unknown>, ctx: TemplateContext
 
   return {
     subject,
-    html: renderLayout({ title: subject, preview: subject, body, storeUrl, storeName: ctx.storeName }),
+    html: renderLayout({ title: subject, preview: subject, body, ...ctx }),
     text: `Reseña de ${productName} no publicada.`,
   };
 }
@@ -305,7 +309,7 @@ function orderPaymentReceivedEmail(data: Record<string, unknown>, ctx: TemplateC
 
   return {
     subject,
-    html: renderLayout({ title: subject, preview: subject, body, storeUrl, storeName: ctx.storeName }),
+    html: renderLayout({ title: subject, preview: subject, body, ...ctx }),
     text: `Pago confirmado para pedido ${orderNumber}.`,
   };
 }

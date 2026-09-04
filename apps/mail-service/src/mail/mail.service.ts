@@ -6,36 +6,35 @@ import type { Transporter } from 'nodemailer';
 import { EcommerceMailTemplate } from '@app/mail-client';
 
 import { SendEcommerceMailDto } from './dto/send-ecommerce-mail.dto';
+import { resolveMailBranding } from './templates/branding';
 import { buildMailContent } from './templates/ecommerce-templates';
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
   private transporter: Transporter | null = null;
-  private readonly storeName: string;
-  private readonly storeUrl: string;
+  private readonly branding: ReturnType<typeof resolveMailBranding>;
   private readonly fromAddress: string;
   private readonly dryRun: boolean;
 
   constructor(private readonly config: ConfigService) {
-    this.storeName = config.get<string>('MAIL_FROM_NAME', 'Novedades Maritex');
-    this.storeUrl = config.get<string>(
-      'ECOMMERCE_STORE_URL',
-      config.get<string>('FRONTEND_URL', 'http://localhost:3001'),
-    );
-    const gmailUser = config.get<string>('GMAIL_USER', '');
-    const fromEmail = config.get<string>('MAIL_FROM_EMAIL', gmailUser);
-    this.fromAddress = fromEmail ? `"${this.storeName}" <${fromEmail}>` : this.storeName;
-    this.dryRun = !gmailUser || !config.get<string>('GMAIL_APP_PASSWORD');
+    this.branding = resolveMailBranding(config);
+    const zohoUser = config.get<string>('ZOHO_USER', '');
+    const fromEmail = config.get<string>('MAIL_FROM_EMAIL', zohoUser);
+    this.fromAddress = fromEmail ? `"${this.branding.storeName}" <${fromEmail}>` : this.branding.storeName;
+    this.dryRun = !zohoUser || !config.get<string>('ZOHO_APP_PASSWORD');
 
     if (this.dryRun) {
-      this.logger.warn('Gmail no configurado — los correos se registrarán en consola (dry-run).');
+      this.logger.warn('Zoho Mail no configurado — los correos se registrarán en consola (dry-run).');
     } else {
+      const port = Number(config.get<string>('ZOHO_SMTP_PORT', '465'));
       this.transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: config.get<string>('ZOHO_SMTP_HOST', 'smtp.zoho.com'),
+        port,
+        secure: port === 465,
         auth: {
-          user: gmailUser,
-          pass: config.getOrThrow<string>('GMAIL_APP_PASSWORD'),
+          user: zohoUser,
+          pass: config.getOrThrow<string>('ZOHO_APP_PASSWORD'),
         },
       });
     }
@@ -47,10 +46,7 @@ export class MailService {
       throw new BadRequestException('Destinatario inválido.');
     }
 
-    const { subject, html, text } = buildMailContent(dto.template, dto.data, {
-      storeName: this.storeName,
-      storeUrl: this.storeUrl,
-    });
+    const { subject, html, text } = buildMailContent(dto.template, dto.data, this.branding);
 
     const finalSubject = dto.subject?.trim() || subject;
 

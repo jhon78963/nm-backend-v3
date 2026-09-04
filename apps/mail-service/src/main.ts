@@ -35,7 +35,7 @@ async function bootstrap() {
   if (config.get('NODE_ENV') !== 'production') {
     const swaggerCfg = new DocumentBuilder()
       .setTitle('nm-services — Mail Service')
-      .setDescription('Envío de correos transaccionales (Gmail SMTP)')
+      .setDescription('Envío de correos transaccionales (Zoho Mail SMTP)')
       .setVersion('1.0')
       .build();
     SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, swaggerCfg));
