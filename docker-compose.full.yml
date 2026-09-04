@@ -357,8 +357,13 @@ services:
       MAIL_SOCIAL_FACEBOOK: ${MAIL_SOCIAL_FACEBOOK:-}
       MAIL_SOCIAL_INSTAGRAM: ${MAIL_SOCIAL_INSTAGRAM:-}
       MAIL_SOCIAL_TIKTOK: ${MAIL_SOCIAL_TIKTOK:-}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      MAIL_QUEUE_ENABLED: ${MAIL_QUEUE_ENABLED:-true}
+      MAIL_QUEUE_CONCURRENCY: ${MAIL_QUEUE_CONCURRENCY:-5}
     ports:
       - '3013:3013'
+    depends_on:
+      - redis
 
   # ── Invoicing Service (Laravel 12 + Greenter — polyglot PHP) ────────────────
 

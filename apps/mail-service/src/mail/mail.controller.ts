@@ -18,7 +18,7 @@ export class MailController {
   }
 
   @Post('ecommerce/send')
-  @ApiOperation({ summary: 'Envía un correo ecommerce (interno)' })
+  @ApiOperation({ summary: 'Encola un correo ecommerce para envío en segundo plano (interno)' })
   sendEcommerce(@Body() dto: SendEcommerceMailDto) {
     return this.mailService.sendEcommerceMail(dto);
   }

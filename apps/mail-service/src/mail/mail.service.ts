@@ -1,43 +1,25 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 import { EcommerceMailTemplate } from '@app/mail-client';
 
 import { SendEcommerceMailDto } from './dto/send-ecommerce-mail.dto';
-import { resolveMailBranding } from './templates/branding';
-import { buildMailContent } from './templates/ecommerce-templates';
+import { MailDeliveryService } from './mail-delivery.service';
+import { MAIL_QUEUE, MAIL_SEND_JOB } from './mail-queue.constants';
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private transporter: Transporter | null = null;
-  private readonly branding: ReturnType<typeof resolveMailBranding>;
-  private readonly fromAddress: string;
-  private readonly dryRun: boolean;
+  private readonly queueEnabled: boolean;
 
-  constructor(private readonly config: ConfigService) {
-    this.branding = resolveMailBranding(config);
-    const zohoUser = config.get<string>('ZOHO_USER', '');
-    const fromEmail = config.get<string>('MAIL_FROM_EMAIL', zohoUser);
-    this.fromAddress = fromEmail ? `"${this.branding.storeName}" <${fromEmail}>` : this.branding.storeName;
-    this.dryRun = !zohoUser || !config.get<string>('ZOHO_APP_PASSWORD');
-
-    if (this.dryRun) {
-      this.logger.warn('Zoho Mail no configurado — los correos se registrarán en consola (dry-run).');
-    } else {
-      const port = Number(config.get<string>('ZOHO_SMTP_PORT', '465'));
-      this.transporter = nodemailer.createTransport({
-        host: config.get<string>('ZOHO_SMTP_HOST', 'smtp.zoho.com'),
-        port,
-        secure: port === 465,
-        auth: {
-          user: zohoUser,
-          pass: config.getOrThrow<string>('ZOHO_APP_PASSWORD'),
-        },
-      });
-    }
+  constructor(
+    @InjectQueue(MAIL_QUEUE) private readonly mailQueue: Queue<SendEcommerceMailDto>,
+    private readonly deliveryService: MailDeliveryService,
+    private readonly config: ConfigService,
+  ) {
+    this.queueEnabled = this.config.get<string>('MAIL_QUEUE_ENABLED', 'true') !== 'false';
   }
 
   async sendEcommerceMail(dto: SendEcommerceMailDto) {
@@ -46,25 +28,39 @@ export class MailService {
       throw new BadRequestException('Destinatario inválido.');
     }
 
-    const { subject, html, text } = buildMailContent(dto.template, dto.data, this.branding);
+    const payload: SendEcommerceMailDto = { ...dto, to };
 
-    const finalSubject = dto.subject?.trim() || subject;
-
-    if (this.dryRun || !this.transporter) {
-      this.logger.log(`[DRY-RUN] ${dto.template} → ${to} | ${finalSubject}`);
-      return { success: true, dryRun: true, template: dto.template, to };
+    if (!this.queueEnabled) {
+      const result = await this.deliveryService.deliverEcommerceMail(payload);
+      return { ...result, queued: false };
     }
 
-    await this.transporter.sendMail({
-      from: this.fromAddress,
-      to,
-      subject: finalSubject,
-      html,
-      text,
-    });
+    try {
+      const job = await this.mailQueue.add(MAIL_SEND_JOB, payload, {
+        attempts: Number(this.config.get<string>('MAIL_QUEUE_ATTEMPTS', '3')),
+        backoff: {
+          type: 'exponential',
+          delay: Number(this.config.get<string>('MAIL_QUEUE_BACKOFF_MS', '5000')),
+        },
+        removeOnComplete: Number(this.config.get<string>('MAIL_QUEUE_REMOVE_ON_COMPLETE', '200')),
+        removeOnFail: Number(this.config.get<string>('MAIL_QUEUE_REMOVE_ON_FAIL', '500')),
+      });
 
-    this.logger.log(`Correo enviado: ${dto.template} → ${to}`);
-    return { success: true, dryRun: false, template: dto.template, to };
+      this.logger.log(`Correo encolado: ${dto.template} → ${to} (job ${job.id})`);
+      return {
+        success: true,
+        queued: true,
+        jobId: job.id,
+        template: dto.template,
+        to,
+      };
+    } catch (error) {
+      this.logger.warn(
+        `Cola mail no disponible — envío síncrono: ${(error as Error).message}`,
+      );
+      const result = await this.deliveryService.deliverEcommerceMail(payload);
+      return { ...result, queued: false, fallback: true };
+    }
   }
 
   listTemplates() {
