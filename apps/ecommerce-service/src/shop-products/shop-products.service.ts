@@ -11,6 +11,7 @@ import {
 } from '../ecommerce-products/ecommerce-products.mapper';
 import { ProductReviewsService } from '../product-reviews/product-reviews.service';
 import { ShopCollectionsService } from '../shop-collections/shop-collections.service';
+import { isVirtualSearchCollectionSlug } from '../shop-collections/constants/virtual-search-collection';
 import { ShopProductSortField, ShopProductsQueryDto } from './dto/shop-products-query.dto';
 
 export interface ShopFacetSize {
@@ -92,18 +93,26 @@ export class ShopProductsService {
       facets: { sizes: [], colors: [] },
     };
 
-    if (collection.productIds.length === 0) {
+    const isSearchCollection = isVirtualSearchCollectionSlug(query.collectionSlug);
+
+    if (!isSearchCollection && collection.productIds.length === 0) {
       return emptyResponse;
     }
 
-    const products = await this.loadCollectionProducts(
-      collection.productIds,
-      query.warehouseId,
-    );
+    const products = isSearchCollection
+      ? await this.loadWarehouseProducts(query.warehouseId)
+      : await this.loadCollectionProducts(collection.productIds, query.warehouseId);
 
     const facets = this.buildFacets(products);
     const filtered = this.applyFilters(products, query);
-    const sorted = this.sortProducts(filtered, query.sort ?? ShopProductSortField.FEATURED, collection.productIds);
+    const sortOrderIds = isSearchCollection
+      ? products.map((product) => product.id)
+      : collection.productIds;
+    const sorted = this.sortProducts(
+      filtered,
+      query.sort ?? ShopProductSortField.FEATURED,
+      sortOrderIds,
+    );
     const total = sorted.length;
     const totalPages = total === 0 ? 0 : Math.ceil(total / perPage);
     const paginated = sorted.slice((page - 1) * perPage, page * perPage);
@@ -131,6 +140,58 @@ export class ShopProductsService {
       meta: { total, page, perPage, totalPages },
       facets,
     };
+  }
+
+  private async loadWarehouseProducts(warehouseId: string): Promise<CollectionProductRow[]> {
+    return this.db.product.findMany({
+      where: {
+        warehouseId,
+        isDeleted: false,
+        status: { in: ['active', 'AVAILABLE'] },
+        wooStatus: { in: ['publish', 'draft'] },
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        shortDescription: true,
+        additionalInfo: true,
+        barcode: true,
+        isOnSale: true,
+        isFeatured: true,
+        isNew: true,
+        percentageDiscount: true,
+        cashDiscount: true,
+        offerPrice: true,
+        createdAt: true,
+        gender: { select: { name: true } },
+        productSizes: {
+          where: { isDeleted: false },
+          select: {
+            id: true,
+            salePrice: true,
+            isDeleted: true,
+            sizeId: true,
+            size: {
+              select: { id: true, description: true, isDeleted: true },
+            },
+            productSizeColors: {
+              select: {
+                colorId: true,
+                color: {
+                  select: { id: true, description: true, hash: true, isDeleted: true },
+                },
+              },
+            },
+          },
+        },
+        media: {
+          orderBy: [{ isCover: 'desc' }, { sortOrder: 'asc' }, { createdAt: 'asc' }],
+          select: { url: true, isCover: true, sortOrder: true },
+        },
+      },
+      orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
+    });
   }
 
   private async loadCollectionProducts(
@@ -257,8 +318,48 @@ export class ShopProductsService {
         return false;
       }
 
+      if (query.onSale && !this.isProductOnSale(product)) {
+        return false;
+      }
+
+      if (query.q?.trim() && !this.matchesSearchQuery(product, query.q)) {
+        return false;
+      }
+
       return true;
     });
+  }
+
+  private matchesSearchQuery(product: CollectionProductRow, rawQuery: string): boolean {
+    const query = rawQuery.trim().toLowerCase();
+    if (!query) return true;
+
+    const haystack = [
+      product.name,
+      product.barcode ?? '',
+      product.shortDescription ?? '',
+    ]
+      .join(' ')
+      .toLowerCase();
+
+    return haystack.includes(query);
+  }
+
+  private isProductOnSale(product: CollectionProductRow): boolean {
+    if (product.isOnSale) return true;
+
+    const offerPrice = product.offerPrice != null ? this.toNumber(product.offerPrice) : 0;
+    if (offerPrice > 0) return true;
+
+    const percentage = product.percentageDiscount
+      ? Number(product.percentageDiscount)
+      : 0;
+    if (Number.isFinite(percentage) && percentage > 0) return true;
+
+    const cashDiscount = product.cashDiscount != null ? Number(product.cashDiscount) : 0;
+    if (Number.isFinite(cashDiscount) && cashDiscount > 0) return true;
+
+    return false;
   }
 
   private sortProducts(

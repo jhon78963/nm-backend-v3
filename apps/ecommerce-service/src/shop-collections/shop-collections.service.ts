@@ -9,6 +9,10 @@ import {
   type ShopCollectionItem,
   type ShopCollectionsConfig,
 } from './constants/shop-collections.defaults';
+import {
+  isVirtualSearchCollectionSlug,
+  VIRTUAL_SEARCH_COLLECTION,
+} from './constants/virtual-search-collection';
 import { ShopCollectionsCacheService } from './shop-collections-cache.service';
 import { UpdateShopCollectionsDto } from './dto/update-shop-collections.dto';
 
@@ -31,6 +35,10 @@ export class ShopCollectionsService {
   }
 
   async getCollectionBySlug(slug: string): Promise<ShopCollectionItem | null> {
+    if (isVirtualSearchCollectionSlug(slug)) {
+      return { ...VIRTUAL_SEARCH_COLLECTION };
+    }
+
     const { collections } = await this.getPublicCollections();
     return collections.find((collection) => collection.slug === slug) ?? null;
   }

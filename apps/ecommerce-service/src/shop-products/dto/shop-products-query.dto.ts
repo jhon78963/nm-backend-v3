@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -58,6 +59,23 @@ export class ShopProductsQueryDto {
   @IsNumber()
   @Min(0)
   maxPrice?: number;
+
+  @ApiPropertyOptional({
+    example: 'polo',
+    description: 'Texto libre (nombre, código de barras, descripción corta)',
+  })
+  @IsOptional()
+  @IsString()
+  q?: string;
+
+  @ApiPropertyOptional({
+    example: true,
+    description: 'Solo productos en oferta (isOnSale, precio oferta o descuentos)',
+  })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  @IsBoolean()
+  onSale?: boolean;
 
   @ApiPropertyOptional({ enum: ShopProductSortField, default: ShopProductSortField.FEATURED })
   @IsOptional()
