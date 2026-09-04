@@ -23,11 +23,15 @@ export type MailBranding = {
   socialLinks?: {
     facebook?: string;
     instagram?: string;
-    twitter?: string;
-    youtube?: string;
-    pinterest?: string;
+    tiktok?: string;
   };
 };
+
+const SOCIAL_NETWORK_ITEMS: Array<{ key: 'facebook' | 'instagram' | 'tiktok'; label: string }> = [
+  { key: 'facebook', label: 'Facebook' },
+  { key: 'instagram', label: 'Instagram' },
+  { key: 'tiktok', label: 'TikTok' },
+];
 
 export type MailLayoutOptions = MailBranding & {
   title: string;
@@ -141,13 +145,7 @@ function renderBanner(bannerUrl: string): string {
 
 function renderDarkFooter(options: MailBranding): string {
   const { storeName, socialLinks = {} } = options;
-  const socialItems = [
-    { key: 'facebook', label: 'Facebook' },
-    { key: 'instagram', label: 'Instagram' },
-    { key: 'twitter', label: 'Twitter' },
-    { key: 'youtube', label: 'YouTube' },
-    { key: 'pinterest', label: 'Pinterest' },
-  ].filter((item) => socialLinks[item.key as keyof typeof socialLinks]);
+  const socialItems = SOCIAL_NETWORK_ITEMS.filter((item) => socialLinks[item.key]);
 
   const socialBlock =
     socialItems.length > 0
@@ -159,7 +157,7 @@ function renderDarkFooter(options: MailBranding): string {
                   .map(
                     (item) => `
                   <td style="padding:0 8px;">
-                    <a href="${escapeHtml(socialLinks[item.key as keyof typeof socialLinks]!)}" style="text-decoration:none;font-weight:700;font-size:12px;line-height:20px;color:${MAIL_THEME.primary};text-transform:uppercase;">
+                    <a href="${escapeHtml(socialLinks[item.key]!)}" style="text-decoration:none;font-weight:700;font-size:12px;line-height:20px;color:${MAIL_THEME.primary};text-transform:uppercase;">
                       ${escapeHtml(item.label)}
                     </a>
                   </td>`,
@@ -193,13 +191,7 @@ function renderDarkFooter(options: MailBranding): string {
 
 function renderLightFooter(options: MailBranding): string {
   const { storeName, socialLinks = {} } = options;
-  const socialItems = [
-    { key: 'facebook', label: 'Facebook' },
-    { key: 'instagram', label: 'Instagram' },
-    { key: 'twitter', label: 'Twitter' },
-    { key: 'youtube', label: 'YouTube' },
-    { key: 'pinterest', label: 'Pinterest' },
-  ].filter((item) => socialLinks[item.key as keyof typeof socialLinks]);
+  const socialItems = SOCIAL_NETWORK_ITEMS.filter((item) => socialLinks[item.key]);
 
   const socialBlock =
     socialItems.length > 0
@@ -209,7 +201,7 @@ function renderLightFooter(options: MailBranding): string {
               .map(
                 (item) => `
               <td style="padding:0 6px;">
-                <a href="${escapeHtml(socialLinks[item.key as keyof typeof socialLinks]!)}" style="text-decoration:none;font-size:13px;color:#444444;">
+                <a href="${escapeHtml(socialLinks[item.key]!)}" style="text-decoration:none;font-size:13px;color:#444444;">
                   ${escapeHtml(item.label)}
                 </a>
               </td>`,
@@ -264,7 +256,7 @@ export function renderHeading(title: string, options?: { centered?: boolean }): 
 
   return `
     <h1 style="margin:0 0 8px;font-weight:700;font-size:18px;line-height:24px;color:${MAIL_THEME.text};text-align:${align};">
-      ${title}
+      ${escapeHtml(title)}
     </h1>`;
 }
 
@@ -274,7 +266,7 @@ export function renderParagraph(text: string, options?: { centered?: boolean; mu
 
   return `
     <p style="margin:0 0 16px;font-weight:600;font-size:14px;line-height:22px;text-align:${align};color:${color};">
-      ${text}
+      ${escapeHtml(text)}
     </p>`;
 }
 

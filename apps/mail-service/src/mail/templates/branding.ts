@@ -12,9 +12,7 @@ export function resolveMailBranding(config: ConfigService): MailBranding {
   const socialLinks = {
     facebook: config.get<string>('MAIL_SOCIAL_FACEBOOK', ''),
     instagram: config.get<string>('MAIL_SOCIAL_INSTAGRAM', ''),
-    twitter: config.get<string>('MAIL_SOCIAL_TWITTER', ''),
-    youtube: config.get<string>('MAIL_SOCIAL_YOUTUBE', ''),
-    pinterest: config.get<string>('MAIL_SOCIAL_PINTEREST', ''),
+    tiktok: config.get<string>('MAIL_SOCIAL_TIKTOK', ''),
   };
 
   const filteredSocialLinks = Object.fromEntries(

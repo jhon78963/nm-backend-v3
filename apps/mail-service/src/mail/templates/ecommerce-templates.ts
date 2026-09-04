@@ -1,7 +1,17 @@
 import { EcommerceMailTemplate } from '@app/mail-client';
 
 import {
-  formatAddress,
+  renderAddressSection,
+  renderInfoRow,
+  renderMutedNote,
+  renderOrderItemsTable,
+  renderOrderTotalsTable,
+  renderSectionTitle,
+  renderStatusHighlight,
+  renderSubHeading,
+  renderSuccessHero,
+} from './ecommerce-partials';
+import {
   formatMoney,
   MailBranding,
   renderButton,
@@ -68,15 +78,12 @@ function passwordResetEmail(data: Record<string, unknown>, ctx: TemplateContext)
   const expiresInMinutes = Number(data.expiresInMinutes ?? 60);
   const subject = 'Restablece tu contraseña';
   const body = `
-    <h1 style="margin:0 0 16px;font-size:24px;">Restablecer contraseña</h1>
-    <p style="line-height:1.6;margin:0 0 16px;">
-      Hola ${customerName}, recibimos una solicitud para restablecer tu contraseña.
-      El enlace expira en ${expiresInMinutes} minutos.
-    </p>
+    ${renderHeading('Restablecer contraseña')}
+    ${renderParagraph(
+      `Hola ${customerName}, recibimos una solicitud para restablecer tu contraseña. El enlace expira en ${expiresInMinutes} minutos.`,
+    )}
     ${renderButton(resetUrl, 'Restablecer contraseña')}
-    <p style="line-height:1.6;margin:16px 0 0;font-size:14px;color:#71717a;">
-      Si no solicitaste este cambio, ignora este correo.
-    </p>
+    ${renderMutedNote('Si no solicitaste este cambio, ignora este correo.')}
   `;
 
   return {
@@ -98,48 +105,45 @@ function orderConfirmationEmail(data: Record<string, unknown>, ctx: TemplateCont
   const paymentMethodTitle = String(data.paymentMethodTitle ?? '');
   const shippingAddress = (data.shippingAddress as Record<string, unknown>) ?? {};
   const trackUrl = String(data.trackUrl);
-  const storeUrl = String(data.storeUrl ?? ctx.storeUrl);
-
-  const itemsHtml = items
-    .map(
-      (item) => `
-      <tr>
-        <td style="padding:8px 0;border-bottom:1px solid #f4f4f5;">
-          <strong>${String(item.name)}</strong>
-          ${item.variationLabel ? `<br><span style="color:#71717a;font-size:13px;">${String(item.variationLabel)}</span>` : ''}
-        </td>
-        <td style="padding:8px 0;border-bottom:1px solid #f4f4f5;text-align:center;">${Number(item.quantity)}</td>
-        <td style="padding:8px 0;border-bottom:1px solid #f4f4f5;text-align:right;">${formatMoney(Number(item.subtotal))}</td>
-      </tr>`,
-    )
-    .join('');
 
   const subject = `Pedido confirmado — ${orderNumber}`;
   const body = `
-    <h1 style="margin:0 0 8px;font-size:24px;">¡Gracias por tu compra!</h1>
-    <p style="line-height:1.6;margin:0 0 20px;">Hola ${customerName}, recibimos tu pedido <strong>${orderNumber}</strong>.</p>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">
-      <tr>
-        <th align="left" style="padding:8px 0;border-bottom:2px solid #e4e4e7;">Producto</th>
-        <th style="padding:8px 0;border-bottom:2px solid #e4e4e7;">Cant.</th>
-        <th align="right" style="padding:8px 0;border-bottom:2px solid #e4e4e7;">Subtotal</th>
-      </tr>
-      ${itemsHtml}
-    </table>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">
-      <tr><td>Subtotal</td><td align="right">${formatMoney(subtotal)}</td></tr>
-      <tr><td>Envío (${shippingMethodTitle})</td><td align="right">${formatMoney(shippingTotal)}</td></tr>
-      ${couponDiscount > 0 ? `<tr><td>Descuento</td><td align="right">-${formatMoney(couponDiscount)}</td></tr>` : ''}
-      <tr><td><strong>Total</strong></td><td align="right"><strong>${formatMoney(total)}</strong></td></tr>
-    </table>
-    <p style="margin:0 0 8px;"><strong>Método de pago:</strong> ${paymentMethodTitle}</p>
-    <p style="margin:0 0 20px;"><strong>Envío a:</strong><br>${formatAddress(shippingAddress as never)}</p>
+    ${renderSuccessHero({
+      title: '¡Gracias!',
+      subtitle: `Hola ${customerName}, recibimos tu pedido y ya estamos preparándolo.`,
+      meta: `Pedido: ${orderNumber}`,
+    })}
+    ${renderSectionTitle('Detalle de tu pedido')}
+    ${renderOrderItemsTable(
+      items.map((item) => ({
+        name: String(item.name),
+        variationLabel: item.variationLabel ? String(item.variationLabel) : undefined,
+        quantity: Number(item.quantity),
+        subtotal: Number(item.subtotal),
+        imageUrl: item.imageUrl ? String(item.imageUrl) : undefined,
+      })),
+    )}
+    ${renderOrderTotalsTable({
+      subtotal,
+      shippingTotal,
+      shippingMethodTitle,
+      couponDiscount,
+      total,
+    })}
+    ${renderInfoRow('Método de pago', paymentMethodTitle)}
+    ${renderAddressSection({ shippingAddress })}
     ${renderButton(trackUrl, 'Seguir mi pedido')}
   `;
 
   return {
     subject,
-    html: renderLayout({ title: subject, preview: `Tu pedido ${orderNumber} fue registrado`, body, ...ctx, footerVariant: 'light' }),
+    html: renderLayout({
+      title: subject,
+      preview: `Tu pedido ${orderNumber} fue registrado`,
+      body,
+      ...ctx,
+      footerVariant: 'light',
+    }),
     text: `Pedido ${orderNumber} confirmado. Total: ${formatMoney(total)}. Seguimiento: ${trackUrl}`,
   };
 }
@@ -151,16 +155,13 @@ function orderStatusUpdateEmail(data: Record<string, unknown>, ctx: TemplateCont
   const trackingNumber = data.trackingNumber ? String(data.trackingNumber) : undefined;
   const trackingUrl = data.trackingUrl ? String(data.trackingUrl) : undefined;
   const trackUrl = String(data.trackUrl);
-  const storeUrl = String(data.storeUrl ?? ctx.storeUrl);
 
   const subject = `Actualización de pedido ${orderNumber}`;
   const body = `
-    <h1 style="margin:0 0 16px;font-size:24px;">Tu pedido fue actualizado</h1>
-    <p style="line-height:1.6;margin:0 0 16px;">
-      Hola ${customerName}, el estado de tu pedido <strong>${orderNumber}</strong> ahora es:
-      <strong>${statusLabel}</strong>.
-    </p>
-    ${trackingNumber ? `<p style="margin:0 0 8px;"><strong>Guía de seguimiento:</strong> ${trackingNumber}</p>` : ''}
+    ${renderHeading('Tu pedido fue actualizado')}
+    ${renderParagraph(`Hola ${customerName}, tenemos novedades sobre tu pedido ${orderNumber}.`)}
+    ${renderStatusHighlight(statusLabel)}
+    ${trackingNumber ? renderInfoRow('Guía de seguimiento', trackingNumber) : ''}
     ${trackingUrl ? renderButton(trackingUrl, 'Rastrear envío') : ''}
     ${renderButton(trackUrl, 'Ver detalle del pedido')}
   `;
@@ -176,16 +177,18 @@ function orderDeliveredEmail(data: Record<string, unknown>, ctx: TemplateContext
   const customerName = String(data.customerName ?? 'Cliente');
   const orderNumber = String(data.orderNumber);
   const reviewUrl = String(data.reviewUrl);
-  const storeUrl = String(data.storeUrl ?? ctx.storeUrl);
   const subject = `¡Tu pedido ${orderNumber} fue entregado!`;
 
   const body = `
-    <h1 style="margin:0 0 16px;font-size:24px;">Pedido entregado</h1>
-    <p style="line-height:1.6;margin:0 0 16px;">
-      Hola ${customerName}, confirmamos la entrega de tu pedido <strong>${orderNumber}</strong>.
-      Esperamos que disfrutes tu compra.
-    </p>
+    ${renderHeading(`Hola ${customerName},`)}
+    ${renderParagraph(
+      `Confirmamos la entrega de tu pedido ${orderNumber}. Esperamos que disfrutes tu compra y nos encantaría conocer tu opinión.`,
+    )}
+    ${renderSubHeading('¿Qué te pareció tu pedido?')}
+    ${renderParagraph('Tu feedback nos ayuda a seguir mejorando y a orientar a otros clientes.', { muted: true })}
     ${renderButton(reviewUrl, 'Dejar una reseña')}
+    ${renderSubHeading('¡Gracias!')}
+    ${renderParagraph('Tu opinión es muy valiosa para nosotros.', { muted: true })}
   `;
 
   return {
@@ -203,11 +206,9 @@ function orderCancelledEmail(data: Record<string, unknown>, ctx: TemplateContext
   const subject = `Pedido ${orderNumber} cancelado`;
 
   const body = `
-    <h1 style="margin:0 0 16px;font-size:24px;">Pedido cancelado</h1>
-    <p style="line-height:1.6;margin:0 0 16px;">
-      Hola ${customerName}, tu pedido <strong>${orderNumber}</strong> fue cancelado.
-    </p>
-    ${reason ? `<p style="line-height:1.6;margin:0 0 16px;color:#71717a;">Motivo: ${reason}</p>` : ''}
+    ${renderHeading('Pedido cancelado')}
+    ${renderParagraph(`Hola ${customerName}, tu pedido ${orderNumber} fue cancelado.`)}
+    ${reason ? renderMutedNote(`Motivo: ${reason}`) : ''}
     ${renderButton(storeUrl, 'Volver a la tienda')}
   `;
 
@@ -228,13 +229,13 @@ function refundStatusUpdateEmail(data: Record<string, unknown>, ctx: TemplateCon
   const subject = `Actualización de reembolso — ${orderNumber}`;
 
   const body = `
-    <h1 style="margin:0 0 16px;font-size:24px;">Estado de tu reembolso</h1>
-    <p style="line-height:1.6;margin:0 0 16px;">
-      Hola ${customerName}, el reembolso de tu pedido <strong>${orderNumber}</strong> está en estado:
-      <strong>${statusLabel}</strong>.
-    </p>
-    ${amount !== undefined ? `<p style="margin:0 0 8px;"><strong>Monto:</strong> ${formatMoney(amount)}</p>` : ''}
-    ${adminNotes ? `<p style="line-height:1.6;margin:0 0 16px;color:#71717a;">${adminNotes}</p>` : ''}
+    ${renderHeading('Estado de tu reembolso')}
+    ${renderParagraph(
+      `Hola ${customerName}, el reembolso de tu pedido ${orderNumber} tiene una actualización.`,
+    )}
+    ${renderStatusHighlight(statusLabel)}
+    ${amount !== undefined ? renderInfoRow('Monto', formatMoney(amount)) : ''}
+    ${adminNotes ? renderMutedNote(adminNotes) : ''}
     ${renderButton(storeUrl, 'Ir a la tienda')}
   `;
 
@@ -249,14 +250,13 @@ function reviewApprovedEmail(data: Record<string, unknown>, ctx: TemplateContext
   const customerName = String(data.customerName ?? 'Cliente');
   const productName = String(data.productName);
   const productUrl = String(data.productUrl);
-  const storeUrl = String(data.storeUrl ?? ctx.storeUrl);
   const subject = 'Tu reseña fue publicada';
 
   const body = `
-    <h1 style="margin:0 0 16px;font-size:24px;">¡Gracias por tu opinión!</h1>
-    <p style="line-height:1.6;margin:0 0 16px;">
-      Hola ${customerName}, tu reseña sobre <strong>${productName}</strong> ya está visible en la tienda.
-    </p>
+    ${renderHeading('¡Gracias por tu opinión!')}
+    ${renderParagraph(
+      `Hola ${customerName}, tu reseña sobre ${productName} ya está visible en la tienda.`,
+    )}
     ${renderButton(productUrl, 'Ver producto')}
   `;
 
@@ -275,11 +275,11 @@ function reviewRejectedEmail(data: Record<string, unknown>, ctx: TemplateContext
   const subject = 'Actualización sobre tu reseña';
 
   const body = `
-    <h1 style="margin:0 0 16px;font-size:24px;">Reseña no publicada</h1>
-    <p style="line-height:1.6;margin:0 0 16px;">
-      Hola ${customerName}, no pudimos publicar tu reseña sobre <strong>${productName}</strong>.
-    </p>
-    ${reason ? `<p style="line-height:1.6;margin:0 0 16px;color:#71717a;">Motivo: ${reason}</p>` : ''}
+    ${renderHeading('Reseña no publicada')}
+    ${renderParagraph(
+      `Hola ${customerName}, no pudimos publicar tu reseña sobre ${productName}.`,
+    )}
+    ${reason ? renderMutedNote(`Motivo: ${reason}`) : ''}
     ${renderButton(storeUrl, 'Volver a la tienda')}
   `;
 
@@ -295,21 +295,21 @@ function orderPaymentReceivedEmail(data: Record<string, unknown>, ctx: TemplateC
   const orderNumber = String(data.orderNumber);
   const total = Number(data.total ?? 0);
   const trackUrl = String(data.trackUrl);
-  const storeUrl = String(data.storeUrl ?? ctx.storeUrl);
   const subject = `Pago confirmado — ${orderNumber}`;
 
   const body = `
-    <h1 style="margin:0 0 16px;font-size:24px;">Pago recibido</h1>
-    <p style="line-height:1.6;margin:0 0 16px;">
-      Hola ${customerName}, confirmamos el pago de tu pedido <strong>${orderNumber}</strong>
-      por <strong>${formatMoney(total)}</strong>.
-    </p>
+    ${renderSuccessHero({
+      title: 'Pago confirmado',
+      subtitle: `Hola ${customerName}, recibimos el pago de tu pedido.`,
+      meta: `Pedido ${orderNumber} · ${formatMoney(total)}`,
+    })}
+    ${renderParagraph('Tu pedido continuará su proceso y te avisaremos cuando haya novedades.', { muted: true })}
     ${renderButton(trackUrl, 'Ver mi pedido')}
   `;
 
   return {
     subject,
-    html: renderLayout({ title: subject, preview: subject, body, ...ctx }),
+    html: renderLayout({ title: subject, preview: subject, body, ...ctx, footerVariant: 'light' }),
     text: `Pago confirmado para pedido ${orderNumber}.`,
   };
 }
