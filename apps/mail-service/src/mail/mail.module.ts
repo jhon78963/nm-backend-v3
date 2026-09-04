@@ -1,6 +1,6 @@
-import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+
+import { QueueManagerModule } from '@app/queue-manager';
 
 import { MailServiceKeyGuard } from '../guards/mail-service-key.guard';
 import { MailDeliveryService } from './mail-delivery.service';
@@ -11,16 +11,10 @@ import { MailService } from './mail.service';
 
 @Module({
   imports: [
-    BullModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        connection: {
-          url: config.get<string>('REDIS_URL', 'redis://localhost:6379'),
-        },
-      }),
+    QueueManagerModule.registerQueues({
+      name: MAIL_QUEUE,
+      configPrefix: 'MAIL',
     }),
-    BullModule.registerQueue({ name: MAIL_QUEUE }),
   ],
   controllers: [MailController],
   providers: [MailService, MailDeliveryService, MailProcessor, MailServiceKeyGuard],

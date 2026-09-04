@@ -4,23 +4,23 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 
 import { EcommerceMailTemplate } from '@app/mail-client';
+import { isQueueEnabled, resolveDefaultJobOptions } from '@app/queue-manager';
 
 import { SendEcommerceMailDto } from './dto/send-ecommerce-mail.dto';
 import { MailDeliveryService } from './mail-delivery.service';
 import { MAIL_QUEUE, MAIL_SEND_JOB } from './mail-queue.constants';
 
+const MAIL_QUEUE_PREFIX = 'MAIL';
+
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private readonly queueEnabled: boolean;
 
   constructor(
     @InjectQueue(MAIL_QUEUE) private readonly mailQueue: Queue<SendEcommerceMailDto>,
     private readonly deliveryService: MailDeliveryService,
     private readonly config: ConfigService,
-  ) {
-    this.queueEnabled = this.config.get<string>('MAIL_QUEUE_ENABLED', 'true') !== 'false';
-  }
+  ) {}
 
   async sendEcommerceMail(dto: SendEcommerceMailDto) {
     const to = dto.to.trim().toLowerCase();
@@ -30,21 +30,17 @@ export class MailService {
 
     const payload: SendEcommerceMailDto = { ...dto, to };
 
-    if (!this.queueEnabled) {
+    if (!isQueueEnabled(this.config, MAIL_QUEUE_PREFIX)) {
       const result = await this.deliveryService.deliverEcommerceMail(payload);
       return { ...result, queued: false };
     }
 
     try {
-      const job = await this.mailQueue.add(MAIL_SEND_JOB, payload, {
-        attempts: Number(this.config.get<string>('MAIL_QUEUE_ATTEMPTS', '3')),
-        backoff: {
-          type: 'exponential',
-          delay: Number(this.config.get<string>('MAIL_QUEUE_BACKOFF_MS', '5000')),
-        },
-        removeOnComplete: Number(this.config.get<string>('MAIL_QUEUE_REMOVE_ON_COMPLETE', '200')),
-        removeOnFail: Number(this.config.get<string>('MAIL_QUEUE_REMOVE_ON_FAIL', '500')),
-      });
+      const job = await this.mailQueue.add(
+        MAIL_SEND_JOB,
+        payload,
+        resolveDefaultJobOptions(this.config, MAIL_QUEUE_PREFIX),
+      );
 
       this.logger.log(`Correo encolado: ${dto.template} → ${to} (job ${job.id})`);
       return {

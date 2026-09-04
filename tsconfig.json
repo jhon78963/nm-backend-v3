@@ -33,7 +33,9 @@
       "@app/document-client": ["./libs/document-client/src"],
       "@app/document-client/*": ["./libs/document-client/src/*"],
       "@app/mail-client": ["./libs/mail-client/src"],
-      "@app/mail-client/*": ["./libs/mail-client/src/*"]
+      "@app/mail-client/*": ["./libs/mail-client/src/*"],
+      "@app/queue-manager": ["./libs/queue-manager/src"],
+      "@app/queue-manager/*": ["./libs/queue-manager/src/*"]
     }
   }
 }

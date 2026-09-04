@@ -202,6 +202,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/mail-client/tsconfig.lib.json"
       }
+    },
+    "queue-manager": {
+      "type": "library",
+      "root": "libs/queue-manager",
+      "entryFile": "index",
+      "sourceRoot": "libs/queue-manager/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/queue-manager/tsconfig.lib.json"
+      }
     }
   }
 }
