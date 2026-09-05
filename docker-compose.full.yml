@@ -481,8 +481,8 @@ services:
       PORT: 3000
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-nm_services}
       ADMIN_PANEL_DIST: /app/admin/dist
-      CORS_ORIGINS: http://localhost:4200,http://localhost:5173,http://localhost:8080,http://localhost:3015
-      ADMIN_CORS_ORIGIN: http://localhost:8080
+      CORS_ORIGINS: ${CHATBOT_CORS_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:8080,http://localhost:3015}
+      ADMIN_CORS_ORIGIN: ${CHATBOT_ADMIN_CORS_ORIGIN:-http://localhost:8080}
     ports:
       - '${CHATBOT_PORT:-8090}:3000'
     volumes:
