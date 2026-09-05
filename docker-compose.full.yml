@@ -4,6 +4,12 @@
 # Uso: ./scripts/start-docker-env.sh   (o ver ese script para comandos exactos)
 # =============================================================================
 
+x-depends-postgres-migrated: &depends-postgres-migrated
+  postgres:
+    condition: service_healthy
+  migrate:
+    condition: service_completed_successfully
+
 x-service-defaults: &service-defaults
   build:
     context: .
@@ -12,9 +18,7 @@ x-service-defaults: &service-defaults
   env_file:
     - .env
     - .env.docker
-  depends_on:
-    postgres:
-      condition: service_healthy
+  depends_on: *depends-postgres-migrated
   networks:
     - default
 
@@ -76,7 +80,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-nm_services}
       LARAVEL_SOURCE_DB: nm_db
-      RUN_LARAVEL_ETL: ${RUN_LARAVEL_ETL:-true}
+      RUN_LARAVEL_ETL: ${RUN_LARAVEL_ETL:-false}
     depends_on:
       postgres:
         condition: service_healthy
@@ -113,21 +117,38 @@ services:
     ports:
       - '3000:3000'
     depends_on:
-      - migrate
-      - auth-service
-      - catalog-service
-      - inventory-service
-      - pos-service
-      - finance-service
-      - hr-service
-      - report-service
-      - document-service
-      - ai-engine
-      - invoicing-service
-      - chatbot-service
-      - storage-service
-      - ecommerce-service
-      - mail-service
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      auth-service:
+        condition: service_started
+      catalog-service:
+        condition: service_started
+      inventory-service:
+        condition: service_started
+      pos-service:
+        condition: service_started
+      finance-service:
+        condition: service_started
+      hr-service:
+        condition: service_started
+      report-service:
+        condition: service_started
+      document-service:
+        condition: service_started
+      ai-engine:
+        condition: service_started
+      invoicing-service:
+        condition: service_started
+      chatbot-service:
+        condition: service_started
+      storage-service:
+        condition: service_started
+      ecommerce-service:
+        condition: service_started
+      mail-service:
+        condition: service_started
 
   auth-service:
     <<: *service-defaults
@@ -150,9 +171,14 @@ services:
     ports:
       - '3001:3001'
     depends_on:
-      - migrate
-      - storage-service
-      - mail-service
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      storage-service:
+        condition: service_started
+      mail-service:
+        condition: service_started
 
   catalog-service:
     <<: *service-defaults
@@ -170,8 +196,12 @@ services:
     ports:
       - '3002:3002'
     depends_on:
-      - migrate
-      - storage-service
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      storage-service:
+        condition: service_started
 
   inventory-service:
     <<: *service-defaults
@@ -186,8 +216,6 @@ services:
       APP_PORT: 3003
     ports:
       - '3003:3003'
-    depends_on:
-      - migrate
 
   pos-service:
     <<: *service-defaults
@@ -202,8 +230,6 @@ services:
       APP_PORT: 3004
     ports:
       - '3004:3004'
-    depends_on:
-      - migrate
 
   finance-service:
     <<: *service-defaults
@@ -221,8 +247,12 @@ services:
     ports:
       - '3005:3005'
     depends_on:
-      - migrate
-      - storage-service
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      storage-service:
+        condition: service_started
 
   hr-service:
     <<: *service-defaults
@@ -237,8 +267,6 @@ services:
       APP_PORT: 3006
     ports:
       - '3006:3006'
-    depends_on:
-      - migrate
 
   ecommerce-service:
     <<: *service-defaults
@@ -262,10 +290,16 @@ services:
     ports:
       - '3012:3012'
     depends_on:
-      - migrate
-      - redis
-      - storage-service
-      - mail-service
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      storage-service:
+        condition: service_started
+      mail-service:
+        condition: service_started
 
   report-service:
     <<: *service-defaults
@@ -284,9 +318,14 @@ services:
     ports:
       - '3007:3007'
     depends_on:
-      - migrate
-      - ai-engine
-      - document-service
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      ai-engine:
+        condition: service_started
+      document-service:
+        condition: service_started
 
   document-service:
     <<: *service-defaults
@@ -303,8 +342,6 @@ services:
       PUPPETEER_EXECUTABLE_PATH: ${PUPPETEER_EXECUTABLE_PATH:-/usr/bin/chromium-browser}
     ports:
       - '3011:3011'
-    depends_on:
-      - migrate
 
   storage-service:
     <<: *service-defaults
@@ -331,8 +368,6 @@ services:
       sh -c "mkdir -p /data/uploads &&
              chown -R nestjs:nestjs /data/uploads &&
              exec node dist/apps/storage-service/apps/storage-service/src/main.js"
-    depends_on:
-      - migrate
 
   mail-service:
     <<: *service-defaults
@@ -369,7 +404,12 @@ services:
     ports:
       - '3013:3013'
     depends_on:
-      - redis
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
 
   # ── Invoicing Service (Laravel 12 + Greenter — polyglot PHP) ────────────────
 
@@ -396,6 +436,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - default
 
@@ -416,6 +458,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - default
 
@@ -437,6 +481,8 @@ services:
       PORT: 3000
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-nm_services}
       ADMIN_PANEL_DIST: /app/admin/dist
+      CORS_ORIGINS: http://localhost:4200,http://localhost:5173,http://localhost:8080,http://localhost:3015
+      ADMIN_CORS_ORIGIN: http://localhost:8080
     ports:
       - '${CHATBOT_PORT:-8090}:3000'
     volumes:

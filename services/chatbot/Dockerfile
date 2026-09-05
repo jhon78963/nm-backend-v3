@@ -14,6 +14,8 @@ FROM node:24-alpine AS builder
 
 WORKDIR /app
 
+RUN apk add --no-cache openssl libc6-compat
+
 COPY services/chatbot/package*.json ./
 RUN npm ci --ignore-scripts
 
@@ -46,6 +48,8 @@ LABEL org.opencontainers.image.description="Chatbot NM — Maritex WhatsApp, Nod
 LABEL org.opencontainers.image.vendor="Novedades Maritex"
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+RUN apk add --no-cache openssl libc6-compat wget
 
 WORKDIR /app
 

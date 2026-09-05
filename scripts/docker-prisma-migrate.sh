@@ -80,11 +80,15 @@ SQL
 run_laravel_etl() {
   if [ "${RUN_LARAVEL_ETL:-true}" != "true" ]; then
     log "RUN_LARAVEL_ETL=false — ETL omitido."
+    seed_document_series
+    seed_chatbot
     return 0
   fi
 
   if [ "$(db_exists "$LARAVEL_DB")" != "t" ]; then
     log "No existe ${LARAVEL_DB} — ETL omitido."
+    seed_document_series
+    seed_chatbot
     return 0
   fi
 
@@ -104,6 +108,20 @@ run_laravel_etl() {
   npx ts-node --project tsconfig.migration.json scripts/migrate-action-logs.ts
   npx ts-node --project tsconfig.migration.json scripts/migrate-permissions.ts
   log "ETL completado."
+  seed_document_series
+  seed_chatbot
+}
+
+seed_document_series() {
+  log "Sembrando series documentales (BOLETA/FACTURA)..."
+  npx ts-node --project tsconfig.migration.json scripts/seed-document-series.ts
+  log "Series documentales listas."
+}
+
+seed_chatbot() {
+  log "Sembrando agente admin del chatbot..."
+  npx ts-node --project tsconfig.migration.json libs/database/prisma/seeds/chatbot-seed.ts
+  log "Chatbot seed listo."
 }
 
 run_dev_admin_seed() {
@@ -121,6 +139,8 @@ run_dev_admin_seed() {
 
 if [ "$(has_prisma_migrations)" = "t" ]; then
   apply_prisma_migrations
+  seed_document_series
+  seed_chatbot
   run_dev_admin_seed
   exit 0
 fi

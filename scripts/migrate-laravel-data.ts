@@ -57,6 +57,7 @@ const NS = {
   TEAM:          'a0000016-0000-5000-8000-000000000000',
   ATTENDANCE:    'a0000017-0000-5000-8000-000000000000',
   TEAM_PAYMENT:  'a0000018-0000-5000-8000-000000000000',
+  DOCUMENT_SERIES: 'a0000019-0000-5000-8000-000000000000',
 } as const;
 
 // ─── Mapas de IDs en memoria ──────────────────────────────────────────────────
@@ -917,6 +918,41 @@ async function migrate(): Promise<void> {
         console.log(`     → ${rows.length} registros`);
       } else {
         warn('Tabla sale_payments no encontrada en origen, omitida');
+      }
+    }
+
+    // ── 12d. document_series ───────────────────────────────────────────────────
+    log('Migrando: document_series');
+    {
+      const exists = await tableExists(src, 'document_series');
+      if (exists) {
+        const { rows } = await src.query(
+          `SELECT id, warehouse_id, document_type, serie, current_number
+           FROM document_series ORDER BY id`,
+        );
+        for (const r of rows) {
+          const newId = toUUID(NS.DOCUMENT_SERIES, r.id);
+          const warehouseUUID = mapId(idMap.warehouses, r.warehouse_id);
+          if (!warehouseUUID) {
+            warn(`document_series ${r.id}: warehouse faltante, omitido`);
+            continue;
+          }
+          await dst.query(
+            `INSERT INTO document_series (id, warehouse_id, document_type, serie, current_number)
+             VALUES ($1, $2, $3, $4, $5)
+             ON CONFLICT (warehouse_id, document_type, serie) DO NOTHING`,
+            [
+              newId,
+              warehouseUUID,
+              r.document_type,
+              r.serie,
+              r.current_number ?? 1,
+            ],
+          );
+        }
+        console.log(`     → ${rows.length} registros`);
+      } else {
+        warn('Tabla document_series no encontrada en origen, se sembrará al final');
       }
     }
 

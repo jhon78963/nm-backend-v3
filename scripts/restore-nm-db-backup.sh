@@ -6,15 +6,20 @@
 #   ./scripts/restore-nm-db-backup.sh
 #   ./scripts/restore-nm-db-backup.sh /ruta/al/backup.backup
 #
-# Requiere: stack Docker con postgres (docker-compose.full.yml o docker-compose.yml)
+# Compatible con:
+#   - nm-backend-v3/docker-compose.full.yml (solo backend)
+#   - nm-deploy/docker-compose.yml (stack unificado; reutiliza nm_postgres si ya corre)
+#
+# Variables opcionales:
+#   COMPOSE_FILE=/ruta/docker-compose.yml
+#   POSTGRES_CONTAINER=nm_postgres
 # =============================================================================
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEFAULT_BACKUP="$ROOT/../nm-backup/nm_db_restore_03_09_2026.backup"
+DEPLOY_ROOT="$ROOT/../nm-deploy"
+DEFAULT_BACKUP="$ROOT/../nm-backup/nm_db_restore_04_09_2026.backup"
 BACKUP_FILE="${1:-$DEFAULT_BACKUP}"
-COMPOSE_FILE="$ROOT/docker-compose.full.yml"
-FALLBACK_COMPOSE_FILE="$ROOT/docker-compose.yml"
 
 PGUSER="${POSTGRES_USER:-postgres}"
 PGPASSWORD="${POSTGRES_PASSWORD:-password}"
@@ -39,14 +44,36 @@ else
   DC="docker-compose"
 fi
 
-if [ -f "$COMPOSE_FILE" ]; then
-  COMPOSE_ARGS=(-f "$COMPOSE_FILE")
-elif [ -f "$FALLBACK_COMPOSE_FILE" ]; then
-  COMPOSE_ARGS=(-f "$FALLBACK_COMPOSE_FILE")
-else
-  err "No se encontró docker-compose.full.yml ni docker-compose.yml"
+resolve_compose() {
+  if [ -n "${COMPOSE_FILE:-}" ] && [ -f "$COMPOSE_FILE" ]; then
+    COMPOSE_ARGS=(-f "$COMPOSE_FILE")
+    COMPOSE_WORKDIR="$(cd "$(dirname "$COMPOSE_FILE")" && pwd)"
+    return
+  fi
+
+  if [ -f "$DEPLOY_ROOT/docker-compose.yml" ]; then
+    COMPOSE_ARGS=(-f "$DEPLOY_ROOT/docker-compose.yml")
+    COMPOSE_WORKDIR="$DEPLOY_ROOT"
+    return
+  fi
+
+  if [ -f "$ROOT/docker-compose.full.yml" ]; then
+    COMPOSE_ARGS=(-f "$ROOT/docker-compose.full.yml")
+    COMPOSE_WORKDIR="$ROOT"
+    return
+  fi
+
+  if [ -f "$ROOT/docker-compose.yml" ]; then
+    COMPOSE_ARGS=(-f "$ROOT/docker-compose.yml")
+    COMPOSE_WORKDIR="$ROOT"
+    return
+  fi
+
+  err "No se encontró docker-compose (nm-deploy ni nm-backend-v3)."
   exit 1
-fi
+}
+
+resolve_compose
 
 POSTGRES_SERVICE="postgres"
 POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-nm_postgres}"
@@ -54,13 +81,24 @@ POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-nm_postgres}"
 log "Backup: $BACKUP_FILE"
 log "Base Laravel destino: $LARAVEL_DB"
 log "Base Prisma destino: $SERVICES_DB"
+log "Compose: ${COMPOSE_ARGS[*]}"
 
-$DC "${COMPOSE_ARGS[@]}" up -d "$POSTGRES_SERVICE"
+dc() {
+  (cd "$COMPOSE_WORKDIR" && $DC "${COMPOSE_ARGS[@]}" "$@")
+}
+
+if docker ps --format '{{.Names}}' | grep -qx "$POSTGRES_CONTAINER"; then
+  log "Reutilizando contenedor existente: $POSTGRES_CONTAINER"
+  CONTAINER_ID="$(docker ps -q -f "name=^${POSTGRES_CONTAINER}$")"
+else
+  log "Levantando PostgreSQL..."
+  dc up -d "$POSTGRES_SERVICE"
+  CONTAINER_ID="$(dc ps -q "$POSTGRES_SERVICE")"
+fi
 
 log "Esperando PostgreSQL..."
 RETRIES=0
-until $DC "${COMPOSE_ARGS[@]}" exec -T "$POSTGRES_SERVICE" \
-  pg_isready -U "$PGUSER" >/dev/null 2>&1; do
+until docker exec "$POSTGRES_CONTAINER" pg_isready -U "$PGUSER" >/dev/null 2>&1; do
   RETRIES=$((RETRIES + 1))
   if [ "$RETRIES" -ge 30 ]; then
     err "PostgreSQL no respondió a tiempo."
@@ -69,7 +107,10 @@ until $DC "${COMPOSE_ARGS[@]}" exec -T "$POSTGRES_SERVICE" \
   sleep 2
 done
 
-CONTAINER_ID="$($DC "${COMPOSE_ARGS[@]}" ps -q "$POSTGRES_SERVICE")"
+if [ -z "$CONTAINER_ID" ]; then
+  CONTAINER_ID="$(docker ps -q -f "name=^${POSTGRES_CONTAINER}$")"
+fi
+
 if [ -z "$CONTAINER_ID" ]; then
   err "No se pudo obtener el contenedor de PostgreSQL."
   exit 1
@@ -80,7 +121,7 @@ log "Copiando backup al contenedor..."
 docker cp "$BACKUP_FILE" "${CONTAINER_ID}:${REMOTE_BACKUP}"
 
 log "Recreando bases ${LARAVEL_DB} y ${SERVICES_DB}..."
-$DC "${COMPOSE_ARGS[@]}" exec -T "$POSTGRES_SERVICE" psql -U "$PGUSER" -d postgres -v ON_ERROR_STOP=1 <<SQL
+docker exec -i "$POSTGRES_CONTAINER" psql -U "$PGUSER" -d postgres -v ON_ERROR_STOP=1 <<SQL
 SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
 WHERE datname IN ('${LARAVEL_DB}', '${SERVICES_DB}')
@@ -94,26 +135,29 @@ CREATE DATABASE "${SERVICES_DB}";
 SQL
 
 log "Restaurando backup en ${LARAVEL_DB}..."
-if ! $DC "${COMPOSE_ARGS[@]}" exec -T "$POSTGRES_SERVICE" \
+if ! docker exec -i "$POSTGRES_CONTAINER" \
   pg_restore -U "$PGUSER" -d "$LARAVEL_DB" --no-owner --no-acl "$REMOTE_BACKUP"; then
   warn "pg_restore terminó con advertencias (habitual en dumps parciales)."
 fi
 
-$DC "${COMPOSE_ARGS[@]}" exec -T "$POSTGRES_SERVICE" rm -f "$REMOTE_BACKUP"
+docker exec "$POSTGRES_CONTAINER" rm -f "$REMOTE_BACKUP"
 
 log "Aplicando migraciones Prisma + ETL (${LARAVEL_DB} → ${SERVICES_DB})..."
 SEED_DEV_ADMIN=false RUN_LARAVEL_ETL=true \
-  $DC "${COMPOSE_ARGS[@]}" run --rm \
+  dc run --rm \
   -e SEED_DEV_ADMIN=false \
   -e RUN_LARAVEL_ETL=true \
   -v "$ROOT/scripts/docker-prisma-migrate.sh:/app/scripts/docker-prisma-migrate.sh:ro" \
+  -v "$ROOT/scripts/seed-document-series.ts:/app/scripts/seed-document-series.ts:ro" \
+  -v "$ROOT/libs/database/prisma/seeds/chatbot-seed.ts:/app/libs/database/prisma/seeds/chatbot-seed.ts:ro" \
   -v "$ROOT/libs/database/prisma/seed.ts:/app/libs/database/prisma/seed.ts:ro" \
   migrate
 
 log "✅ Restauración completada."
 echo ""
 echo "Usa las mismas credenciales del sistema Laravel/legacy."
-echo "Panel admin: http://localhost:4200"
+echo "Siguiente paso (stack completo):"
+echo "  cd $DEPLOY_ROOT && docker compose up -d --build"
 echo ""
 echo "Si necesitas un admin temporal de desarrollo:"
 echo "  npm run db:seed:dev-admin"

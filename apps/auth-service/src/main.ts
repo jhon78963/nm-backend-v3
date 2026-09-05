@@ -10,6 +10,7 @@ import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from '@app/common/filters/global-exception.filter';
+import { resolveCorsOrigins } from '@app/common/utils/cors-origins.util';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -26,7 +27,7 @@ async function bootstrap() {
   await app.register(multipart, { limits: { fileSize: 5 * 1024 * 1024 } });
 
   app.enableCors({
-    origin: config.get<string>('FRONTEND_URL', 'http://localhost:4200'),
+    origin: resolveCorsOrigins(config),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });

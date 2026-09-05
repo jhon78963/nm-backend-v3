@@ -7,6 +7,7 @@ import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 
 import { GlobalExceptionFilter } from '@app/common/filters/global-exception.filter';
+import { resolveCorsOrigins } from '@app/common/utils/cors-origins.util';
 
 import { AppModule } from './app.module';
 
@@ -24,8 +25,9 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: config.get('FRONTEND_URL', 'http://localhost:4200'),
+    origin: resolveCorsOrigins(config),
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
   app.useGlobalPipes(

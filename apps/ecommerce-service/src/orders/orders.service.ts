@@ -25,7 +25,11 @@ import type { OrderAddressDto } from './dto/create-order.dto';
 import { ListCustomerOrdersQueryDto } from './dto/list-customer-orders-query.dto';
 import { ListOrdersQueryDto } from './dto/list-orders-query.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { buildOrderNumber, buildOrderNumberPrefix } from './utils/order-number.util';
+import {
+  buildOrderNumber,
+  buildOrderNumberPrefix,
+  normalizeOrderNumberForLookup,
+} from './utils/order-number.util';
 import type { AuthenticatedCustomer } from '../customer-auth/types/authenticated-customer.type';
 import { EcommerceMailNotificationsService } from '../mail/ecommerce-mail-notifications.service';
 import { CouponsService } from '../coupons/coupons.service';
@@ -235,7 +239,7 @@ export class OrdersService {
   async getPublicOrder(orderNumber: string, email: string) {
     const order = await this.db.ecommerceOrder.findFirst({
       where: {
-        orderNumber: orderNumber.trim().toUpperCase(),
+        orderNumber: normalizeOrderNumberForLookup(orderNumber),
         email: email.trim().toLowerCase(),
       },
       include: { items: true },
@@ -299,7 +303,7 @@ export class OrdersService {
   }
 
   async getCustomerOrder(customerId: string, orderNumber: string) {
-    const normalizedNumber = orderNumber.trim().toUpperCase();
+    const normalizedNumber = normalizeOrderNumberForLookup(orderNumber);
     const order = await this.db.ecommerceOrder.findFirst({
       where: { customerId, orderNumber: normalizedNumber },
       include: { items: true },
@@ -681,7 +685,7 @@ export class OrdersService {
   }
 
   private async findOrderByNumberAndContact(orderNumber: string, contact: string) {
-    const normalizedNumber = orderNumber.trim().toUpperCase();
+    const normalizedNumber = normalizeOrderNumberForLookup(orderNumber);
     const normalizedContact = contact.trim().toLowerCase();
     const normalizedPhone = contact.replace(/\s/g, '');
 

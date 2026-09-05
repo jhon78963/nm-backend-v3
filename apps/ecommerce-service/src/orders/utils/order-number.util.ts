@@ -10,3 +10,8 @@ export function buildOrderNumber(sequence: number, date = new Date()): string {
   const suffix = String(sequence).padStart(4, '0');
   return `${buildOrderNumberPrefix(date)}-${suffix}`;
 }
+
+/** Strips display prefixes (e.g. "#") before order lookup. */
+export function normalizeOrderNumberForLookup(raw: string): string {
+  return raw.trim().replace(/^#+/, '').toUpperCase();
+}
